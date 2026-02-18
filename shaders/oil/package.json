@@ -1,0 +1,12 @@
+{
+  "name": "@junctionrelay/shader-oil",
+  "version": "1.0.0",
+  "description": "Iridescent oil slick — thin film interference, surface normal perturbation, chromatic rainbow shift",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "oil",
+    "displayName": "Oil",
+    "description": "Physics-based thin film interference. FBM surface normals drive both UV refraction and per-wavelength phase offset, producing the characteristic shifting rainbow of a soap bubble or oil slick. Hue of underlying content rotates with film thickness. Specular highlight and edge darkening for pooling depth. Fully self-contained.",
+    "entry": "shader.hlsl"
+  }
+}

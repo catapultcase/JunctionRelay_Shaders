@@ -1,0 +1,12 @@
+{
+  "name": "@junctionrelay/shader-ascii",
+  "version": "1.0.0",
+  "description": "ASCII terminal renderer — 8x8 character cells, brightness-mapped bitmap glyphs, phosphor green CRT",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "ascii",
+    "displayName": "ASCII",
+    "description": "Converts the scene into an 8x8 pixel character grid. Eight density glyphs (space through @) selected by cell brightness, rendered as actual bitmap pixels. Phosphor green foreground on near-black, with scanline darkening, CRT flicker, phosphor glow bleed into dark neighbouring cells, and vignette. Fully self-contained.",
+    "entry": "shader.hlsl"
+  }
+}
