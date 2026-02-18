@@ -33,7 +33,13 @@ shaders/
 
 | Shader | Description |
 |--------|-------------|
-| `passthrough` | Identity shader — outputs the GPU texture unchanged. Baseline for custom effects. |
+| `hologram` | Cyan tint + scanlines + time-based flicker + edge glow. Ported from XSD-VR Bridge V4 POC. |
+
+## "None" (bypass)
+
+When no shader is selected (`activeShader = ''`), the bridge bypasses the DX11 shader stage entirely and copies the captured frame to the shared texture directly. No GPU shader overhead.
+
+Shaders in this repo are **effects only** — the "None" bypass is always available in the XSD UI.
 
 ## License
 
