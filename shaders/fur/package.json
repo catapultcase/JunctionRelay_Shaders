@@ -1,0 +1,11 @@
+{
+  "name": "@junctionrelay/shader-fur",
+  "version": "1.0.0",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "fur",
+    "displayName": "Fur",
+    "description": "Directional fur strand overlay with physically-based shading. FBM flow field drives local strand direction for natural parting and clumping, three strand layers (fine underlayer, medium main coat, sparse guard hairs), root-to-tip colour gradient (dark root, light tip), Kajiya-Kay anisotropic specular model, inter-strand shadow depth, surface sheen shimmer. Fully self-contained.",
+    "entry": "shader.hlsl"
+  }
+}
