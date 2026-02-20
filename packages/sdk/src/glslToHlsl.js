@@ -73,8 +73,9 @@ function convertGlslToHlsl(glslSource) {
   // 6. Replace clamp(x, 0.0, 1.0) with saturate(x)
   s = replaceSaturatePattern(s);
 
-  // 7. Strip uv = fragCoord / resolution derivation (UV provided as TEXCOORD0)
-  s = s.replace(/\s*float2\s+uv\s*=\s*fragCoord(?:\.xy)?\s*\/\s*resolution\.xy\s*;/, '');
+  // 7. Strip uv = fragCoord... derivation (UV provided as TEXCOORD0)
+  // Matches any: float2 uv = fragCoord / resolution.xy; float2 uv = fragCoord.xy / res; etc.
+  s = s.replace(/\s*float2\s+uv\s*=\s*fragCoord[^;]*;/, '');
 
   // 8. Convert mainImage signature to HLSL main
   s = s.replace(
