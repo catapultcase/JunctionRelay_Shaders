@@ -1,19 +1,10 @@
-#version 300 es
-precision mediump float;
 // Abyss — Deep sea bioluminescence pixel shader
 // Crushing darkness + drifting luminous particles + chromatic pressure waves + ink diffusion
 // Like viewing through the viewport of a submersible at 4000m depth.
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
 
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash11(float p)
 {
@@ -84,9 +75,9 @@ float voronoi(vec2 p, out vec2 cellId)
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // ── 1. Water column distortion ─────────────────────────────────────────────
     vec2 flow;
     flow.x = fbm(uv * 3.5 + vec2(iTime * 0.07,  0.0)) - 0.5;

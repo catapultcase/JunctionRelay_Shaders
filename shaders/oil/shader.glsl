@@ -1,16 +1,7 @@
-#version 300 es
-precision mediump float;
 // Oil — Iridescent oil slick / soap bubble refraction shader
 // Thin film interference + surface normal perturbation + chromatic rainbow shift
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p) { vec3 p3 = fract(vec3(p.xyx)*0.1031); p3 += dot(p3, p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 
@@ -39,9 +30,9 @@ vec3 hueRotate(vec3 col, float angle)
     return clamp(m * col, 0.0, 1.0);
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // ── Flowing surface normals — oil moves slowly ─────────────────────────
     vec2 flowA = vec2(iTime * 0.04,  iTime * 0.03);
     vec2 flowB = vec2(iTime * -0.02, iTime * 0.05);

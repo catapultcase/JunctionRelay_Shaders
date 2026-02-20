@@ -1,24 +1,15 @@
-#version 300 es
-precision mediump float;
 // Predator — Active camouflage shimmer effect
 // Content barely visible through chromatic displacement + heat distortion + edge plasma glow
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
 
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
-
 float hash21(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float noise2(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.0-2.0*f);return mix(mix(hash21(i),hash21(i+vec2(1,0)),u.x),mix(hash21(i+vec2(0,1)),hash21(i+vec2(1,1)),u.x),u.y);}
 float fbm(vec2 p){float v=0.0,a=0.5;mat2 r=mat2(0.8,-0.6,0.6,0.8);for(int i=0;i<5;i++){v+=a*noise2(p);p=r * p*2.1;a*=0.5;}return v;}
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // Primary displacement — the cloaking device bends light around the wearer
     vec2 dispUV = uv * 4.0 + vec2(iTime * 0.15, iTime * 0.11);
     float  dispX  = fbm(dispUV) - 0.5;

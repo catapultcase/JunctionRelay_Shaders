@@ -1,23 +1,14 @@
-#version 300 es
-precision mediump float;
 // Glitch — Digital signal corruption shader
 // RGB channel splitting + block displacement + bit-crush + datamosh smear
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
 
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
-
 float hash11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
 float hash21(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // ── Glitch event timing — irregular bursts ─────────────────────────────
     float eventT    = floor(iTime * 3.7);
     float eventRand = hash11(eventT);
@@ -39,7 +30,7 @@ void main()
     float lineJitter = 0.0;
     if (burstOn > 0.0)
     {
-        float lineRand = hash21(vec2(floor(uv.y * 1080.0), eventT));
+        float lineRand = hash21(vec2(floor(uv.y * iResolution.y), eventT));
         lineJitter     = (lineRand > 0.92) ? (hash21(vec2(uv.y, eventT)) - 0.5) * 0.06 : 0.0;
     }
 
@@ -70,7 +61,7 @@ void main()
     }
 
     // ── Random full-row colour flash ───────────────────────────────────────
-    float flashRow  = hash11(floor(uv.y * 1080.0) + eventT * 13.7);
+    float flashRow  = hash11(floor(uv.y * iResolution.y) + eventT * 13.7);
     float flashOn   = burstOn * step(0.97, flashRow);
     vec3 flashCol = vec3(hash11(eventT + 8.0), hash11(eventT + 9.0), hash11(eventT + 10.0));
     col.rgb         = mix(col.rgb, flashCol, flashOn);

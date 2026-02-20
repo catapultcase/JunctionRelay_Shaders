@@ -1,19 +1,11 @@
-#version 300 es
-precision mediump float;
 // VHS pixel shader — color bleeding, luminance noise, tracking glitches, tape warble.
 // Self-contained: driven entirely by iTime + UV, no extra cbuffers needed.
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
 
-
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 // Cheap hash — produces pseudo-random float in [0,1]
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash(vec2 p)
 {
@@ -30,11 +22,11 @@ float rowHash(float row, float t)
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // ── Tape warble: wobble U slightly based on scanline row and iTime ─────────
-    float row        = floor(gl_FragCoord.y);
+    float row        = floor(fragCoord.y);
     float warble     = (rowHash(row, iTime) - 0.5) * 0.003;
     // Add a slower, broader wave on top
     warble          += sin(uv.y * 18.0 + iTime * 3.5) * 0.0008;
@@ -66,7 +58,7 @@ void main()
     col.rgb      += grain;
 
     // ── Scanlines (softer than hologram — VHS lines are subtle) ──────────────
-    float scanline = 0.88 + 0.12 * sin(gl_FragCoord.y * 3.14159);
+    float scanline = 0.88 + 0.12 * sin(fragCoord.y * 3.14159);
     col.rgb       *= scanline;
 
     // ── Horizontal luminance smear on the glitch band ─────────────────────────

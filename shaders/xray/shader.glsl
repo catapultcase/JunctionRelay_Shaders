@@ -1,16 +1,7 @@
-#version 300 es
-precision mediump float;
 // X-Ray — Medical radiograph / airport security scanner shader
 // Luma inversion + edge bone-glow + density heatmap + film grain + lightbox backlight
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p) { vec3 p3 = fract(vec3(p.xyx)*0.1031); p3 += dot(p3, p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 
@@ -29,10 +20,10 @@ float sobelLuma(vec2 uv, vec2 ts)
     return clamp(sqrt(gx*gx+gy*gy)*4.0, 0.0, 1.0);
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
-    vec2 ts = vec2(1.0/1920.0, 1.0/1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
+    vec2 ts = 1.0 / iResolution.xy;
     vec4 raw  = texture(iChannel0, uv);
     float  luma = dot(raw.rgb, vec3(0.299, 0.587, 0.114));
 
@@ -69,7 +60,7 @@ void main()
     filmColor   += grain * 0.04;
 
     // ── Scan line artifact — some X-ray digitizers leave horizontal lines ─
-    float scanArt = 1.0 - 0.04 * step(0.95, fract(gl_FragCoord.y * 0.25));
+    float scanArt = 1.0 - 0.04 * step(0.95, fract(fragCoord.y * 0.25));
     filmColor    *= scanArt;
 
     // ── Lightbox frame edge — the physical light panel is slightly visible ─

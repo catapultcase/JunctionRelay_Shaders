@@ -1,8 +1,8 @@
 # JunctionRelay Shaders
 
-GLSL ES 300 fragment shaders for JunctionRelay. Shaders run in WebGL2 (browser preview) and are auto-converted to HLSL SM5 for the Windows DX11 texture bridge.
+GPU pixel shader plugins for JunctionRelay XSD. Shaders use the **Shadertoy convention** — any Shadertoy shader works with copy-paste. The `@junctionrelay/shader-sdk` auto-converts GLSL to HLSL SM5 for the Windows DX11 texture bridge.
 
-Authors write standard GLSL. The converter handles the HLSL translation — you never touch HLSL.
+Authors write standard GLSL effect code. The runtime provides uniforms (`iChannel0`, `iTime`, `iResolution`). The converter handles HLSL translation — you never touch HLSL.
 
 ## Creating a Shader
 
@@ -30,17 +30,10 @@ shaders/my-shader/
 }
 ```
 
-**shader.glsl** — must start with this exact header:
+**shader.glsl** — Shadertoy convention (effect code only, no boilerplate):
 ```glsl
-#version 300 es
-precision mediump float;
-
-uniform sampler2D iChannel0;  // input texture (screen capture)
-uniform float iTime;          // elapsed time in seconds
-out vec4 fragColor;           // output color
-
-void main() {
-  vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+  vec2 uv = fragCoord / iResolution.xy;
   vec4 color = texture(iChannel0, uv);
 
   // your effect here
@@ -48,6 +41,23 @@ void main() {
   fragColor = color;
 }
 ```
+
+### Available Uniforms (provided by the runtime)
+
+| Uniform | Type | Description |
+|---------|------|-------------|
+| `iChannel0` | `sampler2D` | Input texture (screen capture) |
+| `iTime` | `float` | Elapsed time in seconds |
+| `iResolution` | `vec3` | Viewport resolution (`iResolution.xy` for width/height) |
+
+### Rules
+
+- Entry point must be `void mainImage(out vec4 fragColor, in vec2 fragCoord)`
+- Use `fragCoord` for pixel coordinates (not `gl_FragCoord`)
+- Use `iResolution.xy` for resolution (never hardcode pixel dimensions)
+- No `#version`, `precision`, `uniform`, or `out` declarations — the runtime adds these
+- No `void main()` — the runtime wraps `mainImage` with the platform entry point
+- Output to `fragColor` (the `out` parameter)
 
 ## Supported GLSL
 
@@ -75,9 +85,11 @@ These GLSL features do NOT convert and will break on Windows:
 - `texelFetch`, `textureGrad`, `textureSize` — only `texture()` and `textureLod()` are supported
 - `lessThan`, `greaterThan`, `equal`, `notEqual` — use component-wise comparison operators instead
 - `matrixCompMult` — use component-wise multiply manually
-- `struct` uniforms — only `iChannel0` and `iTime` are available
+- `struct` uniforms — only `iChannel0`, `iTime`, and `iResolution` are available
 - Multiple `out` variables — only `fragColor` is supported
 - `#include` or multi-file shaders — everything must be in one file
+- `discard` statements
+- Geometry or vertex shader features
 
 ## Testing
 
@@ -85,7 +97,7 @@ Two scripts, one per OS:
 
 | Script | OS | What it tests |
 |--------|----|---------------|
-| `scripts/test_linux.sh` | Linux | GLSL compilation (glslang WASM) + structural HLSL checks |
+| `scripts/test_linux.sh` | Linux | GLSL compilation (glslang WASM → SPIR-V) + structural HLSL checks |
 | `scripts/test_windows.ps1` | Windows | HLSL compilation (fxc.exe) |
 
 ```bash

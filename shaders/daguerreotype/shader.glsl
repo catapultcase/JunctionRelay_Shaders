@@ -1,16 +1,7 @@
-#version 300 es
-precision mediump float;
 // Daguerreotype — 1840s silver plate photography
 // Mirror-like metallic sheen + extreme vignette + chemical blotching + reversed tones
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p) { vec3 p3=fract(vec3(p.xyx)*0.1031); p3+=dot(p3,p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 float noise2(vec2 p) {
@@ -22,9 +13,9 @@ float fbm(vec2 p) {
     for(int i=0;i<4;i++){v+=a*noise2(p);p=r * p*2.1;a*=0.5;} return v;
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     vec4 raw = texture(iChannel0, uv);
     float  luma = dot(raw.rgb, vec3(0.299, 0.587, 0.114));
 
@@ -59,8 +50,8 @@ void main()
     silver += lightBlotch * vec3(0.9, 0.85, 0.7);
 
     // Plate scratches — thin bright lines across the surface
-    float scratch1 = step(0.997, hash21(vec2(floor(uv.x * 1920.0), 3.3)));
-    float scratch2 = step(0.995, hash21(vec2(4.4, floor(uv.y * 1080.0))));
+    float scratch1 = step(0.997, hash21(vec2(floor(uv.x * iResolution.x), 3.3)));
+    float scratch2 = step(0.995, hash21(vec2(4.4, floor(uv.y * iResolution.y))));
     silver += (scratch1 + scratch2) * 0.4 * vec3(1.0, 0.95, 0.85);
 
     // Heavy vignette — plate darkens dramatically at edges (uneven coating)

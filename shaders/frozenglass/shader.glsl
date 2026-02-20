@@ -1,16 +1,7 @@
-#version 300 es
-precision mediump float;
 // FrozenGlass — Ice crystal refraction with frost dendrite growth patterns
 // Voronoi ice structure + fractal frost edges + frozen colour grade + condensation
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p) { vec3 p3=fract(vec3(p.xyx)*0.1031); p3+=dot(p3,p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 float noise2(vec2 p) {
@@ -40,9 +31,9 @@ float voronoiEdge(vec2 p)
     return sqrt(minD2)-sqrt(minD1);
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // Ice crystal voronoi structure — refraction through crystal facets
     vec2 iceUV  = uv * vec2(8.0, 6.0);
     float  edge   = voronoiEdge(iceUV);

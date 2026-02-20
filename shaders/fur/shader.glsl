@@ -1,16 +1,7 @@
-#version 300 es
-precision mediump float;
 // Fur — Directional strand overlay with anisotropic sheen
 // Elongated noise strands + flow field clumping + Kajiya-Kay specular + root/tip gradient
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash11(float p){p=fract(p*0.1031);p*=p+33.33;p*=p+p;return fract(p);}
 float hash21(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
@@ -62,9 +53,9 @@ vec2 strandSample(vec2 uv, vec2 dir, float freq, float seed)
     return vec2(inStrand, tipT);   // x=presence, y=root-to-tip (0=tip,1=root)
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     vec4 baseCol = texture(iChannel0, uv);
     float  luma    = dot(baseCol.rgb, vec3(0.299, 0.587, 0.114));
 

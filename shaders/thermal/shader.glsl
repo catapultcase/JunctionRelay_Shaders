@@ -1,18 +1,9 @@
-#version 300 es
-precision mediump float;
 // Thermal — military FLIR infrared camera shader
 // Heat signature palette + edge detection + sensor noise + targeting reticle ghost
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
 
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p)
 {
@@ -63,10 +54,10 @@ float sobelLuma(vec2 uv, vec2 texelSize)
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
-    vec2 texelSize = vec2(1.0 / 1920.0, 1.0 / 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
+    vec2 texelSize = 1.0 / iResolution.xy;
 
     // ── 1. Sensor micro-jitter — FLIR cameras have slight registration noise ──
     float jitterT  = floor(iTime * 24.0);   // 24fps sensor tick
@@ -101,14 +92,14 @@ void main()
 
     // ── 5. Sensor noise — fixed pattern + temporal random ─────────────────────
     // Fixed pattern noise (FPN): each pixel has a slight persistent offset
-    float fpn  = (hash21(uv * vec2(1920.0, 1080.0)) - 0.5) * 0.025;
+    float fpn  = (hash21(fragCoord) - 0.5) * 0.025;
     // Temporal noise: changes every frame
-    float tn   = (hash21(uv * vec2(1920.0, 1080.0) + fract(iTime * 317.7)) - 0.5) * 0.018;
+    float tn   = (hash21(fragCoord + fract(iTime * 317.7)) - 0.5) * 0.018;
     col       += fpn + tn;
 
     // ── 6. Scan artifact — horizontal banding from detector array readout ──────
     // Real FLIR detectors read out row by row; creates very subtle banding
-    float band = 1.0 + 0.012 * sin(uv.y * 1080.0 * 0.5 + iTime * 60.0);
+    float band = 1.0 + 0.012 * sin(uv.y * iResolution.y * 0.5 + iTime * 60.0);
     col       *= band;
 
     // ── 7. Ghosting — thermal lag (hot objects leave a faint echo) ────────────

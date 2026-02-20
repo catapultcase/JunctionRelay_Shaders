@@ -1,16 +1,7 @@
-#version 300 es
-precision mediump float;
 // Oscilloscope — Edge-detected content rendered as a glowing vector beam
 // Lissajous-style display with electron beam bloom and phosphor persistence
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 
@@ -29,10 +20,10 @@ float sobelLuma(vec2 uv, vec2 ts)
     return clamp(sqrt(gx*gx+gy*gy)*5.0, 0.0, 1.0);
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
-    vec2 ts = vec2(1.0/1920.0, 1.0/1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
+    vec2 ts = 1.0 / iResolution.xy;
 
     // Edge detection — these become the "beam traces"
     float edge = sobelLuma(uv, ts);

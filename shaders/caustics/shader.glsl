@@ -1,16 +1,7 @@
-#version 300 es
-precision mediump float;
 // Caustics — Dancing light grid projected onto content from above
 // Bright summery pool-floor light patterns, animated interference of refracted rays
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p) { vec3 p3=fract(vec3(p.xyx)*0.1031); p3+=dot(p3,p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 float noise2(vec2 p) {
@@ -27,9 +18,9 @@ float causticPattern(vec2 p, float t)
     return pow(clamp(c / 3.0 * 0.5 + 0.5, 0.0, 1.0), 4.0);
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     vec4 col = texture(iChannel0, uv);
 
     vec2 waterUV = uv * 6.0;

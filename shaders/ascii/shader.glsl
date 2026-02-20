@@ -1,17 +1,8 @@
-#version 300 es
-precision mediump float;
 // ASCII — Terminal character-cell rendering shader
 // Converts the scene into a grid of brightness-mapped ASCII characters
 // rendered as filled block glyphs in green-on-black terminal style
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash21(vec2 p) { vec3 p3 = fract(vec3(p.xyx)*0.1031); p3 += dot(p3, p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 
@@ -47,19 +38,19 @@ float bitmapDensity(int level, int cx, int cy)
     return ((row >> (7 - cx)) & 1u) != 0u ? 1.0 : 0.0;
 }
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // ── Cell grid — 8x8 px character cells ───────────────────────────────
     int   cellW   = 8;
     int   cellH   = 8;
-    float cellCol = floor(gl_FragCoord.x / float(cellW));
-    float cellRow = floor(gl_FragCoord.y / float(cellH));
+    float cellCol = floor(fragCoord.x / float(cellW));
+    float cellRow = floor(fragCoord.y / float(cellH));
 
     // UV of the cell's center for sampling source brightness
     vec2 cellUV = vec2(
-        (cellCol + 0.5) * float(cellW) / 1920.0,
-        (cellRow + 0.5) * float(cellH) / 1080.0);
+        (cellCol + 0.5) * float(cellW) / iResolution.x,
+        (cellRow + 0.5) * float(cellH) / iResolution.y);
 
     // ── Sample brightness of source at this cell ──────────────────────────
     float luma = dot(texture(iChannel0, cellUV).rgb, vec3(0.299, 0.587, 0.114));
@@ -68,8 +59,8 @@ void main()
     int level = int(luma * 7.99);
 
     // ── Position within the 8x8 cell ──────────────────────────────────────
-    int cx = int(mod(gl_FragCoord.x, float(cellW)));
-    int cy = int(mod(gl_FragCoord.y, float(cellH)));
+    int cx = int(mod(fragCoord.x, float(cellW)));
+    int cy = int(mod(fragCoord.y, float(cellH)));
 
     // ── Look up bitmap pixel ───────────────────────────────────────────────
     float bit = bitmapDensity(level, cx, cy);
@@ -83,7 +74,7 @@ void main()
     vec3 col = mix(bg, fg, bit);
 
     // ── Scanline darkening between cell rows ──────────────────────────────
-    float scanline = 1.0 - 0.2 * step(6.5, mod(gl_FragCoord.y, float(cellH)));
+    float scanline = 1.0 - 0.2 * step(6.5, mod(fragCoord.y, float(cellH)));
     col *= scanline;
 
     // ── CRT flicker ───────────────────────────────────────────────────────
@@ -93,10 +84,10 @@ void main()
     // ── Phosphor glow — bright cells bleed into surroundings ─────────────
     // Sample neighbours to accumulate glow
     float glowLuma = 0.0;
-    glowLuma += dot(texture(iChannel0, cellUV + vec2( 8.0/1920.0, 0)).rgb, vec3(0.299,0.587,0.114));
-    glowLuma += dot(texture(iChannel0, cellUV + vec2(-8.0/1920.0, 0)).rgb, vec3(0.299,0.587,0.114));
-    glowLuma += dot(texture(iChannel0, cellUV + vec2(0,  8.0/1080.0)).rgb, vec3(0.299,0.587,0.114));
-    glowLuma += dot(texture(iChannel0, cellUV + vec2(0, -8.0/1080.0)).rgb, vec3(0.299,0.587,0.114));
+    glowLuma += dot(texture(iChannel0, cellUV + vec2( 8.0/iResolution.x, 0)).rgb, vec3(0.299,0.587,0.114));
+    glowLuma += dot(texture(iChannel0, cellUV + vec2(-8.0/iResolution.x, 0)).rgb, vec3(0.299,0.587,0.114));
+    glowLuma += dot(texture(iChannel0, cellUV + vec2(0,  8.0/iResolution.y)).rgb, vec3(0.299,0.587,0.114));
+    glowLuma += dot(texture(iChannel0, cellUV + vec2(0, -8.0/iResolution.y)).rgb, vec3(0.299,0.587,0.114));
     glowLuma /= 4.0;
     col.g += glowLuma * 0.06 * (1.0 - bit);   // bleeds into dark areas only
 

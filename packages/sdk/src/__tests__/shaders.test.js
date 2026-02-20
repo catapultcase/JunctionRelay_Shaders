@@ -4,8 +4,15 @@
  *
  * Auto-discovers all shaders in ../../shaders/ and validates:
  *   A. Package metadata (package.json fields)
- *   B. GLSL compilation (glslang WASM → SPIR-V) + structural contract
- *   C. HLSL conversion + structural validation
+ *   B. GLSL compilation (glslang WASM → SPIR-V via child process)
+ *   C. GLSL structural contract (Shadertoy convention)
+ *   D. HLSL conversion + structural validation
+ *
+ * Shaders use the Shadertoy convention: void mainImage(out vec4 fragColor, in vec2 fragCoord)
+ * The runtime provides iChannel0, iTime, and iResolution as uniforms.
+ *
+ * Note: SPIR-V compilation runs in a child process because @webgpu/glslang
+ * WASM deadlocks the node:test event loop on Node 22+.
  *
  * For full HLSL compilation testing with fxc (Windows SDK), see:
  *   devops/windows-ssh-setup.md → "HLSL Compilation Validation"
@@ -15,35 +22,59 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
+const os = require('os');
 const { convertGlslToHlsl } = require('../glslToHlsl');
 
-// ---------------------------------------------------------------------------
-// GLSL compiler (glslang WASM → SPIR-V) — lazy init
-// ---------------------------------------------------------------------------
-let glslang = null;
-let glslangReady = null;
-
-function getGlslang() {
-  if (!glslangReady) {
-    glslangReady = require('@webgpu/glslang')().then(g => { glslang = g; });
-  }
-  return glslangReady;
+/**
+ * Wrap a mainImage shader in a full GLSL program for SPIR-V compilation.
+ */
+function wrapForSpirv(src) {
+  return '#version 310 es\nprecision mediump float;\n' +
+    'layout(binding=0) uniform sampler2D iChannel0;\n' +
+    'layout(std140, binding=1) uniform UB { float iTime; float _pad; vec4 iResolution; };\n' +
+    'layout(location=0) out vec4 _fragColor;\n\n' +
+    src + '\n' +
+    'void main() { mainImage(_fragColor, gl_FragCoord.xy); }\n';
 }
 
 /**
- * Adapt GLSL ES 300 source for SPIR-V compilation.
- * The shader logic, types, and functions are validated — only the
- * header/binding qualifiers change for the Vulkan SPIR-V target.
+ * Compile GLSL to SPIR-V in a child process (avoids WASM + node:test deadlock).
+ * Writes GLSL to a temp file to avoid command-line length limits.
+ * Returns { ok: true, bytes: N } or { ok: false, error: 'message' }.
  */
-function adaptForSpirv(src) {
-  return src
-    .replace('#version 300 es', '#version 310 es')
-    .replace('uniform sampler2D iChannel0;',
-      'layout(binding=0) uniform sampler2D iChannel0;')
-    .replace('uniform float iTime;',
-      'layout(std140, binding=1) uniform TimeBlock { float iTime; };')
-    .replace('out vec4 fragColor;',
-      'layout(location=0) out vec4 fragColor;');
+function compileToSpirvSync(glslSource) {
+  const wrapped = wrapForSpirv(glslSource);
+  const tmpFile = path.join(os.tmpdir(), `spirv_test_${process.pid}.glsl`);
+  const scriptFile = path.join(os.tmpdir(), `spirv_test_${process.pid}.js`);
+  try {
+    fs.writeFileSync(tmpFile, wrapped);
+    const rootDir = path.resolve(__dirname, '../../../..');
+    fs.writeFileSync(scriptFile, `
+      const fs = require('fs');
+      const glsl = fs.readFileSync(${JSON.stringify(tmpFile)}, 'utf8');
+      require(${JSON.stringify(path.join(rootDir, 'node_modules/@webgpu/glslang'))})().then(g => {
+        try {
+          const spirv = g.compileGLSL(glsl, 'fragment');
+          process.stdout.write(JSON.stringify({ ok: true, bytes: spirv.byteLength }));
+        } catch (e) {
+          process.stdout.write(JSON.stringify({ ok: false, error: e.message }));
+        }
+        process.exit(0);
+      });
+    `);
+    const result = execSync(`node ${JSON.stringify(scriptFile)}`, {
+      cwd: path.resolve(__dirname, '../../../..'),
+      timeout: 30000,
+      encoding: 'utf8',
+    });
+    return JSON.parse(result);
+  } catch (e) {
+    return { ok: false, error: e.message.split('\n')[0] };
+  } finally {
+    try { fs.unlinkSync(tmpFile); } catch {}
+    try { fs.unlinkSync(scriptFile); } catch {}
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -101,62 +132,72 @@ for (const shaderName of shaderNames) {
     });
 
     // -----------------------------------------------------------------------
-    // B. GLSL — compilation + structural contract
+    // B. GLSL — SPIR-V compilation (child process)
     // -----------------------------------------------------------------------
-    describe('GLSL', () => {
+    describe('GLSL compilation', () => {
+      it('compiles (glslang → SPIR-V)', () => {
+        const glsl = loadGlsl(shaderDir, pkgPath);
+        const result = compileToSpirvSync(glsl);
+        assert.ok(result.ok, `GLSL compilation failed: ${result.error || 'unknown'}`);
+        assert.ok(result.bytes > 0, 'SPIR-V output is empty');
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // C. GLSL — structural contract (Shadertoy convention)
+    // -----------------------------------------------------------------------
+    describe('GLSL structure', () => {
       let glsl;
 
-      it('compiles (glslang → SPIR-V)', async () => {
-        await getGlslang();
+      it('has void mainImage(out vec4 fragColor, in vec2 fragCoord)', () => {
         glsl = loadGlsl(shaderDir, pkgPath);
-        const adapted = adaptForSpirv(glsl);
-        let spirv;
-        try {
-          spirv = glslang.compileGLSL(adapted, 'fragment');
-        } catch (e) {
-          assert.fail(`GLSL compilation failed:\n${e.message}`);
-        }
-        assert.ok(spirv.byteLength > 0, 'SPIR-V output is empty');
-      });
-
-      it('has #version 300 es', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /#version\s+300\s+es/);
-      });
-
-      it('has precision mediump float', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /precision\s+mediump\s+float/);
-      });
-
-      it('has uniform sampler2D iChannel0', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /uniform\s+sampler2D\s+iChannel0\s*;/);
-      });
-
-      it('has uniform float iTime', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /uniform\s+float\s+iTime\s*;/);
-      });
-
-      it('has out vec4 fragColor', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /out\s+vec4\s+fragColor\s*;/);
-      });
-
-      it('has void main()', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /void\s+main\s*\(\s*\)/);
+        assert.match(glsl, /void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/);
       });
 
       it('assigns to fragColor', () => {
         glsl = glsl || loadGlsl(shaderDir, pkgPath);
         assert.match(glsl, /fragColor\s*=/);
       });
+
+      it('has no #version directive', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        assert.doesNotMatch(glsl, /#version/);
+      });
+
+      it('has no precision qualifier', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        assert.doesNotMatch(glsl, /precision\s+mediump/);
+      });
+
+      it('has no uniform declarations', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        assert.doesNotMatch(glsl, /\buniform\b/);
+      });
+
+      it('has no out vec4 declaration', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        assert.doesNotMatch(glsl, /out\s+vec4\s+fragColor\s*;/);
+      });
+
+      it('has no void main()', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        assert.doesNotMatch(glsl, /void\s+main\s*\(\s*\)/);
+      });
+
+      it('has no gl_FragCoord', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        assert.doesNotMatch(glsl, /\bgl_FragCoord\b/);
+      });
+
+      it('has no hardcoded 1920x1080 resolution', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        assert.doesNotMatch(glsl, /1920\.0/);
+        assert.doesNotMatch(glsl, /1080\.0/);
+      });
     });
 
     // -----------------------------------------------------------------------
-    // C. HLSL — conversion + compilation + structural validation
+    // D. HLSL — conversion + structural validation
     // -----------------------------------------------------------------------
     describe('HLSL', () => {
       let hlsl;
@@ -166,8 +207,6 @@ for (const shaderName of shaderNames) {
         hlsl = convertGlslToHlsl(glsl);
         assert.ok(hlsl.length > 0, 'HLSL output is empty');
       });
-
-      // -- Expected HLSL constructs --
 
       it('has Texture2D tex0', () => {
         hlsl = hlsl || convertShader(shaderDir, pkgPath);
@@ -193,8 +232,6 @@ for (const shaderName of shaderNames) {
         hlsl = hlsl || convertShader(shaderDir, pkgPath);
         assert.match(hlsl, /\breturn\s+/);
       });
-
-      // -- No leftover GLSL --
 
       it('no vec2/vec3/vec4 types', () => {
         hlsl = hlsl || convertShader(shaderDir, pkgPath);
@@ -237,6 +274,11 @@ for (const shaderName of shaderNames) {
         assert.match(hlsl, /\btime\b/);
       });
 
+      it('iResolution replaced with resolution', () => {
+        hlsl = hlsl || convertShader(shaderDir, pkgPath);
+        assert.doesNotMatch(hlsl, /\biResolution\b/);
+      });
+
       it('texture(iChannel0 replaced with tex0.Sample(sampler0', () => {
         hlsl = hlsl || convertShader(shaderDir, pkgPath);
         assert.doesNotMatch(hlsl, /texture\s*\(\s*iChannel0/);
@@ -255,8 +297,6 @@ for (const shaderName of shaderNames) {
         assert.doesNotMatch(hlsl, /\w+\[\d+\]\s*\(/,
           'Found GLSL-style array constructor');
       });
-
-      // -- HLSL type-safety: catch fxc X3014 errors --
 
       it('no single-arg floatN constructors (X3014)', () => {
         hlsl = hlsl || convertShader(shaderDir, pkgPath);
@@ -292,7 +332,6 @@ function findSingleArgFloatConstructors(hlsl) {
   let match;
 
   while ((match = pattern.exec(hlsl)) !== null) {
-    // Skip cast syntax: preceded by ( — e.g. ((float3)(x))
     if (match.index > 0 && hlsl[match.index - 1] === '(') {
       continue;
     }
@@ -307,7 +346,6 @@ function findSingleArgFloatConstructors(hlsl) {
     }
     const inner = hlsl.slice(openParen + 1, pos - 1);
 
-    // Count top-level commas
     let commaDepth = 0;
     let commas = 0;
     for (const c of inner) {

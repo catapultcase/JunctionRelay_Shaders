@@ -1,19 +1,10 @@
-#version 300 es
-precision mediump float;
 // Nostromo — Sci-fi cassette futurism pixel shader
 // Amber phosphor CRT + chunky scanlines + raster interference + data corruption glyphs
 // Inspired by the USCSS Nostromo MU-TH-UR 6000 terminal aesthetic.
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
 
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-
-out vec4 fragColor;
 
 float hash11(float p)
 {
@@ -66,9 +57,9 @@ float bitmapGlyph(int id, int cx, int cy)
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-void main()
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    vec2 uv = gl_FragCoord.xy / vec2(1920.0, 1080.0);
+    vec2 uv = fragCoord.xy / iResolution.xy;
     // ── 1. Barrel / CRT warp ──────────────────────────────────────────────────
     vec2 centered = uv * 2.0 - 1.0;
     vec2 warp     = centered * (1.0 + dot(centered, centered) * 0.06);
@@ -94,7 +85,7 @@ void main()
     col.rgb = phosphor;
 
     // ── 3. Chunky CRT scanlines ───────────────────────────────────────────────
-    float scanRow  = floor(gl_FragCoord.y * 0.5);
+    float scanRow  = floor(fragCoord.y * 0.5);
     float scanline = 0.72 + 0.28 * step(0.5, fract(scanRow * 0.5));
     col.rgb       *= scanline;
 
@@ -123,9 +114,9 @@ void main()
     {
         int cellW   = 6;
         int cellH   = 9;
-        int cellX   = int(mod(gl_FragCoord.x, float(cellW)));
-        int cellY   = int(mod(gl_FragCoord.y - glitchY * 1080.0, float(cellH)));
-        int glyphId = int(hash21(vec2(floor(gl_FragCoord.x / float(cellW)),
+        int cellX   = int(mod(fragCoord.x, float(cellW)));
+        int cellY   = int(mod(fragCoord.y - glitchY * iResolution.y, float(cellH)));
+        int glyphId = int(hash21(vec2(floor(fragCoord.x / float(cellW)),
                                          floor(iTime * 6.0))) * 10.0);
 
         float bit = bitmapGlyph(glyphId, cellX, cellY);

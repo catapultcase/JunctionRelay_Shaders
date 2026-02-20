@@ -1,13 +1,7 @@
-#version 300 es
-precision mediump float;
 // Test Pattern — diagnostic shader for orientation, alignment, and edge detection
 // Reveals flipping, mirroring, cropping, and color accuracy issues
 //
 // GLSL ES 300 fragment shader. Uniforms: iChannel0, iTime
-
-uniform sampler2D iChannel0;
-uniform float iTime;
-out vec4 fragColor;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,10 +73,10 @@ float disc(vec2 p, float radius) {
   return step(length(p), radius);
 }
 
-void main() {
-  vec2 res = vec2(1920.0, 1080.0);
-  vec2 uv = gl_FragCoord.xy / res;
-  vec2 px = gl_FragCoord.xy;
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+  vec2 res = iResolution.xy;
+  vec2 uv = fragCoord.xy / res;
+  vec2 px = fragCoord.xy;
 
   // Background: dim passthrough of the input texture
   vec4 tex = texture(iChannel0, uv);
