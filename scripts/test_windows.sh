@@ -28,15 +28,9 @@ if command -v fxc.exe &>/dev/null; then
   FXC="fxc.exe"
 fi
 
-# Search Windows SDK paths
+# Search Windows SDK paths (cmd.exe where command handles spaces reliably)
 if [ -z "$FXC" ]; then
-  for dir in "/c/Program Files (x86)/Windows Kits/10/bin"/*/x64 \
-             "C:/Program Files (x86)/Windows Kits/10/bin"/*/x64; do
-    if [ -f "$dir/fxc.exe" ] 2>/dev/null; then
-      FXC="$dir/fxc.exe"
-      break
-    fi
-  done
+  FXC=$(cmd.exe /c "where /r \"C:\Program Files (x86)\Windows Kits\10\bin\" fxc.exe" 2>/dev/null | grep x64 | head -1 | tr -d '\r')
 fi
 
 if [ -z "$FXC" ]; then
@@ -97,8 +91,8 @@ for shader_dir in shaders/*/; do
     fs.writeFileSync('${HLSL_FILE}', hlsl);
   "
 
-  # Compile with fxc
-  if "$FXC" /nologo /T ps_5_0 /E main "$HLSL_FILE" /Fo /dev/null 2>"$TEMP_DIR/${SHADER_NAME}.err"; then
+  # Compile with fxc (discard bytecode output with NUL on Windows)
+  if "$FXC" /nologo /T ps_5_0 /E main "$HLSL_FILE" /Fo NUL 2>"$TEMP_DIR/${SHADER_NAME}.err"; then
     echo "  PASS  $SHADER_NAME"
     PASS=$((PASS + 1))
   else
