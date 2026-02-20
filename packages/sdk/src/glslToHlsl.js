@@ -30,7 +30,7 @@ function convertGlslToHlsl(glslSource) {
   s = s.replace(/uniform\s+sampler2D\s+iChannel0\s*;/,
     'Texture2D tex0 : register(t0);\nSamplerState sampler0 : register(s0);');
   s = s.replace(/uniform\s+float\s+iTime\s*;/,
-    'cbuffer TimeBuffer : register(b0) { float time; float3 _pad; };');
+    'cbuffer TimeBuffer : register(b0) { float time; float _pad; float2 resolution; };');
 
   // 3. Remove out vec4 fragColor declaration
   s = s.replace(/out\s+vec4\s+fragColor\s*;/, '');
@@ -91,6 +91,12 @@ function convertGlslToHlsl(glslSource) {
   // 10. Replace main function signature
   s = s.replace(/void\s+main\s*\(\s*\)/,
     'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target');
+
+  // 10b. Flip pos.y after the opening brace of main to match OpenGL convention
+  // DX11 SV_Position has y=0 at top; GLSL gl_FragCoord has y=0 at bottom
+  s = s.replace(
+    /float4 main\(float4 pos : SV_Position, float2 uv : TEXCOORD0\) : SV_Target\s*\{/,
+    'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target\n{\n  pos.y = resolution.y - pos.y;');
 
   // 11. Replace fragColor assignments with return statements
   s = s.replace(/fragColor\s*=\s*/g, 'return ');
