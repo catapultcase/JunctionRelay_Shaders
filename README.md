@@ -1,46 +1,53 @@
-# JunctionRelay_Shaders
+# @junctionrelay/shader-sdk
 
-Shader plugins for the JunctionRelay XSD GPU-accelerated rendering pipeline.
+GLSL-to-HLSL converter and test suite for JunctionRelay shaders. Converts GLSL ES 300 fragment shaders to HLSL SM5 for the Windows DX11 texture bridge.
 
-## Structure
+## Converter
 
-Each shader lives in its own subdirectory under `shaders/` and is described by a `package.json` manifest:
+```js
+const { convertGlslToHlsl } = require('@junctionrelay/shader-sdk');
 
-```
-shaders/
-  <shader-name>/
-    package.json   ← manifest (name, version, junctionrelay metadata)
-    shader.hlsl    ← DX11 pixel shader entry point
+const hlsl = convertGlslToHlsl(glslSource);
 ```
 
-## Manifest Format
+Handles type replacement (`vec3` → `float3`), function renaming (`mix` → `lerp`, `fract` → `frac`), texture sampling, array constructors, scalar broadcast, and main function restructuring. No external dependencies.
 
-```json
-{
-  "name": "@junctionrelay/shader-<name>",
-  "version": "1.0.0",
-  "junctionrelay": {
-    "type": "shader",
-    "shaderName": "<name>",
-    "displayName": "Human Readable Name",
-    "description": "What this shader does.",
-    "entry": "shader.hlsl"
-  }
+## Shader Contract
+
+GLSL shaders must follow this contract:
+
+```glsl
+#version 300 es
+precision mediump float;
+uniform sampler2D iChannel0;
+uniform float iTime;
+out vec4 fragColor;
+
+void main() {
+  // ...
+  fragColor = result;
 }
 ```
 
-## Bundled Shaders
+## Testing
 
-| Shader | Description |
-|--------|-------------|
-| `hologram` | Cyan tint + scanlines + time-based flicker + edge glow. Ported from XSD-VR Bridge V4 POC. |
+Two scripts, one per OS:
 
-## "None" (bypass)
+| Script | OS | What it tests |
+|--------|----|---------------|
+| `scripts/test_linux.sh` | Linux | GLSL compilation (glslang WASM → SPIR-V) + structural HLSL checks |
+| `scripts/test_windows.ps1` | Windows | HLSL compilation (fxc.exe → bytecode) |
 
-When no shader is selected (`activeShader = ''`), the bridge bypasses the DX11 shader stage entirely and copies the captured frame to the shared texture directly. No GPU shader overhead.
+```bash
+# Linux
+./scripts/test_linux.sh
+```
 
-Shaders in this repo are **effects only** — the "None" bypass is always available in the XSD UI.
+```powershell
+# Windows (PowerShell)
+.\scripts\test_windows.ps1
+```
 
 ## License
 
-Copyright (C) 2024-present Jonathan Mills, CatapultCase. All rights reserved.
+MIT
