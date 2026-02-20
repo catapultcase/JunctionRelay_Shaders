@@ -44,7 +44,7 @@ float bitmapDensity(int level, int cx, int cy)
     );
 
     uint row = glyphs[level * 8 + cy];
-    return ((row >> (7 - cx)) & 1u) ? 1.0 : 0.0;
+    return ((row >> (7 - cx)) & 1u) != 0u ? 1.0 : 0.0;
 }
 
 void main()

@@ -61,7 +61,7 @@ float bitmapGlyph(int id, int cx, int cy)
     );
 
     uint row = font[(id % 10) * 7 + cy];
-    return ((row >> (4 - cx)) & 1u) ? 1.0 : 0.0;
+    return ((row >> (4 - cx)) & 1u) != 0u ? 1.0 : 0.0;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
