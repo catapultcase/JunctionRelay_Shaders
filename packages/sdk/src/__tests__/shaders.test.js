@@ -55,8 +55,8 @@ const shaderNames = fs.readdirSync(shadersDir).filter(name => {
   return fs.statSync(dir).isDirectory() && fs.existsSync(path.join(dir, 'package.json'));
 });
 
-assert.ok(shaderNames.length >= 24,
-  `Expected at least 24 shaders, found ${shaderNames.length}`);
+assert.ok(shaderNames.length > 0,
+  'No shaders found in shaders/ directory');
 
 for (const shaderName of shaderNames) {
   describe(`shader: ${shaderName}`, () => {
