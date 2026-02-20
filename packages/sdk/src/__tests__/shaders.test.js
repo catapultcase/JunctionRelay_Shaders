@@ -25,7 +25,11 @@ let glslangReady = null;
 
 function getGlslang() {
   if (!glslangReady) {
-    glslangReady = require('@webgpu/glslang')().then(g => { glslang = g; });
+    // Race WASM load against a 5s timeout — glslang WASM hangs on Windows
+    glslangReady = Promise.race([
+      require('@webgpu/glslang')().then(g => { glslang = g; }),
+      new Promise(resolve => setTimeout(resolve, 5000)),
+    ]);
   }
   return glslangReady;
 }
@@ -106,8 +110,9 @@ for (const shaderName of shaderNames) {
     describe('GLSL', () => {
       let glsl;
 
-      it('compiles (glslang → SPIR-V)', async () => {
+      it('compiles (glslang → SPIR-V)', async (t) => {
         await getGlslang();
+        if (!glslang) { t.skip('glslang WASM not available (Windows)'); return; }
         glsl = loadGlsl(shaderDir, pkgPath);
         const adapted = adaptForSpirv(glsl);
         let spirv;
