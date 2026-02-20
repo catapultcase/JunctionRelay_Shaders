@@ -6,6 +6,6 @@
     "shaderName": "caustics",
     "displayName": "Caustics",
     "description": "Bright summery pool-floor caustic light patterns. Interfering sine wave sets create sharp dancing bright lines projected onto content, animated water surface displacement, cyan-warm light colour, blue-green water tint, edge depth darkening. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }

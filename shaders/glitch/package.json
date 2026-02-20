@@ -1,12 +1,12 @@
 {
   "name": "@junctionrelay/shader-glitch",
   "version": "1.0.0",
-  "description": "Digital signal corruption — block displacement, RGB channel split, bit-crush, datamosh smear",
+  "description": "Digital signal corruption \u2014 block displacement, RGB channel split, bit-crush, datamosh smear",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "glitch",
     "displayName": "Glitch",
     "description": "Irregular burst-based corruption events: macroblock horizontal displacement, scanline-level jitter, independent RGB channel splitting, bit-depth quantisation, datamosh colour smear bands, and random row colour flashes. Fires in unpredictable bursts with quiet periods between. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }

@@ -1,12 +1,12 @@
 {
   "name": "@junctionrelay/shader-xray",
   "version": "1.0.0",
-  "description": "Medical radiograph — luma inversion, Sobel edge bone-glow, density heatmap, film grain, lightbox frame",
+  "description": "Medical radiograph \u2014 luma inversion, Sobel edge bone-glow, density heatmap, film grain, lightbox frame",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "xray",
     "displayName": "X-Ray",
     "description": "Authentic radiograph simulation. Luma inversion maps density to X-ray opacity, Sobel edge detection creates bright structural outlines like bone boundaries, dense regions get a faint orange-red hotspot tint, cool blue-tinted film base with lightbox backlight glow at centre, coarse film grain, digitiser scanline artifact, and a physical lightbox frame edge. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }

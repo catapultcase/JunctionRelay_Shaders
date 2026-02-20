@@ -1,12 +1,12 @@
 {
   "name": "@junctionrelay/shader-nostromo",
   "version": "1.0.0",
-  "description": "MU-TH-UR 6000 phosphor terminal — amber CRT, scanlines, raster interference, data corruption glyphs",
+  "description": "MU-TH-UR 6000 phosphor terminal \u2014 amber CRT, scanlines, raster interference, data corruption glyphs",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "nostromo",
     "displayName": "Nostromo",
     "description": "Cassette-futurism CRT effect inspired by the USCSS Nostromo. Barrel warp, amber-green phosphor grade, chunky scanlines, drifting sync roll, raster ripple, thermal grain, heavy bezel vignette, and periodic data-corruption glyph strips. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }

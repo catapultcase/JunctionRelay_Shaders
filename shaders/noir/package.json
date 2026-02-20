@@ -1,12 +1,12 @@
 {
   "name": "@junctionrelay/shader-noir",
   "version": "1.0.0",
-  "description": "Hard-boiled film noir — bleach bypass, venetian blinds, rain on glass, coarse grain, cigarette burn",
+  "description": "Hard-boiled film noir \u2014 bleach bypass, venetian blinds, rain on glass, coarse grain, cigarette burn",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "noir",
     "displayName": "Noir",
     "description": "1950s crime film aesthetic. Near-monochrome bleach bypass grade with hard S-curve, venetian blind shadow bands at a slight angle, rain streaks and lens-distorting droplets on the glass, warm single key-light from stage left, coarse pushed-film grain, periodic cigarette burn flash in the top-right corner, and a sepia highlight tint. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }

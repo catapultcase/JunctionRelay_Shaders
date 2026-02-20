@@ -6,6 +6,6 @@
     "shaderName": "radar",
     "displayName": "Radar",
     "description": "Military PPI radar sweep display. 4-second full rotation sweep beam with exponential phosphor decay trail, source brightness mapped to radar contacts painted in the wake, green phosphor palette with bloom, concentric range rings, crosshair, circular scope mask with dark bezel. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }

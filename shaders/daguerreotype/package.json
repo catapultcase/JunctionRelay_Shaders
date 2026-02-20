@@ -6,6 +6,6 @@
     "shaderName": "daguerreotype",
     "displayName": "Daguerreotype",
     "description": "1840s silver-mercury plate photography. Tonal reversal in highlights, warm silver-gold colour grade, metallic sheen across the plate surface, FBM chemical blotching from uneven development, plate scratches, heavy radial vignette from uneven coating, and a physical plate border. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }

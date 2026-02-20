@@ -1,12 +1,12 @@
 {
   "name": "@junctionrelay/shader-thermal",
   "version": "1.0.0",
-  "description": "Military FLIR thermal camera — iron/hot palette, edge detection, sensor noise, targeting reticle",
+  "description": "Military FLIR thermal camera \u2014 iron/hot palette, edge detection, sensor noise, targeting reticle",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "thermal",
     "displayName": "Thermal",
     "description": "Authentic FLIR infrared simulation. Classic iron/hot 5-stop heat palette, Sobel edge detection pushing hot edges to white, fixed pattern noise + temporal sensor noise, detector readout banding, thermal lag ghosting, germanium lens vignette, and a minimal targeting reticle HUD with corner brackets. Fully self-contained.",
-    "entry": "shader.hlsl"
+    "entry": "shader.glsl"
   }
 }
