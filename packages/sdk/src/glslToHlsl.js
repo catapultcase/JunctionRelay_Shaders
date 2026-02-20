@@ -39,6 +39,15 @@ function convertGlslToHlsl(glslSource) {
   s = s.replace(/\bmat4\b/g, 'float4x4');
   s = s.replace(/\bmat3\b/g, 'float3x3');
   s = s.replace(/\bmat2\b/g, 'float2x2');
+  s = s.replace(/\bivec4\b/g, 'int4');
+  s = s.replace(/\bivec3\b/g, 'int3');
+  s = s.replace(/\bivec2\b/g, 'int2');
+  s = s.replace(/\buvec4\b/g, 'uint4');
+  s = s.replace(/\buvec3\b/g, 'uint3');
+  s = s.replace(/\buvec2\b/g, 'uint2');
+  s = s.replace(/\bbvec4\b/g, 'bool4');
+  s = s.replace(/\bbvec3\b/g, 'bool3');
+  s = s.replace(/\bbvec2\b/g, 'bool2');
   s = s.replace(/\bvec4\b/g, 'float4');
   s = s.replace(/\bvec3\b/g, 'float3');
   s = s.replace(/\bvec2\b/g, 'float2');
@@ -55,14 +64,18 @@ function convertGlslToHlsl(glslSource) {
   s = s.replace(/\bmix\b/g, 'lerp');
   s = s.replace(/\bfract\b/g, 'frac');
   s = s.replace(/\bmod\b/g, 'fmod');
-  // atan(y,x) stays as atan2 — but in GLSL atan is used for both single and two-arg
-  // Only replace two-arg atan calls (with a comma inside)
-  s = s.replace(/\batan\s*\(/g, 'atan2(');
+  s = s.replace(/\binversesqrt\b/g, 'rsqrt');
+  s = s.replace(/\bdFdx\b/g, 'ddx');
+  s = s.replace(/\bdFdy\b/g, 'ddy');
+  // atan: GLSL atan(x) = HLSL atan(x), GLSL atan(y,x) = HLSL atan2(y,x)
+  // Only replace two-arg atan calls
+  s = replaceAtanCalls(s);
 
   // 6. Replace iTime -> time
   s = s.replace(/\biTime\b/g, 'time');
 
   // 7. Replace texture sampling
+  s = s.replace(/textureLod\s*\(\s*iChannel0\s*,/g, 'tex0.SampleLevel(sampler0,');
   s = s.replace(/texture\s*\(\s*iChannel0\s*,/g, 'tex0.Sample(sampler0,');
 
   // 8. Replace clamp(x, 0.0, 1.0) with saturate(x) for common patterns
@@ -98,6 +111,42 @@ function convertGlslToHlsl(glslSource) {
 }
 
 /**
+ * Replace GLSL atan(y, x) with HLSL atan2(y, x).
+ * Leave single-arg atan(x) unchanged (valid in both languages).
+ */
+function replaceAtanCalls(text) {
+  const pattern = /\batan\s*\(/g;
+  let result = '';
+  let lastEnd = 0;
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    const openParen = match.index + match[0].length - 1;
+    let depth = 1;
+    let pos = openParen + 1;
+    while (depth > 0 && pos < text.length) {
+      if (text[pos] === '(') depth++;
+      else if (text[pos] === ')') depth--;
+      pos++;
+    }
+    const inner = text.slice(openParen + 1, pos - 1);
+    const args = splitTopLevelArgs(inner);
+
+    result += text.slice(lastEnd, match.index);
+    if (args.length >= 2) {
+      result += 'atan2(' + inner + ')';
+    } else {
+      result += 'atan(' + inner + ')';
+    }
+    lastEnd = pos;
+    pattern.lastIndex = pos;
+  }
+
+  result += text.slice(lastEnd);
+  return result;
+}
+
+/**
  * Replace GLSL matrix * vector multiplication with HLSL mul().
  * GLSL: mat2 r = ...; p = r * p;
  * HLSL: float2x2 r = ...; p = mul(r, p);
@@ -110,8 +159,12 @@ function replaceMatrixMultiply(text) {
     matVars.add(m[1]);
   }
   for (const name of matVars) {
-    const re = new RegExp('\\b(' + name + ')\\s*\\*\\s*(\\w+)', 'g');
-    text = text.replace(re, 'mul($1, $2)');
+    // mat * expr → mul(mat, expr)
+    const lhs = new RegExp('\\b(' + name + ')\\s*\\*\\s*(\\w+)', 'g');
+    text = text.replace(lhs, 'mul($1, $2)');
+    // expr * mat → mul(expr, mat)
+    const rhs = new RegExp('(\\w+)\\s*\\*\\s*(' + name + ')\\b', 'g');
+    text = text.replace(rhs, 'mul($1, $2)');
   }
   return text;
 }

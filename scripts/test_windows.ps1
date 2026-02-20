@@ -33,7 +33,8 @@ foreach ($shaderDir in Get-ChildItem "shaders" -Directory) {
 
     # Compile with fxc
     $errFile = Join-Path $tempDir "$name.err"
-    $proc = Start-Process -FilePath $fxc.FullName -ArgumentList "/nologo","/T","ps_5_0","/E","main",$hlslFile,"/Fo","NUL" -NoNewWindow -Wait -PassThru -RedirectStandardError $errFile
+    $outFile = Join-Path $tempDir "$name.out"
+    $proc = Start-Process -FilePath $fxc.FullName -ArgumentList "/nologo","/T","ps_5_0","/E","main",$hlslFile,"/Fo","NUL" -NoNewWindow -Wait -PassThru -RedirectStandardError $errFile -RedirectStandardOutput $outFile
     if ($proc.ExitCode -eq 0) {
         Write-Host "  PASS  $name"
         $pass++
