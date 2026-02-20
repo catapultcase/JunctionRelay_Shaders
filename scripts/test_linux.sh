@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @junctionrelay/shader-sdk — Run shader test suite
+# @junctionrelay/shader-sdk — Linux Test Script
 #
 # Validates all shaders in shaders/:
 #   A. Package metadata (package.json fields)
@@ -7,7 +7,9 @@
 #   C. HLSL conversion + structural validation
 #
 # Usage:
-#   ./scripts/test.sh
+#   ./scripts/test_linux.sh
+#
+# For HLSL compilation testing with fxc, run test_windows.sh on Windows.
 #
 # Prerequisites:
 #   npm install (from repo root — pulls @webgpu/glslang for GLSL compilation)

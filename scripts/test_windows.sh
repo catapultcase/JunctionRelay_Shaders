@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# @junctionrelay/shader-sdk — HLSL Compilation Validation (Windows only)
+# @junctionrelay/shader-sdk — Windows Test Script
 #
-# Converts all GLSL shaders to HLSL, then compiles each with fxc.exe to catch
-# type errors (X3014, X3020, etc.) that structural tests can't detect.
+# Runs structural tests (npm test) then converts all GLSL shaders to HLSL
+# and compiles each with fxc.exe to catch type errors (X3014, X3020, etc.)
+# that structural tests can't detect.
 #
 # REQUIREMENTS:
 #   - Windows 10/11 with Windows SDK installed
-#   - Node.js (for the GLSL→HLSL converter)
+#   - Node.js (for the GLSL→HLSL converter and structural tests)
 #   - fxc.exe from Windows SDK (auto-detected below)
 #
-# Usage (from Git Bash or WSL on Windows):
-#   ./scripts/test_hlsl_compilation.sh
+# Usage (from PowerShell on Windows):
+#   bash scripts/test_windows.sh
 #
-# Usage (from Linux dev machine via SSH):
-#   ssh rusty@10.168.1.98 "cd C:/Dev/JunctionRelay_Shaders && bash scripts/test_hlsl_compilation.sh"
+# For GLSL compilation testing with glslang WASM, run test_linux.sh on Linux.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -50,6 +50,15 @@ if [ -z "$FXC" ]; then
   echo "  https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/"
   exit 1
 fi
+
+# ---------------------------------------------------------------------------
+# Run structural tests first (package validation + HLSL structural checks)
+# GLSL compilation tests are auto-skipped on Windows (glslang WASM unsupported)
+# ---------------------------------------------------------------------------
+echo "=== Structural Tests (npm test) ==="
+echo ""
+npm test
+echo ""
 
 echo "=== HLSL Compilation Validation (fxc) ==="
 echo "Using: $FXC"
