@@ -5,28 +5,30 @@
  * Auto-discovers all shaders in ../../shaders/ and validates:
  *   A. Package metadata (package.json fields)
  *   B. GLSL compilation (glslang WASM → SPIR-V) + structural contract
- *   C. HLSL compilation (dxc/fxc) + structural validation
+ *   C. HLSL conversion + structural validation
  *
- * Requirements:
- *   - npm install (pulls @webgpu/glslang for GLSL compilation)
- *   - dxc or fxc in PATH for HLSL compilation
- *     Windows: included in Windows SDK
- *     Linux:   sudo apt install directx-shader-compiler  (or download from
- *              https://github.com/microsoft/DirectXShaderCompiler/releases)
+ * For full HLSL compilation testing with fxc (Windows SDK), see:
+ *   devops/windows-ssh-setup.md → "HLSL Compilation Validation"
  */
 
-const { describe, it, before } = require('node:test');
+const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
-const { execSync } = require('child_process');
 const { convertGlslToHlsl } = require('../glslToHlsl');
 
 // ---------------------------------------------------------------------------
-// GLSL compiler (glslang WASM → SPIR-V)
+// GLSL compiler (glslang WASM → SPIR-V) — lazy init
 // ---------------------------------------------------------------------------
 let glslang = null;
+let glslangReady = null;
+
+function getGlslang() {
+  if (!glslangReady) {
+    glslangReady = require('@webgpu/glslang')().then(g => { glslang = g; });
+  }
+  return glslangReady;
+}
 
 /**
  * Adapt GLSL ES 300 source for SPIR-V compilation.
@@ -45,40 +47,6 @@ function adaptForSpirv(src) {
 }
 
 // ---------------------------------------------------------------------------
-// HLSL compiler (dxc or fxc via child_process)
-// ---------------------------------------------------------------------------
-let hlslCompiler = null; // { cmd, args: (filePath) => string[] }
-
-function findHlslCompiler() {
-  // Try dxc first (cross-platform), then fxc (Windows SDK)
-  for (const cmd of ['dxc', 'fxc']) {
-    try {
-      execSync(`${cmd} --help`, { stdio: 'pipe', timeout: 5000 });
-      if (cmd === 'dxc') {
-        return {
-          name: 'dxc',
-          compile: (filePath) => {
-            execSync(`dxc -T ps_5_0 -E main "${filePath}"`, {
-              stdio: 'pipe', timeout: 10000
-            });
-          }
-        };
-      } else {
-        return {
-          name: 'fxc',
-          compile: (filePath) => {
-            execSync(`fxc /T ps_5_0 /E main "${filePath}"`, {
-              stdio: 'pipe', timeout: 10000
-            });
-          }
-        };
-      }
-    } catch { /* not found, try next */ }
-  }
-  return null;
-}
-
-// ---------------------------------------------------------------------------
 // Discover shaders
 // ---------------------------------------------------------------------------
 const shadersDir = path.resolve(__dirname, '../../../../shaders');
@@ -89,17 +57,6 @@ const shaderNames = fs.readdirSync(shadersDir).filter(name => {
 
 assert.ok(shaderNames.length >= 20,
   `Expected at least 20 shaders, found ${shaderNames.length}`);
-
-// Init compilers before all tests
-before(async () => {
-  const glslangModule = require('@webgpu/glslang');
-  glslang = await glslangModule();
-  hlslCompiler = findHlslCompiler();
-  if (!hlslCompiler) {
-    console.log('\n  ⚠ No HLSL compiler (dxc/fxc) found — HLSL compilation tests will be skipped.');
-    console.log('    Install: Windows SDK (fxc) or https://github.com/microsoft/DirectXShaderCompiler/releases (dxc)\n');
-  }
-});
 
 for (const shaderName of shaderNames) {
   describe(`shader: ${shaderName}`, () => {
@@ -149,9 +106,9 @@ for (const shaderName of shaderNames) {
     describe('GLSL', () => {
       let glsl;
 
-      it('compiles (glslang → SPIR-V)', () => {
+      it('compiles (glslang → SPIR-V)', async () => {
+        await getGlslang();
         glsl = loadGlsl(shaderDir, pkgPath);
-        assert.ok(glslang, 'glslang WASM not initialized');
         const adapted = adaptForSpirv(glsl);
         let spirv;
         try {
@@ -208,20 +165,6 @@ for (const shaderName of shaderNames) {
         const glsl = loadGlsl(shaderDir, pkgPath);
         hlsl = convertGlslToHlsl(glsl);
         assert.ok(hlsl.length > 0, 'HLSL output is empty');
-      });
-
-      it('compiles (dxc/fxc → SM5)', { skip: !hlslCompiler && 'no HLSL compiler in PATH' }, () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        const tmpFile = path.join(os.tmpdir(), `jr_test_${shaderName}.hlsl`);
-        fs.writeFileSync(tmpFile, hlsl, 'utf8');
-        try {
-          hlslCompiler.compile(tmpFile);
-        } catch (e) {
-          const stderr = e.stderr?.toString() || e.message;
-          assert.fail(`HLSL compilation failed (${hlslCompiler.name}):\n${stderr}`);
-        } finally {
-          try { fs.unlinkSync(tmpFile); } catch {}
-        }
       });
 
       // -- Expected HLSL constructs --
