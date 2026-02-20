@@ -53,13 +53,13 @@ void main()
     // ── Cell grid — 8x8 px character cells ───────────────────────────────
     int   cellW   = 8;
     int   cellH   = 8;
-    float cellCol = floor(gl_FragCoord.x / cellW);
-    float cellRow = floor(gl_FragCoord.y / cellH);
+    float cellCol = floor(gl_FragCoord.x / float(cellW));
+    float cellRow = floor(gl_FragCoord.y / float(cellH));
 
     // UV of the cell's center for sampling source brightness
     vec2 cellUV = vec2(
-        (cellCol + 0.5) * cellW / 1920.0,
-        (cellRow + 0.5) * cellH / 1080.0);
+        (cellCol + 0.5) * float(cellW) / 1920.0,
+        (cellRow + 0.5) * float(cellH) / 1080.0);
 
     // ── Sample brightness of source at this cell ──────────────────────────
     float luma = dot(texture(iChannel0, cellUV).rgb, vec3(0.299, 0.587, 0.114));

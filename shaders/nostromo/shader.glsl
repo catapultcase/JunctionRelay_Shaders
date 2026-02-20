@@ -125,7 +125,7 @@ void main()
         int cellH   = 9;
         int cellX   = int(mod(gl_FragCoord.x, float(cellW)));
         int cellY   = int(mod(gl_FragCoord.y - glitchY * 1080.0, float(cellH)));
-        int glyphId = int(hash21(vec2(floor(gl_FragCoord.x / cellW),
+        int glyphId = int(hash21(vec2(floor(gl_FragCoord.x / float(cellW)),
                                          floor(iTime * 6.0))) * 10.0);
 
         float bit = bitmapGlyph(glyphId, cellX, cellY);
