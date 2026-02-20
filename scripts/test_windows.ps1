@@ -11,7 +11,7 @@ Write-Host ""
 
 $pass = 0
 $fail = 0
-$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "shader-hlsl-test"
+$tempDir = Join-Path (Get-Location) "tmp"
 if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }
 New-Item $tempDir -ItemType Directory | Out-Null
 

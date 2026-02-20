@@ -43,7 +43,11 @@ function convertGlslToHlsl(glslSource) {
   s = s.replace(/\bvec3\b/g, 'float3');
   s = s.replace(/\bvec2\b/g, 'float2');
 
-  // 4b. GLSL vec3(scalar) broadcasts to all components; HLSL float3(scalar) is invalid.
+  // 4b. GLSL mat * vec uses overloaded * for matrix multiply; HLSL requires mul().
+  // Find all floatNxN variable names and rewrite: var * expr → mul(var, expr)
+  s = replaceMatrixMultiply(s);
+
+  // 4c. GLSL vec3(scalar) broadcasts to all components; HLSL float3(scalar) is invalid.
   // Convert single-arg floatN constructors to HLSL cast syntax: (floatN)(expr)
   s = replaceScalarBroadcastConstructors(s);
 
@@ -91,6 +95,25 @@ function convertGlslToHlsl(glslSource) {
   }
 
   return s.trim() + '\n';
+}
+
+/**
+ * Replace GLSL matrix * vector multiplication with HLSL mul().
+ * GLSL: mat2 r = ...; p = r * p;
+ * HLSL: float2x2 r = ...; p = mul(r, p);
+ */
+function replaceMatrixMultiply(text) {
+  const matVars = new Set();
+  const declPattern = /\bfloat[234]x[234]\s+(\w+)/g;
+  let m;
+  while ((m = declPattern.exec(text)) !== null) {
+    matVars.add(m[1]);
+  }
+  for (const name of matVars) {
+    const re = new RegExp('\\b(' + name + ')\\s*\\*\\s*(\\w+)', 'g');
+    text = text.replace(re, 'mul($1, $2)');
+  }
+  return text;
 }
 
 /**
