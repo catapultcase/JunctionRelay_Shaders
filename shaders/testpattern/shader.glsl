@@ -106,32 +106,27 @@ void main() {
 
   // ── Corner markers (numbered 1-4, clockwise from top-left) ─────────────
   float cornerSize = 60.0;
+  float boxHalf = 30.0;
 
-  // Top-left: "1" — single dot + L-bracket
+  // Top-left: "1" — red box with digit inside
   vec2 tl = px - vec2(cornerSize, res.y - cornerSize);
-  col += vec3(1.0, 0.0, 0.0) * disc(tl, 8.0);
-  col += vec3(1.0, 0.0, 0.0) * box(tl + vec2(-20.0, 20.0), vec2(40.0, 40.0), 3.0);
+  col += vec3(1.0, 0.0, 0.0) * box(tl, vec2(boxHalf), 3.0);
+  col += vec3(1.0, 0.0, 0.0) * digit(tl, 1, 18.0);
 
-  // Top-right: "2" — two dots
+  // Top-right: "2" — green box with digit inside
   vec2 tr = px - vec2(res.x - cornerSize, res.y - cornerSize);
-  col += vec3(0.0, 1.0, 0.0) * disc(tr + vec2(12.0, 0.0), 8.0);
-  col += vec3(0.0, 1.0, 0.0) * disc(tr - vec2(12.0, 0.0), 8.0);
-  col += vec3(0.0, 1.0, 0.0) * box(tr + vec2(20.0, 20.0), vec2(40.0, 40.0), 3.0);
+  col += vec3(0.0, 1.0, 0.0) * box(tr, vec2(boxHalf), 3.0);
+  col += vec3(0.0, 1.0, 0.0) * digit(tr, 2, 18.0);
 
-  // Bottom-left: "3" — three dots
+  // Bottom-left: "3" — blue box with digit inside
   vec2 bl = px - vec2(cornerSize, cornerSize);
-  col += vec3(0.0, 0.5, 1.0) * disc(bl + vec2(-12.0, 0.0), 6.0);
-  col += vec3(0.0, 0.5, 1.0) * disc(bl, 6.0);
-  col += vec3(0.0, 0.5, 1.0) * disc(bl + vec2(12.0, 0.0), 6.0);
-  col += vec3(0.0, 0.5, 1.0) * box(bl + vec2(-20.0, -20.0), vec2(40.0, 40.0), 3.0);
+  col += vec3(0.0, 0.5, 1.0) * box(bl, vec2(boxHalf), 3.0);
+  col += vec3(0.0, 0.5, 1.0) * digit(bl, 3, 18.0);
 
-  // Bottom-right: "4" — four dots (square)
+  // Bottom-right: "4" — yellow box with digit inside
   vec2 br = px - vec2(res.x - cornerSize, cornerSize);
-  col += vec3(1.0, 1.0, 0.0) * disc(br + vec2(-8.0, 8.0), 6.0);
-  col += vec3(1.0, 1.0, 0.0) * disc(br + vec2(8.0, 8.0), 6.0);
-  col += vec3(1.0, 1.0, 0.0) * disc(br + vec2(-8.0, -8.0), 6.0);
-  col += vec3(1.0, 1.0, 0.0) * disc(br + vec2(8.0, -8.0), 6.0);
-  col += vec3(1.0, 1.0, 0.0) * box(br + vec2(20.0, -20.0), vec2(40.0, 40.0), 3.0);
+  col += vec3(1.0, 1.0, 0.0) * box(br, vec2(boxHalf), 3.0);
+  col += vec3(1.0, 1.0, 0.0) * digit(br, 4, 18.0);
 
   // ── Directional arrows ─────────────────────────────────────────────────
   float arrowSize = 40.0;
@@ -181,13 +176,6 @@ void main() {
   float sweep = mod(iTime * 0.2, 1.0);
   float sweepLine = step(abs(uv.x - sweep), 0.002);
   col += vec3(0.0, 1.0, 0.5) * sweepLine;
-
-  // ── Corner digit labels (1-4, confirms orientation with numbers) ───────
-  float digitScale = 20.0;
-  col += vec3(1.0, 0.0, 0.0) * digit(tl + vec2(0.0, -30.0), 1, digitScale);
-  col += vec3(0.0, 1.0, 0.0) * digit(tr + vec2(0.0, -30.0), 2, digitScale);
-  col += vec3(0.0, 0.5, 1.0) * digit(bl + vec2(0.0, 30.0), 3, digitScale);
-  col += vec3(1.0, 1.0, 0.0) * digit(br + vec2(0.0, 30.0), 4, digitScale);
 
   // ── Aspect ratio circles (should be perfectly round if aspect is correct) ─
   col += vec3(0.4) * circle(center, 200.0, 1.5);
