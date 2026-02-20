@@ -1,5 +1,5 @@
 # test_windows.ps1 — HLSL compilation with fxc (Windows only)
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 Set-Location "$PSScriptRoot\.."
 
 # Find fxc.exe
@@ -19,7 +19,7 @@ foreach ($shaderDir in Get-ChildItem "shaders" -Directory) {
     $pkgPath = Join-Path $shaderDir.FullName "package.json"
     if (-not (Test-Path $pkgPath)) { continue }
 
-    $entry = node -e "const p=require('./$($shaderDir.Name)/package.json');console.log(p.junctionrelay?.entry||'')" 2>$null
+    $entry = node -e "const p=require('./shaders/$($shaderDir.Name)/package.json');console.log(p.junctionrelay?.entry||'')" 2>$null
     if (-not $entry) { continue }
 
     $glslPath = Join-Path $shaderDir.FullName $entry
