@@ -1,0 +1,13 @@
+{
+  "name": "@junctionrelay/shaders-root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@webgpu/glslang": "^0.0.15"
+  }
+}

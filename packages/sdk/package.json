@@ -1,0 +1,10 @@
+{
+  "name": "@junctionrelay/shader-sdk",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "src/index.js",
+  "exports": { ".": "./src/index.js" },
+  "scripts": {
+    "test": "node --test src/__tests__/*.test.js"
+  }
+}
