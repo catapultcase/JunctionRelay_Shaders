@@ -82,8 +82,8 @@ function convertGlslToHlsl(glslSource) {
   s = replaceSaturatePattern(s);
 
   // 9. Replace gl_FragCoord with pos in main body, and restructure main
-  // First, find and replace the UV derivation line
-  s = s.replace(/\s*float2\s+uv\s*=\s*gl_FragCoord\.xy\s*\/\s*float2\s*\(\s*1920\.0\s*,\s*1080\.0\s*\)\s*;/, '');
+  // Strip any uv = gl_FragCoord derivation line (uv is provided as a parameter)
+  s = s.replace(/\s*float2\s+uv\s*=\s*gl_FragCoord\.xy\s*\/[^;]+;/, '');
 
   // Replace gl_FragCoord with pos
   s = s.replace(/\bgl_FragCoord\b/g, 'pos');
