@@ -34,31 +34,31 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float distortAmount = 0.15;
     vec2 curved = barrelDistort(uv, distortAmount);
 
-    // Black outside the curved screen area
-    if (curved.x < 0.0 || curved.x > 1.0 || curved.y < 0.0 || curved.y > 1.0)
-    {
-        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
-    }
+    // Mask for pixels outside the curved screen area
+    float inBounds = step(0.0, curved.x) * step(curved.x, 1.0)
+                   * step(0.0, curved.y) * step(curved.y, 1.0);
+
+    // Clamp UVs so texture lookups don't wrap
+    vec2 safeUV = clamp(curved, 0.0, 1.0);
 
     // ── Bloom / halation ─────────────────────────────────────────────────────
     // Simple 5-tap cross blur to simulate phosphor glow bleeding
     float bloomSpread = 2.0 / iResolution.x;
     vec3 bloom = vec3(0.0);
-    bloom += texture(iChannel0, curved + vec2( bloomSpread, 0.0)).rgb;
-    bloom += texture(iChannel0, curved + vec2(-bloomSpread, 0.0)).rgb;
-    bloom += texture(iChannel0, curved + vec2(0.0,  bloomSpread)).rgb;
-    bloom += texture(iChannel0, curved + vec2(0.0, -bloomSpread)).rgb;
-    bloom += texture(iChannel0, curved).rgb;
+    bloom += texture(iChannel0, clamp(safeUV + vec2( bloomSpread, 0.0), 0.0, 1.0)).rgb;
+    bloom += texture(iChannel0, clamp(safeUV + vec2(-bloomSpread, 0.0), 0.0, 1.0)).rgb;
+    bloom += texture(iChannel0, clamp(safeUV + vec2(0.0,  bloomSpread), 0.0, 1.0)).rgb;
+    bloom += texture(iChannel0, clamp(safeUV + vec2(0.0, -bloomSpread), 0.0, 1.0)).rgb;
+    bloom += texture(iChannel0, safeUV).rgb;
     bloom /= 5.0;
     float bloomLuma = dot(bloom, vec3(0.299, 0.587, 0.114));
     float bloomMix  = pow(bloomLuma, 3.0) * 0.4;
 
     // ── Sample with RGB offset for chromatic fringing ────────────────────────
     float chromaOff = 0.5 / iResolution.x;
-    float r = texture(iChannel0, curved + vec2( chromaOff, 0.0)).r;
-    float g = texture(iChannel0, curved).g;
-    float b = texture(iChannel0, curved + vec2(-chromaOff, 0.0)).b;
+    float r = texture(iChannel0, clamp(safeUV + vec2( chromaOff, 0.0), 0.0, 1.0)).r;
+    float g = texture(iChannel0, safeUV).g;
+    float b = texture(iChannel0, clamp(safeUV + vec2(-chromaOff, 0.0), 0.0, 1.0)).b;
     vec3 col = vec3(r, g, b);
 
     // Mix in bloom
@@ -98,9 +98,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
     // ── Corner shadow / vignette ─────────────────────────────────────────────
     // Curved glass attenuates at the edges
-    vec2 vig   = curved * (1.0 - curved);
+    vec2 vig   = safeUV * (1.0 - safeUV);
     float vign = pow(vig.x * vig.y * 20.0, 0.5);
     col *= mix(0.3, 1.0, vign);
 
-    fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+    // Black outside the curved screen, apply effect inside
+    fragColor = vec4(clamp(col, 0.0, 1.0) * inBounds, 1.0);
 }
