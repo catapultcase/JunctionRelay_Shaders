@@ -14,7 +14,7 @@
         "name": "rainAmount",
         "displayName": "Rain Amount",
         "type": "float",
-        "default": 0.6,
+        "default": 0.3,
         "min": 0.0,
         "max": 1.0,
         "description": "Density of rain — controls settled droplets, large rolling drops, and small fast drops"
@@ -32,7 +32,7 @@
         "name": "dropSize",
         "displayName": "Drop Size",
         "type": "float",
-        "default": 0.4,
+        "default": 0.6,
         "min": 0.1,
         "max": 1.5,
         "description": "Scales the radius of all raindrops — lower for fine mist, higher for large heavy drops"
@@ -41,7 +41,7 @@
         "name": "pathVariance",
         "displayName": "Path Variance",
         "type": "float",
-        "default": 0.5,
+        "default": 0.3,
         "min": 0.0,
         "max": 1.0,
         "description": "Controls how erratically drops meander as they fall — 0 is straight down, higher values add lateral wobble and erratic jitter"
@@ -50,7 +50,7 @@
         "name": "windDir",
         "displayName": "Wind Direction",
         "type": "float",
-        "default": 0.0,
+        "default": 0.7,
         "min": -1.0,
         "max": 1.0,
         "description": "Wind direction — negative blows left, positive blows right. Tilts background streaks and biases drop drift on glass."
@@ -59,7 +59,7 @@
         "name": "glassTilt",
         "displayName": "Glass Tilt",
         "type": "float",
-        "default": 0.0,
+        "default": 0.8,
         "min": -1.0,
         "max": 1.0,
         "description": "Glass surface tilt — negative tilts left, positive tilts right. Drops drift toward the low side under gravity."
@@ -68,7 +68,7 @@
         "name": "surfaceTension",
         "displayName": "Glass Cling",
         "type": "float",
-        "default": 0.5,
+        "default": 0.2,
         "min": 0.0,
         "max": 1.0,
         "description": "How clingy the glass surface is — low values let drops slide quickly, high values make them cling longer and fall slower"
