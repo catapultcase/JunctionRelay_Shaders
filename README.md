@@ -25,10 +25,17 @@ shaders/my-shader/
     "shaderName": "my-shader",
     "displayName": "My Shader",
     "description": "Longer description of the effect",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": false,
+    "uniforms": []
   }
 }
 ```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `usesTexture` | `boolean` | Yes | `true` = postprocessing shader (reads `iChannel0`), `false` = generative shader (no texture input) |
+| `uniforms` | `array` | Yes | Custom uniforms exposed to the UI (see [Custom Uniforms](#custom-uniforms)) |
 
 **shader.glsl** — Shadertoy convention (effect code only, no boilerplate):
 ```glsl
@@ -59,6 +66,45 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 - No `void main()` — the runtime wraps `mainImage` with the platform entry point
 - Output to `fragColor` (the `out` parameter)
 
+### Custom Uniforms
+
+Shaders can declare custom uniforms that appear as sliders/inputs in the UI. Declare them in `package.json` and reference them directly in GLSL — the runtime injects them.
+
+```json
+"uniforms": [
+  {
+    "name": "rainAmount",
+    "displayName": "Rain Amount",
+    "type": "float",
+    "default": 0.7,
+    "min": 0.0,
+    "max": 1.0,
+    "description": "Density of rain"
+  }
+]
+```
+
+| Uniform Field | Required | Description |
+|---------------|----------|-------------|
+| `name` | Yes | GLSL identifier (must match `[a-zA-Z_]\w*`) |
+| `displayName` | Yes | UI label |
+| `type` | Yes | `float`, `vec2`, `vec3`, `vec4`, or `color` |
+| `default` | Yes | Default value |
+| `min` / `max` | No | Range for float sliders |
+| `description` | No | Tooltip text |
+
+In your GLSL, just use the name directly — no declaration needed:
+
+```glsl
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+  // rainAmount is available as a variable — no 'uniform' declaration
+  float intensity = rainAmount * 2.0;
+  ...
+}
+```
+
+The converter injects these into an HLSL `cbuffer` at `register(b1)` automatically.
+
 ## Supported GLSL
 
 Your shader is auto-converted to HLSL. Use these GLSL features freely — they all convert correctly:
@@ -85,7 +131,7 @@ These GLSL features do NOT convert and will break on Windows:
 - `texelFetch`, `textureGrad`, `textureSize` — only `texture()` and `textureLod()` are supported
 - `lessThan`, `greaterThan`, `equal`, `notEqual` — use component-wise comparison operators instead
 - `matrixCompMult` — use component-wise multiply manually
-- `struct` uniforms — only `iChannel0`, `iTime`, and `iResolution` are available
+- `struct` uniforms — use the `uniforms` array in `package.json` for custom inputs
 - Multiple `out` variables — only `fragColor` is supported
 - `#include` or multi-file shaders — everything must be in one file
 - `discard` statements
@@ -93,24 +139,24 @@ These GLSL features do NOT convert and will break on Windows:
 
 ## Testing
 
-Two scripts, one per OS:
+**Both Linux and Windows tests MUST pass.** A shader that passes Linux but fails Windows will break the DX11 texture bridge on production Windows machines.
 
 | Script | OS | What it tests |
 |--------|----|---------------|
-| `scripts/test_linux.sh` | Linux | GLSL compilation (glslang WASM → SPIR-V) + structural HLSL checks |
-| `scripts/test_windows.ps1` | Windows | HLSL compilation (fxc.exe) |
+| `scripts/test_linux.sh` | Linux | GLSL compilation (glslang WASM → SPIR-V) + structural HLSL checks + custom uniform injection |
+| `scripts/test_windows.ps1` | Windows | HLSL compilation with fxc.exe (Windows SDK) + custom uniform injection |
 
 ```bash
-# Linux
+# Linux — run from repo root
 ./scripts/test_linux.sh
 ```
 
 ```powershell
-# Windows (PowerShell)
+# Windows — run from repo root (PowerShell)
 .\scripts\test_windows.ps1
 ```
 
-Both must pass. If your shader compiles in the browser preview but fails the Windows test, you're using an unsupported GLSL feature — check the "What to Avoid" list above.
+If your shader compiles in the browser preview but fails the Windows test, you're using an unsupported GLSL feature — check the "What to Avoid" list above.
 
 ## License
 
