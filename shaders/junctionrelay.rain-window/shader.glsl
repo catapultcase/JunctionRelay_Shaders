@@ -3,13 +3,12 @@
 // All rights reserved.
 //
 // Texture overlay: background viewed through wet, condensed glass.
-// Drops roll down the surface, trails cut through fog, tiny droplets
-// scatter across the pane. The scene behind refracts through each drop.
+// Drops cling to the glass, then slide with accelerating speed.
+// Larger drops cling less and fall faster. Adjacent drops merge.
 //
 // Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount, dropSize, pathVariance
 
 // ── Hash functions ────────────────────────────────────────────
-// cos-polynomial family
 
 float rng(float n) {
     return fract(cos(n * 71.97) * 41415.93);
@@ -24,80 +23,109 @@ vec2 rng22(vec2 p) {
 }
 
 // ── Rolling drops ─────────────────────────────────────────────
-// Scrolling grid: cells drift downward over time. Checks three adjacent
-// columns and accumulates a metaball height field — drops near cell
-// boundaries merge into a single larger shape, like real water would.
+// Each column holds 4 independent drop slots. Every slot cycles through:
+//   CLING  — held by surface tension, stationary
+//   SLIDE  — released, falls with ease-in acceleration
+//   RESET  — exits bottom, new drop forms near the top
 //
+// Larger drops cling for a shorter fraction of the cycle and
+// accelerate more steeply (size → speed correlation).
+// Three adjacent columns are sampled so drops near cell boundaries
+// merge into a single shape via metaball field accumulation.
+//
+// hashSeed: per-layer offset so the two layers are decorrelated.
 // Returns: vec2(dropHeight, trailClearing)
 
-vec2 rollingDrops(vec2 uv, float t, float cols, float rows, float speed) {
-    vec2 grid = vec2(cols, rows);
-    vec2 st = uv * grid;
+vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
+    float aspect = iResolution.x / iResolution.y;
+    float colW   = aspect / cols;              // column width in UV units
 
-    // Rain falls: scroll grid downward
-    st.y += t * speed;
-
-    // Desync each column vertically so drops don't align in rows
-    float colId = floor(st.x);
-    st.y += rng(colId * 43.71) * 87.3;
-
-    vec2 cellId = floor(st);
-    vec2 f = fract(st); // 0..1 in cell
+    // Column index and fractional position within it
+    float colX   = (uv.x / aspect + 0.5) * cols;
+    float colId  = floor(colX);
+    float colFrac = fract(colX);
 
     float field = 0.0;
     float trail = 0.0;
 
-    // Check left, center, and right columns so adjacent drops can clump
-    for (int dx = -1; dx <= 1; dx++) {
-        float nColId = colId + float(dx);
+    // Check left, centre, right columns so nearby drops merge
+    for (int dc = -1; dc <= 1; dc++) {
+        float nCol  = colId + float(dc);
+        float nFrac = colFrac - float(dc);   // x within neighbor column
 
-        // Column sparsity: some columns have no drops
-        float alive = step(0.3, rng(nColId * 91.3));
-        if (alive < 0.5) continue;
+        // Column sparsity — roughly one in four columns has no drops
+        if (rng(nCol * 91.3 + hashSeed) < 0.25) continue;
 
-        // Recompute Y position under this column's desync offset
-        float nStY = uv.y * rows + t * speed + rng(nColId * 43.71) * 87.3;
-        vec2 nCellId = vec2(cellId.x + float(dx), floor(nStY));
+        // ── 4 independent slots per column ──────────────────────────────
+        for (int slot = 0; slot < 4; slot++) {
+            float base = nCol * 7.13 + float(slot) * 53.7 + hashSeed;
+            float sa = rng(base);
+            float sb = rng(base + 111.5);
+            float sc = rng(base + 222.3);   // used for sizeNorm
+            float sd = rng(base + 333.7);
 
-        // Position within the neighbor cell (x shifts by -dx to stay in cell-local space)
-        vec2 nF = vec2(f.x - float(dx), fract(nStY));
+            float sizeNorm = sc;            // 0 = tiny, 1 = large
+            float radius   = (0.03 + sizeNorm * 0.07) * dropSize;
 
-        // Per-cell randoms
-        float ra = rng2(nCellId);
-        float rb = rng2(nCellId + 331.0);
-        float rc = rng2(nCellId + 719.0);
+            // Lifecycle timing
+            //   - longer period for slow/rare large drops
+            //   - big drops cling for a SMALLER fraction (less surface tension)
+            float period    = mix(8.0, 22.0, sa) / speed;
+            float clingFrac = mix(0.87, 0.48, sizeNorm);
+            float clingDur  = period * clingFrac;
+            float localT    = mod(t + sa * period * 3.71, period);
 
-        // Drop center within cell
-        float cx = 0.5 + (ra - 0.5) * 0.4;
-        float cy = 0.25 + rb * 0.45;
+            // Y on screen: 0 = top, 1 = bottom
+            // Drops form in the upper portion so we always see them start
+            float startY = 0.03 + sd * 0.45;
 
-        // Horizontal wobble: two base harmonics + erratic jitter term, all scaled by pathVariance.
-        // At pathVariance = 0.5 (default) the base harmonics match the original amplitudes.
-        float wobble = sin(uv.y * 14.0 + t * (1.3 + ra) + ra * 6.28) * 0.04 * (pathVariance * 2.0)
-                     + sin(uv.y * 7.3  + t * 0.7 + rb * 4.1) * 0.025 * (pathVariance * 2.0)
-                     + sin(uv.y * 31.7 + t * (3.7 + rc) + rc * 9.2) * 0.02 * pathVariance;
-        cx += wobble;
+            float dropY;
+            float sliding;
 
-        // Elliptical drop shape (slightly taller than wide)
-        vec2 delta = vec2(nF.x - cx, (nF.y - cy) * 0.65);
-        float radius = (0.055 + rc * 0.03) * dropSize;
-        float dist = length(delta);
-        float nDrop = smoothstep(radius, radius * 0.2, dist);
+            if (localT < clingDur) {
+                // CLINGING — holds its position
+                dropY   = startY;
+                sliding = 0.0;
+            } else {
+                // SLIDING — ease-in: starts slow, accelerates as it gains momentum
+                float slideT = (localT - clingDur) / (period - clingDur);
+                float accel  = mix(1.5, 3.2, sizeNorm);  // large drops steepen faster
+                dropY   = startY + pow(slideT, accel) * (1.08 - startY);
+                sliding = 1.0;
+            }
 
-        // Accumulate metaball field — overlapping contributions merge smoothly
-        field += nDrop;
+            // Skip drops that are fully off-screen
+            if (dropY < -0.08 || dropY > 1.08) continue;
 
-        // Trail: narrow band of cleared fog above the center drop only
-        if (dx == 0) {
-            float bw = radius * 2.2;
-            float band = smoothstep(bw, bw * 0.3, abs(nF.x - cx));
-            float above = smoothstep(cy - 0.01, cy + 0.4, nF.y);
-            trail = band * above * (1.0 - nDrop) * 0.5;
+            // Horizontal centre within column; wobble only while sliding
+            float cx = 0.25 + sa * 0.5;
+            if (sliding > 0.5) {
+                float w = sin(uv.y * 14.0 + t * (1.3 + sa) + sa * 6.28) * 0.04 * (pathVariance * 2.0)
+                        + sin(uv.y * 7.3  + t * 0.7 + sb * 4.1) * 0.025 * (pathVariance * 2.0)
+                        + sin(uv.y * 31.7 + t * (3.7 + sc) + sc * 9.2) * 0.02 * pathVariance;
+                cx += w;
+            }
+
+            // Distance in UV space (dy converts screenY → uv.y)
+            float dx  = (nFrac - cx) * colW;
+            float dy  = uv.y - (0.5 - dropY);
+            float d   = length(vec2(dx, dy * 0.65));
+            float hit = smoothstep(radius, radius * 0.2, d);
+
+            // Metaball accumulation — overlapping drops merge
+            field += hit;
+
+            // Wet trail: fog-clearing strip left behind a sliding drop
+            if (dc == 0 && sliding > 0.5) {
+                float bw    = radius * 2.2;
+                float band  = smoothstep(bw, bw * 0.3, abs(dx));
+                float above = smoothstep(-0.01, 0.35, uv.y - (0.5 - dropY));
+                trail = max(trail, band * above * (1.0 - hit) * 0.6);
+            }
         }
     }
 
-    float drop = clamp(field, 0.0, 1.0);
-    return vec2(drop, trail);
+    return vec2(clamp(field, 0.0, 1.0), trail);
 }
 
 // ── Settled droplets ──────────────────────────────────────────
@@ -111,22 +139,20 @@ float settledDrops(vec2 uv, float t) {
         float scale = 32.0 + float(i) * 22.0;
         vec2 g = uv * scale;
 
-        // Hex offset: shift every other row by half a cell
         float row = floor(g.y);
         g.x += step(0.5, fract(row * 0.5)) * 0.5;
 
         vec2 id = floor(g);
-        vec2 f = fract(g) - 0.5;
+        vec2 f  = fract(g) - 0.5;
 
-        vec2 r = rng22(id + float(i) * 500.0);
-        vec2 center = (r - 0.5) * 0.45;
+        vec2 r  = rng22(id + float(i) * 500.0);
+        vec2 c  = (r - 0.5) * 0.45;
 
-        float d = length(f - center);
+        float d  = length(f - c);
         float sz = (0.04 + r.x * 0.11) * dropSize;
 
-        // Breathing: smooth pulse, each drop on its own cycle
         float pulse = sin(t * 0.5 + r.y * 6.28) * 0.5 + 0.5;
-        pulse *= pulse; // sharpen the on-phase
+        pulse *= pulse;
 
         total += smoothstep(sz, sz * 0.12, d) * pulse * step(0.5, r.y);
     }
@@ -137,14 +163,14 @@ float settledDrops(vec2 uv, float t) {
 // ── Height field: all rain layers combined ────────────────────
 
 vec2 heightField(vec2 uv, float t, float amount) {
-    // Layer weights ramp in as rain amount increases
-    float wSettled = smoothstep(0.0, 0.5, amount) * 1.5;
-    float wLarge   = smoothstep(0.15, 0.7, amount);
-    float wSmall   = smoothstep(0.35, 1.0, amount);
+    float wSettled = smoothstep(0.0,  0.5,  amount) * 1.5;
+    float wLarge   = smoothstep(0.15, 0.7,  amount);
+    float wSmall   = smoothstep(0.35, 1.0,  amount);
 
     float s  = settledDrops(uv, t) * wSettled;
-    vec2  d1 = rollingDrops(uv, t, 8.0, 20.0, 2.5) * wLarge;
-    vec2  d2 = rollingDrops(uv * 1.7 + 100.0, t, 12.0, 28.0, 4.0) * wSmall;
+    // Large slow drops (8 wide columns) and small fast drops (18 narrow columns)
+    vec2  d1 = rollingDrops(uv, t,  8.0,  0.0,  1.0) * wLarge;
+    vec2  d2 = rollingDrops(uv, t, 18.0, 17.5,  2.5) * wSmall;
 
     float height = clamp(s + d1.x + d2.x, 0.0, 1.0);
     float trail  = max(d1.y, d2.y);
@@ -186,26 +212,20 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 texUV = fragCoord / iResolution.xy;
     float t = iTime;
 
-    // Blur radius in pixels from fog parameter
-    float blurHi = mix(0.0, 10.0, fogAmount);          // open glass: 0–10 px
-    float blurLo = mix(0.0,  1.5, fogAmount * 0.5);    // through a drop: stays sharp
+    float blurHi = mix(0.0, 10.0, fogAmount);
+    float blurLo = mix(0.0,  1.5, fogAmount * 0.5);
 
-    // Rain height field
     vec2 hf = heightField(uv, t, rainAmount);
 
-    // Surface normals via forward differences
     float eps = 0.0008;
     float hR = heightField(uv + vec2(eps, 0.0), t, rainAmount).x;
     float hU = heightField(uv + vec2(0.0, eps), t, rainAmount).x;
     vec2 n = vec2(hR - hf.x, hU - hf.x);
 
-    // Blur radius: drops clear the fog (sharp), trails thin it, glass stays foggy
     float blurR = mix(blurHi - hf.y * blurHi * 0.5, blurLo, smoothstep(0.05, 0.25, hf.x));
 
-    // Sample background through wet glass with manual blur
     vec3 col = fogBlur(texUV + n, blurR);
 
-    // Gentle vignette
     vec2 vc = texUV - 0.5;
     col *= 1.0 - dot(vc, vc) * 0.7;
 
