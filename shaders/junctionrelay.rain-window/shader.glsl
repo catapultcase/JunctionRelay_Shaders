@@ -181,6 +181,45 @@ vec2 heightField(vec2 uv, float t, float amount) {
     return vec2(height, trail);
 }
 
+// ── Background rain streaks ───────────────────────────────────
+// Fast-moving vertical streaks seen through the glass in the scene beyond.
+// Takes texUV (0..1 in both dimensions) so it is correctly refracted by the
+// surface-normal offset already applied to bgUV in mainImage.
+// Three layers at different densities and speeds give a sense of depth.
+
+float bgRainLayer(vec2 uv, float t, float cols, float rowDensity, float speed, float seed) {
+    float sx  = uv.x * cols;
+    float sy  = uv.y * rowDensity - t * speed;
+
+    float cId = floor(sx);
+    float rId = floor(sy);
+    float fx  = fract(sx);
+    float fy  = fract(sy);
+
+    float r1 = rng(cId * 7.13  + rId * 53.7  + seed);
+    float r2 = rng(cId * 11.31 + rId * 37.1  + seed);
+    float r3 = rng(cId * 17.33 + rId * 41.9  + seed);
+
+    float live = step(0.72, r1);    // ~28% of cells contain a streak
+
+    float cx = 0.15 + r2 * 0.70;   // x centre within column
+    float xW = 0.03 + r3 * 0.04;   // streak half-width (3–7% of column)
+    float x  = smoothstep(xW, 0.0, abs(fx - cx));
+
+    // Smooth fade at cell edges so adjacent active cells blend seamlessly
+    float y  = smoothstep(0.0, 0.18, fy) * smoothstep(1.0, 0.82, fy);
+
+    return x * y * live * (0.15 + r3 * 0.30);
+}
+
+float backgroundRain(vec2 uv, float t) {
+    float r = 0.0;
+    r += bgRainLayer(uv, t, 30.0, 18.0, 12.0,  0.0);  // coarse / slow
+    r += bgRainLayer(uv, t, 55.0, 32.0, 28.0, 19.3);  // medium
+    r += bgRainLayer(uv, t, 88.0, 55.0, 50.0, 43.7);  // fine / fast
+    return min(r, 1.0);
+}
+
 // ── Fog blur — 13-tap weighted kernel ────────────────────────
 // textureLod requires mipmaps; this works with any texture filter.
 // Ring 1 (cardinal, weight 2): taps at ±r on each axis.
@@ -227,7 +266,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     float blurR = mix(blurHi - hf.y * blurHi * 0.5, blurLo, smoothstep(0.05, 0.25, hf.x));
 
-    vec3 col = fogBlur(texUV + n, blurR);
+    // bgUV carries the drop-normal refraction offset — fog blur and background
+    // rain both sample at this position so rain streaks refract through each drop.
+    vec2 bgUV = texUV + n;
+    vec3 col  = fogBlur(bgUV, blurR);
+
+    // Background rain: falling in the scene outside the glass.
+    // Fades with fog (can't see distant rain through heavy condensation).
+    float bgRain = backgroundRain(bgUV, t) * rainAmount * mix(0.30, 0.02, fogAmount);
+    col += bgRain * vec3(0.78, 0.86, 1.0);  // cool blue-white rain tint
 
     vec2 vc = texUV - 0.5;
     col *= 1.0 - dot(vc, vc) * 0.7;
