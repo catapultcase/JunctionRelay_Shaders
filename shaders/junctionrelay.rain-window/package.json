@@ -1,6 +1,6 @@
 {
   "name": "@junctionrelay/shader-rain-window",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Rain on glass — realistic drops with refraction, trails, and fog over a background texture",
   "junctionrelay": {
     "type": "shader",
@@ -54,6 +54,15 @@
         "min": -1.0,
         "max": 1.0,
         "description": "Wind direction — negative blows left, positive blows right. Tilts background streaks and biases drop drift on glass."
+      },
+      {
+        "name": "glassTilt",
+        "displayName": "Glass Tilt",
+        "type": "float",
+        "default": 0.0,
+        "min": -1.0,
+        "max": 1.0,
+        "description": "Glass surface tilt — negative tilts left, positive tilts right. Drops drift toward the low side under gravity."
       },
       {
         "name": "surfaceTension",

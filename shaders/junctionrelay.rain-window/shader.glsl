@@ -6,7 +6,7 @@
 // Drops cling to the glass, then slide with accelerating speed.
 // Larger drops cling less and fall faster. Adjacent drops merge.
 //
-// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount, dropSize, pathVariance, windDir, surfaceTension
+// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount, dropSize, pathVariance, windDir, glassTilt, surfaceTension
 
 // ── Hash functions ────────────────────────────────────────────
 
@@ -81,6 +81,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
 
             float dropY;
             float sliding;
+            float slideT = 0.0;
 
             if (localT < clingDur) {
                 // CLINGING — holds its position
@@ -88,7 +89,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
                 sliding = 0.0;
             } else {
                 // SLIDING — ease-in: starts slow, accelerates as it gains momentum
-                float slideT = (localT - clingDur) / (period - clingDur);
+                slideT = (localT - clingDur) / (period - clingDur);
                 float accel  = mix(1.5, 3.2, sizeNorm) * mix(1.3, 0.6, surfaceTension);
                 dropY   = startY + pow(slideT, accel) * (1.08 - startY);
                 sliding = 1.0;
@@ -100,21 +101,25 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             // Horizontal centre within column; wobble only while sliding
             float cx = 0.25 + sa * 0.5;
             if (sliding > 0.5) {
-                float sT = (localT - clingDur) / (period - clingDur);
                 float w = sin(uv.y * 14.0 + t * (1.3 + sa) + sa * 6.28) * 0.04 * (pathVariance * 2.0)
                         + sin(uv.y * 7.3  + t * 0.7 + sb * 4.1) * 0.025 * (pathVariance * 2.0)
                         + sin(uv.y * 31.7 + t * (3.7 + sc) + sc * 9.2) * 0.02 * pathVariance;
                 // Wind pushes drops laterally; drift grows as the drop picks up speed
-                w += windDir * sT * 0.35;
+                w += windDir * slideT * 0.35;
                 cx += w;
             }
+
+            // Glass tilt: drops drift toward the low side of tilted glass
+            cx += glassTilt * ((dropY - startY) * 0.6 + 0.08);
 
             // Distance in UV space (dy converts screenY → uv.y)
             // Elongation varies with size: small drops are nearly circular,
             // large drops stretch slightly under gravity (physically accurate).
             float dx    = (nFrac - cx) * colW;
             float dy    = uv.y - (0.5 - dropY);
-            float elong = mix(0.88, 0.72, sizeNorm);
+            dy += sliding * slideT * radius * 0.35;
+            float elongBase = mix(0.92, 0.80, sizeNorm);
+            float elong = elongBase - sliding * pow(slideT, 0.7) * 0.18;
             float d     = length(vec2(dx, dy * elong));
             // Metaball field: falloff extends well beyond drop radius so
             // nearby drops bulge toward each other and merge into one blob.
@@ -243,6 +248,7 @@ float backgroundRain(vec2 uv, float t) {
 vec3 fogBlur(vec2 uv, float r) {
     if (r < 0.5) return texture(iChannel0, uv).rgb;
     vec2 px  = r / iResolution.xy;
+    px.y *= 1.5;   // gravity pulls condensation into vertical streaks
     vec2 px2 = px * 2.3;
     vec3 c = texture(iChannel0, uv).rgb * 4.0;
     c += texture(iChannel0, uv + vec2( px.x,  0.0 )).rgb * 2.0;
