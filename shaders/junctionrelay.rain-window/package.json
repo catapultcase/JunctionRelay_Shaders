@@ -1,12 +1,12 @@
 {
   "name": "@junctionrelay/shader-rain-window",
-  "version": "2.0.0",
-  "description": "Rain on glass \u2014 realistic drops with refraction, trails, and fog over a background texture",
+  "version": "2.1.0",
+  "description": "Rain on glass — realistic drops with refraction, trails, and fog over a background texture",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.rain-window",
     "displayName": "Rain Window",
-    "description": "Rainy glass overlay. Drops roll down the surface leaving trails that cut through condensation fog. Tiny droplets scatter across the pane on hex-offset grids with breathing animation. The background texture refracts through each drop \u2014 sharp where water clears the surface, soft and foggy everywhere else.",
+    "description": "Rainy glass overlay. Drops roll down the surface leaving trails that cut through condensation fog. Tiny droplets scatter across the pane on hex-offset grids with breathing animation. The background texture refracts through each drop — sharp where water clears the surface, soft and foggy everywhere else.",
     "entry": "shader.glsl",
     "usesTexture": true,
     "uniforms": [
@@ -17,7 +17,7 @@
         "default": 0.7,
         "min": 0.0,
         "max": 1.0,
-        "description": "Density of rain \u2014 controls settled droplets, large rolling drops, and small fast drops"
+        "description": "Density of rain — controls settled droplets, large rolling drops, and small fast drops"
       },
       {
         "name": "fogAmount",
@@ -26,7 +26,25 @@
         "default": 0.5,
         "min": 0.0,
         "max": 1.0,
-        "description": "How foggy the glass surface appears \u2014 higher values blur the background more"
+        "description": "How foggy the glass surface appears — higher values blur the background more"
+      },
+      {
+        "name": "dropSize",
+        "displayName": "Drop Size",
+        "type": "float",
+        "default": 1.0,
+        "min": 0.3,
+        "max": 2.5,
+        "description": "Scales the radius of all raindrops — lower for fine mist, higher for large heavy drops"
+      },
+      {
+        "name": "pathVariance",
+        "displayName": "Path Variance",
+        "type": "float",
+        "default": 0.5,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Controls how erratically drops meander as they fall — 0 is straight down, higher values add lateral wobble and erratic jitter"
       }
     ]
   }

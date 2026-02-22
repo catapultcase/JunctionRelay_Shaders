@@ -6,7 +6,7 @@
 // Drops roll down the surface, trails cut through fog, tiny droplets
 // scatter across the pane. The scene behind refracts through each drop.
 //
-// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount
+// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount, dropSize, pathVariance
 
 // ── Hash functions ────────────────────────────────────────────
 // cos-polynomial family
@@ -24,9 +24,9 @@ vec2 rng22(vec2 p) {
 }
 
 // ── Rolling drops ─────────────────────────────────────────────
-// Scrolling grid: cells drift downward over time, each containing
-// one raindrop at a jittered position. The scroll creates the
-// illusion of continuous falling.
+// Scrolling grid: cells drift downward over time. Checks three adjacent
+// columns and accumulates a metaball height field — drops near cell
+// boundaries merge into a single larger shape, like real water would.
 //
 // Returns: vec2(dropHeight, trailClearing)
 
@@ -44,36 +44,60 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float rows, float speed) {
     vec2 cellId = floor(st);
     vec2 f = fract(st); // 0..1 in cell
 
-    // Per-cell randoms
-    float ra = rng2(cellId);
-    float rb = rng2(cellId + 331.0);
-    float rc = rng2(cellId + 719.0);
+    float field = 0.0;
+    float trail = 0.0;
 
-    // Column sparsity: some columns have no drops
-    float alive = step(0.3, rng(colId * 91.3));
+    // Check left, center, and right columns so adjacent drops can clump
+    for (int dx = -1; dx <= 1; dx++) {
+        float nColId = colId + float(dx);
 
-    // Drop center within cell
-    float cx = 0.5 + (ra - 0.5) * 0.4;
-    float cy = 0.25 + rb * 0.45;
+        // Column sparsity: some columns have no drops
+        float alive = step(0.3, rng(nColId * 91.3));
+        if (alive < 0.5) continue;
 
-    // Horizontal wobble: two harmonics for organic meandering
-    float wobble = sin(uv.y * 14.0 + t * (1.3 + ra) + ra * 6.28) * 0.04
-                 + sin(uv.y * 7.3  + t * 0.7 + rb * 4.1) * 0.025;
-    cx += wobble;
+        // Recompute Y position under this column's desync offset
+        float nStY = uv.y * rows + t * speed + rng(nColId * 43.71) * 87.3;
+        vec2 nCellId = vec2(cellId.x + float(dx), floor(nStY));
 
-    // Elliptical drop shape (slightly taller than wide)
-    vec2 delta = vec2(f.x - cx, (f.y - cy) * 0.65);
-    float radius = 0.055 + rc * 0.03;
-    float dist = length(delta);
-    float drop = smoothstep(radius, radius * 0.2, dist);
+        // Position within the neighbor cell (x shifts by -dx to stay in cell-local space)
+        vec2 nF = vec2(f.x - float(dx), fract(nStY));
 
-    // Trail: narrow band of cleared fog above the drop
-    float bw = radius * 2.2;
-    float band = smoothstep(bw, bw * 0.3, abs(f.x - cx));
-    float above = smoothstep(cy - 0.01, cy + 0.4, f.y);
-    float trail = band * above * (1.0 - drop) * 0.5;
+        // Per-cell randoms
+        float ra = rng2(nCellId);
+        float rb = rng2(nCellId + 331.0);
+        float rc = rng2(nCellId + 719.0);
 
-    return vec2(drop, trail) * alive;
+        // Drop center within cell
+        float cx = 0.5 + (ra - 0.5) * 0.4;
+        float cy = 0.25 + rb * 0.45;
+
+        // Horizontal wobble: two base harmonics + erratic jitter term, all scaled by pathVariance.
+        // At pathVariance = 0.5 (default) the base harmonics match the original amplitudes.
+        float wobble = sin(uv.y * 14.0 + t * (1.3 + ra) + ra * 6.28) * 0.04 * (pathVariance * 2.0)
+                     + sin(uv.y * 7.3  + t * 0.7 + rb * 4.1) * 0.025 * (pathVariance * 2.0)
+                     + sin(uv.y * 31.7 + t * (3.7 + rc) + rc * 9.2) * 0.02 * pathVariance;
+        cx += wobble;
+
+        // Elliptical drop shape (slightly taller than wide)
+        vec2 delta = vec2(nF.x - cx, (nF.y - cy) * 0.65);
+        float radius = (0.055 + rc * 0.03) * dropSize;
+        float dist = length(delta);
+        float nDrop = smoothstep(radius, radius * 0.2, dist);
+
+        // Accumulate metaball field — overlapping contributions merge smoothly
+        field += nDrop;
+
+        // Trail: narrow band of cleared fog above the center drop only
+        if (dx == 0) {
+            float bw = radius * 2.2;
+            float band = smoothstep(bw, bw * 0.3, abs(nF.x - cx));
+            float above = smoothstep(cy - 0.01, cy + 0.4, nF.y);
+            trail = band * above * (1.0 - nDrop) * 0.5;
+        }
+    }
+
+    float drop = clamp(field, 0.0, 1.0);
+    return vec2(drop, trail);
 }
 
 // ── Settled droplets ──────────────────────────────────────────
@@ -98,7 +122,7 @@ float settledDrops(vec2 uv, float t) {
         vec2 center = (r - 0.5) * 0.45;
 
         float d = length(f - center);
-        float sz = 0.04 + r.x * 0.11;
+        float sz = (0.04 + r.x * 0.11) * dropSize;
 
         // Breathing: smooth pulse, each drop on its own cycle
         float pulse = sin(t * 0.5 + r.y * 6.28) * 0.5 + 0.5;
