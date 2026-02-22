@@ -255,7 +255,7 @@ for (const shaderName of shaderNames) {
 
       it('converts without throwing', () => {
         const glsl = loadGlsl(shaderDir, pkgPath);
-        hlsl = convertGlslToHlsl(glsl);
+        hlsl = convertGlslToHlsl(glsl, customUniforms);
         assert.ok(hlsl.length > 0, 'HLSL output is empty');
       });
 
@@ -330,10 +330,27 @@ for (const shaderName of shaderNames) {
         assert.doesNotMatch(hlsl, /\biResolution\b/);
       });
 
-      it('texture(iChannel0 replaced with tex0.Sample(sampler0', { skip: !usesTexture }, () => {
+      it('iChannel0 sampling replaced with tex0.Sample/SampleLevel', { skip: !usesTexture }, () => {
         hlsl = hlsl || convertShader(shaderDir, pkgPath);
         assert.doesNotMatch(hlsl, /texture\s*\(\s*iChannel0/);
-        assert.match(hlsl, /tex0\.Sample\(sampler0/);
+        assert.doesNotMatch(hlsl, /textureLod\s*\(\s*iChannel0/);
+        assert.match(hlsl, /tex0\.Sample(?:Level)?\(sampler0/);
+      });
+
+      it('custom uniforms declared in cbuffer', { skip: !customUniforms || customUniforms.length === 0 }, () => {
+        hlsl = hlsl || convertShader(shaderDir, pkgPath);
+        assert.match(hlsl, /cbuffer\s+CustomUniforms/,
+          'Missing cbuffer CustomUniforms for shader with custom uniforms');
+        for (const u of customUniforms) {
+          assert.match(hlsl, new RegExp('\\b' + u.name + '\\b'),
+            `Custom uniform ${u.name} not found in HLSL`);
+        }
+      });
+
+      it('no float2 uv redefinition (uv is a main parameter)', () => {
+        hlsl = hlsl || convertShader(shaderDir, pkgPath);
+        assert.doesNotMatch(hlsl, /\bfloat2\s+uv\s*=/,
+          'Found float2 uv declaration — should be assignment (uv =) since uv is a main() parameter');
       });
 
       it('const arrays use static const', () => {
@@ -370,7 +387,9 @@ function loadGlsl(shaderDir, pkgPath) {
 }
 
 function convertShader(shaderDir, pkgPath) {
-  return convertGlslToHlsl(loadGlsl(shaderDir, pkgPath));
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const uniforms = pkg.junctionrelay?.uniforms;
+  return convertGlslToHlsl(loadGlsl(shaderDir, pkgPath), uniforms);
 }
 
 /**

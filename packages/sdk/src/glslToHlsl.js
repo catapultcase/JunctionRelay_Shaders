@@ -17,18 +17,41 @@
  */
 
 /**
+ * Map manifest uniform type to HLSL type.
+ * @param {string} type - Manifest type (float, vec2, vec3, vec4, color)
+ * @returns {string} HLSL type
+ */
+function uniformHlslType(type) {
+  if (type === 'color') return 'float3';
+  if (type === 'vec2') return 'float2';
+  if (type === 'vec3') return 'float3';
+  if (type === 'vec4') return 'float4';
+  return type; // float
+}
+
+/**
  * Convert a Shadertoy-convention GLSL fragment shader to HLSL (SM5).
  * @param {string} glslSource - The GLSL shader source (mainImage format)
+ * @param {Array<{name: string, type: string}>} [uniforms] - Custom uniforms from manifest
  * @returns {string} HLSL shader source
  */
-function convertGlslToHlsl(glslSource) {
+function convertGlslToHlsl(glslSource, uniforms) {
   let s = glslSource;
 
   // 1. Prepend HLSL header (mainImage shaders have no declarations)
-  s = 'Texture2D tex0 : register(t0);\n' +
+  let header = 'Texture2D tex0 : register(t0);\n' +
       'SamplerState sampler0 : register(s0);\n' +
-      'cbuffer TimeBuffer : register(b0) { float time; float _pad; float2 resolution; };\n\n' +
-      s;
+      'cbuffer TimeBuffer : register(b0) { float time; float _pad; float2 resolution; };\n';
+
+  // 1b. Inject custom uniforms cbuffer if any are declared in the manifest
+  if (uniforms && uniforms.length > 0) {
+    const members = uniforms.map(u =>
+      `  ${uniformHlslType(u.type)} ${u.name};`
+    ).join('\n');
+    header += `cbuffer CustomUniforms : register(b1) {\n${members}\n};\n`;
+  }
+
+  s = header + '\n' + s;
 
   // 2. Replace types (longer patterns first)
   s = s.replace(/\bmat4\b/g, 'float4x4');
@@ -73,9 +96,8 @@ function convertGlslToHlsl(glslSource) {
   // 6. Replace clamp(x, 0.0, 1.0) with saturate(x)
   s = replaceSaturatePattern(s);
 
-  // 7. Strip uv = fragCoord... derivation (UV provided as TEXCOORD0)
-  // Matches any: float2 uv = fragCoord / resolution.xy; float2 uv = fragCoord.xy / res; etc.
-  s = s.replace(/\s*float2\s+uv\s*=\s*fragCoord[^;]*;/, '');
+  // 7. Convert float2 uv declarations to assignments (uv is already a parameter in main)
+  s = s.replace(/\bfloat2\s+uv\s*=/g, 'uv =');
 
   // 8. Convert mainImage signature to HLSL main
   s = s.replace(

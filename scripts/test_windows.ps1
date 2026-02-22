@@ -28,8 +28,8 @@ foreach ($shaderDir in Get-ChildItem "shaders" -Directory) {
     $name = $shaderDir.Name
     $hlslFile = Join-Path $tempDir "$name.hlsl"
 
-    # Convert GLSL to HLSL
-    node -e "const fs=require('fs');const{convertGlslToHlsl}=require('./packages/sdk/src/glslToHlsl');fs.writeFileSync('$($hlslFile -replace '\\','/')',convertGlslToHlsl(fs.readFileSync('$($glslPath -replace '\\','/')','utf8')))"
+    # Convert GLSL to HLSL (pass custom uniforms from manifest)
+    node -e "const fs=require('fs');const{convertGlslToHlsl}=require('./packages/sdk/src/glslToHlsl');const pkg=JSON.parse(fs.readFileSync('$($pkgPath -replace '\\','/')','utf8'));const u=pkg.junctionrelay&&pkg.junctionrelay.uniforms;fs.writeFileSync('$($hlslFile -replace '\\','/')',convertGlslToHlsl(fs.readFileSync('$($glslPath -replace '\\','/')','utf8'),u))"
 
     # Compile with fxc
     $errFile = Join-Path $tempDir "$name.err"

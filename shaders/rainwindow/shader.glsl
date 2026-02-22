@@ -6,7 +6,7 @@
 // Drops roll down the surface, trails cut through fog, tiny droplets
 // scatter across the pane. The scene behind refracts through each drop.
 //
-// Uniforms: iChannel0, iTime, iResolution, rainAmount, fogAmount
+// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount
 
 // ── Hash functions ────────────────────────────────────────────
 // cos-polynomial family
@@ -135,7 +135,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 texUV = fragCoord / iResolution.xy;
     float t = iTime;
 
-    // Blur range from fog uniform
+    // Blur range from fog parameter
     float blurHi = mix(1.5, 7.0, fogAmount);
     float blurLo = mix(0.3, 2.0, fogAmount * 0.5);
 
