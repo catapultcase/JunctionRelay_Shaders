@@ -27,12 +27,30 @@ const os = require('os');
 const { convertGlslToHlsl } = require('../glslToHlsl');
 
 /**
- * Wrap a mainImage shader in a full GLSL program for SPIR-V compilation.
+ * Map manifest uniform type to GLSL type.
  */
-function wrapForSpirv(src) {
+function uniformGlslType(type) {
+  if (type === 'color') return 'vec3';
+  return type; // float, vec2, vec3, vec4
+}
+
+/**
+ * Wrap a mainImage shader in a full GLSL program for SPIR-V compilation.
+ * Optionally injects custom uniform declarations from the manifest.
+ */
+function wrapForSpirv(src, customUniforms = []) {
+  let customBlock = '';
+  if (customUniforms.length > 0) {
+    const members = customUniforms.map(u =>
+      `  ${uniformGlslType(u.type)} ${u.name};`
+    ).join('\n');
+    customBlock = `layout(std140, binding=2) uniform CustomUB {\n${members}\n};\n`;
+  }
+
   return '#version 310 es\nprecision mediump float;\n' +
     'layout(binding=0) uniform sampler2D iChannel0;\n' +
     'layout(std140, binding=1) uniform UB { float iTime; float _pad; vec4 iResolution; };\n' +
+    customBlock +
     'layout(location=0) out vec4 _fragColor;\n\n' +
     src + '\n' +
     'void main() { mainImage(_fragColor, gl_FragCoord.xy); }\n';
@@ -43,8 +61,8 @@ function wrapForSpirv(src) {
  * Writes GLSL to a temp file to avoid command-line length limits.
  * Returns { ok: true, bytes: N } or { ok: false, error: 'message' }.
  */
-function compileToSpirvSync(glslSource) {
-  const wrapped = wrapForSpirv(glslSource);
+function compileToSpirvSync(glslSource, customUniforms = []) {
+  const wrapped = wrapForSpirv(glslSource, customUniforms);
   const tmpFile = path.join(os.tmpdir(), `spirv_test_${process.pid}.glsl`);
   const scriptFile = path.join(os.tmpdir(), `spirv_test_${process.pid}.js`);
   try {
@@ -89,10 +107,18 @@ const shaderNames = fs.readdirSync(shadersDir).filter(name => {
 assert.ok(shaderNames.length > 0,
   'No shaders found in shaders/ directory');
 
+const VALID_UNIFORM_TYPES = new Set(['float', 'vec2', 'vec3', 'vec4', 'color']);
+
 for (const shaderName of shaderNames) {
   describe(`shader: ${shaderName}`, () => {
     const shaderDir = path.join(shadersDir, shaderName);
     const pkgPath = path.join(shaderDir, 'package.json');
+
+    // Load manifest metadata once per shader for conditional tests
+    const shaderPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    const jr = shaderPkg.junctionrelay || {};
+    const usesTexture = jr.usesTexture;
+    const customUniforms = jr.uniforms;
 
     // -----------------------------------------------------------------------
     // A. Package validation
@@ -129,6 +155,31 @@ for (const shaderName of shaderNames) {
         const entryPath = path.join(shaderDir, pkg.junctionrelay.entry);
         assert.ok(fs.existsSync(entryPath), `entry file not found: ${entryPath}`);
       });
+
+      it('has usesTexture boolean', () => {
+        pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        assert.notEqual(pkg.junctionrelay?.usesTexture, undefined,
+          'missing required field: usesTexture');
+        assert.equal(typeof pkg.junctionrelay.usesTexture, 'boolean',
+          'usesTexture must be a boolean');
+      });
+
+      it('has uniforms array', () => {
+        pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        const uniforms = pkg.junctionrelay?.uniforms;
+        assert.notEqual(uniforms, undefined,
+          'missing required field: uniforms');
+        assert.ok(Array.isArray(uniforms), 'uniforms must be an array');
+        for (const u of uniforms) {
+          assert.ok(u.name, `uniform missing name`);
+          assert.match(u.name, /^[a-zA-Z_]\w*$/, `invalid uniform name: ${u.name}`);
+          assert.ok(u.displayName, `uniform ${u.name} missing displayName`);
+          assert.ok(VALID_UNIFORM_TYPES.has(u.type),
+            `uniform ${u.name} has invalid type: ${u.type}`);
+          assert.notEqual(u.default, undefined,
+            `uniform ${u.name} missing default`);
+        }
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -137,7 +188,7 @@ for (const shaderName of shaderNames) {
     describe('GLSL compilation', () => {
       it('compiles (glslang → SPIR-V)', () => {
         const glsl = loadGlsl(shaderDir, pkgPath);
-        const result = compileToSpirvSync(glsl);
+        const result = compileToSpirvSync(glsl, customUniforms);
         assert.ok(result.ok, `GLSL compilation failed: ${result.error || 'unknown'}`);
         assert.ok(result.bytes > 0, 'SPIR-V output is empty');
       });
@@ -279,7 +330,7 @@ for (const shaderName of shaderNames) {
         assert.doesNotMatch(hlsl, /\biResolution\b/);
       });
 
-      it('texture(iChannel0 replaced with tex0.Sample(sampler0', () => {
+      it('texture(iChannel0 replaced with tex0.Sample(sampler0', { skip: !usesTexture }, () => {
         hlsl = hlsl || convertShader(shaderDir, pkgPath);
         assert.doesNotMatch(hlsl, /texture\s*\(\s*iChannel0/);
         assert.match(hlsl, /tex0\.Sample\(sampler0/);

@@ -7,6 +7,8 @@
     "shaderName": "xray",
     "displayName": "X-Ray",
     "description": "Authentic radiograph simulation. Luma inversion maps density to X-ray opacity, Sobel edge detection creates bright structural outlines like bone boundaries, dense regions get a faint orange-red hotspot tint, cool blue-tinted film base with lightbox backlight glow at centre, coarse film grain, digitiser scanline artifact, and a physical lightbox frame edge. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

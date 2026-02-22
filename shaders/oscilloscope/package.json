@@ -6,6 +6,8 @@
     "shaderName": "oscilloscope",
     "displayName": "Oscilloscope",
     "description": "Content rendered as glowing vector beam traces on a P31 green phosphor oscilloscope. Sobel edge detection drives the beam path, electron beam bloom spreads glow outward, graticule grid with brighter main axes, near-black background with faint green ambient, beam flicker at 120Hz, phosphor grain, scope face vignette. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

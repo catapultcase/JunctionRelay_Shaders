@@ -6,6 +6,8 @@
     "shaderName": "risograph",
     "displayName": "Risograph",
     "description": "Two-colour stencil print aesthetic. Rotated halftone dots at classic 15\u00b0 and 75\u00b0 screen angles, fluorescent pink and teal inks, plate misregistration offset, ink overlap moir\u00e9 colour, ink bleed into cream paper texture with noise grain, boosted ink saturation. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

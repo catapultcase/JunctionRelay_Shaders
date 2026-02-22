@@ -6,6 +6,8 @@
     "shaderName": "lenticular",
     "displayName": "Lenticular",
     "description": "Flip-card lenticular print. 40 lens ridges per width, time-driven view angle oscillates between two image states (original vs inverted-cool with parallax offset), lens ridge specular lines, chromatic fringing at the image boundary, moir\u00e9 interference pattern, surface sheen. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

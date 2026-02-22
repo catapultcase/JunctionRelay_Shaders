@@ -6,6 +6,8 @@
     "shaderName": "kinescope",
     "displayName": "Kinescope",
     "description": "1940s TV broadcast recorded off a CRT onto 16mm film. Softer and ghostlier than VHS. 18fps film gate weave, phosphor persistence upward smear, bloom halation into film emulsion, warm film base tint, crushed contrast, visible CRT scanlines through the film, coarse 16mm grain, frame flicker, persistent vertical film scratch. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

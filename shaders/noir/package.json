@@ -7,6 +7,8 @@
     "shaderName": "noir",
     "displayName": "Noir",
     "description": "1950s crime film aesthetic. Near-monochrome bleach bypass grade with hard S-curve, venetian blind shadow bands at a slight angle, rain streaks and lens-distorting droplets on the glass, warm single key-light from stage left, coarse pushed-film grain, periodic cigarette burn flash in the top-right corner, and a sepia highlight tint. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

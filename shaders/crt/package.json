@@ -1,12 +1,14 @@
 {
   "name": "@junctionrelay/shader-crt",
   "version": "1.0.0",
-  "description": "CRT monitor effect — barrel distortion, phosphor RGB subpixels, scanlines, bloom, flicker",
+  "description": "CRT monitor effect \u2014 barrel distortion, phosphor RGB subpixels, scanlines, bloom, flicker",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "crt",
     "displayName": "CRT",
     "description": "Classic CRT monitor simulation. Barrel distortion curves the image like a glass tube. RGB phosphor subpixel grid with dot pitch separation. Visible scanlines with adjustable weight. Bloom halation bleeds bright areas into neighbors. Subtle frame flicker and warm color shift. Corner shadow vignette from the curved glass. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

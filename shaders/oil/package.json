@@ -7,6 +7,8 @@
     "shaderName": "oil",
     "displayName": "Oil",
     "description": "Physics-based thin film interference. FBM surface normals drive both UV refraction and per-wavelength phase offset, producing the characteristic shifting rainbow of a soap bubble or oil slick. Hue of underlying content rotates with film thickness. Specular highlight and edge darkening for pooling depth. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

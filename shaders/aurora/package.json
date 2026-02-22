@@ -1,0 +1,24 @@
+{
+  "name": "@junctionrelay/shader-aurora",
+  "version": "1.0.0",
+  "description": "Generative aurora borealis — shimmering curtains of light, no texture input",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "aurora",
+    "displayName": "Aurora",
+    "description": "GPU-only generative northern lights effect. Layered sine waves create shimmering vertical curtains of light with subtle color gradients. Fully procedural — no texture input required. Intensity uniform controls brightness via sensor binding.",
+    "entry": "shader.glsl",
+    "usesTexture": false,
+    "uniforms": [
+      {
+        "name": "uIntensity",
+        "displayName": "Intensity",
+        "type": "float",
+        "default": 1.0,
+        "min": 0.1,
+        "max": 2.0,
+        "description": "Aurora brightness multiplier"
+      }
+    ]
+  }
+}

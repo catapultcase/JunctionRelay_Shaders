@@ -6,6 +6,8 @@
     "shaderName": "predator",
     "displayName": "Predator",
     "description": "Active camouflage shimmer. FBM light bending displacement with micro-tremor shimmer, independent chromatic channel displacement, content reduced to 35% visibility, bio-electric plasma edge glow cycling between orange and blue-white, holographic diffraction fringe overlay, faint ghosted original scene underneath. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

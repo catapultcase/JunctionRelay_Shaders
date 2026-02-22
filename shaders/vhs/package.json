@@ -7,6 +7,8 @@
     "shaderName": "vhs",
     "displayName": "VHS",
     "description": "Old VHS tape look: chroma channel separation, horizontal tracking glitch bands, tape warble, luminance grain, scanlines, and occasional dropout flashes. Fully self-contained \u2014 driven by time only.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }

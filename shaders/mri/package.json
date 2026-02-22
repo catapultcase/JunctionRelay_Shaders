@@ -6,6 +6,8 @@
     "shaderName": "mri",
     "displayName": "MRI",
     "description": "Medical MRI scanner display. T1-weighted signal remap, B0 field inhomogeneity intensity shading, Gibbs ringing truncation artifacts at high-gradient edges, Rician receiver coil noise, k-space phase-encode ghosting, clinical blue-grey monitor colour grade, windowing contrast, PACS viewer border, centre crosshair overlay. Fully self-contained.",
-    "entry": "shader.glsl"
+    "entry": "shader.glsl",
+    "usesTexture": true,
+    "uniforms": []
   }
 }
