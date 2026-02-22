@@ -41,7 +41,8 @@ function convertGlslToHlsl(glslSource, uniforms) {
   // 1. Prepend HLSL header (mainImage shaders have no declarations)
   let header = 'Texture2D tex0 : register(t0);\n' +
       'SamplerState sampler0 : register(s0);\n' +
-      'cbuffer TimeBuffer : register(b0) { float time; float _pad; float2 resolution; };\n';
+      'cbuffer TimeBuffer : register(b0) { float time; float _pad; float2 resolution; };\n' +
+      'float2 _flipV(float2 uv) { return float2(uv.x, 1.0 - uv.y); }\n';
 
   // 1b. Inject custom uniforms cbuffer if any are declared in the manifest
   if (uniforms && uniforms.length > 0) {
@@ -89,9 +90,8 @@ function convertGlslToHlsl(glslSource, uniforms) {
   s = s.replace(/\biResolution\b/g, 'resolution');
   s = s.replace(/\biTime\b/g, 'time');
 
-  // 5. Replace texture sampling
-  s = s.replace(/textureLod\s*\(\s*iChannel0\s*,/g, 'tex0.SampleLevel(sampler0,');
-  s = s.replace(/texture\s*\(\s*iChannel0\s*,/g, 'tex0.Sample(sampler0,');
+  // 5. Replace texture sampling (flip V to compensate for fragCoord Y-flip)
+  s = replaceTextureSampling(s);
 
   // 6. Replace clamp(x, 0.0, 1.0) with saturate(x)
   s = replaceSaturatePattern(s);
@@ -104,10 +104,12 @@ function convertGlslToHlsl(glslSource, uniforms) {
     /void\s+mainImage\s*\(\s*out\s+float4\s+fragColor\s*,\s*in\s+float2\s+fragCoord\s*\)/,
     'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target');
 
-  // 8b. Add fragCoord alias after opening brace of main
+  // 8b. Add fragCoord alias with Y-flip for Shadertoy convention (Y=0 at bottom)
+  // DX11 SV_Position has Y=0 at top; Shadertoy expects Y=0 at bottom.
+  // Texture sampling uses _flipV() to compensate (DX11 textures are top-down).
   s = s.replace(
     /float4 main\(float4 pos : SV_Position, float2 uv : TEXCOORD0\) : SV_Target\s*\{/,
-    'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target\n{\n  float2 fragCoord = pos.xy;');
+    'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target\n{\n  float2 fragCoord = float2(pos.x, resolution.y - pos.y);');
 
   // 9. Replace fragColor assignments with return statements
   s = s.replace(/fragColor\s*=\s*/g, 'return ');
@@ -297,6 +299,59 @@ function replaceSaturatePattern(text) {
     i = closeParen + 1;
   }
 
+  return result;
+}
+
+/**
+ * Replace texture/textureLod(iChannel0, UV, ...) with tex0.Sample/SampleLevel
+ * and wrap the UV argument with _flipV() to compensate for the fragCoord Y-flip.
+ * DX11 textures are top-down but fragCoord is flipped to Shadertoy convention,
+ * so texture UVs derived from fragCoord need their V inverted.
+ */
+function replaceTextureSampling(text) {
+  text = replaceTextureCall(text, /\btextureLod\s*\(\s*iChannel0\s*,/g, 'tex0.SampleLevel(sampler0,', true);
+  text = replaceTextureCall(text, /\btexture\s*\(\s*iChannel0\s*,/g, 'tex0.Sample(sampler0,', false);
+  return text;
+}
+
+function replaceTextureCall(text, pattern, replacement, hasLod) {
+  let result = '';
+  let lastEnd = 0;
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    result += text.slice(lastEnd, match.index);
+
+    // We're inside the paren: texture(iChannel0, <here>...)
+    const afterComma = match.index + match[0].length;
+    let depth = 1;
+    let pos = afterComma;
+    let firstComma = -1;
+
+    while (pos < text.length && depth > 0) {
+      if (text[pos] === '(') depth++;
+      else if (text[pos] === ')') depth--;
+      else if (text[pos] === ',' && depth === 1 && firstComma === -1) firstComma = pos;
+      if (depth > 0) pos++;
+    }
+    // pos is at the closing paren
+
+    if (hasLod && firstComma !== -1) {
+      // textureLod(iChannel0, UV, LOD) → tex0.SampleLevel(sampler0, _flipV(UV), LOD)
+      const uvExpr = text.slice(afterComma, firstComma).trim();
+      const lodExpr = text.slice(firstComma + 1, pos);
+      result += replacement + ' _flipV(' + uvExpr + '),' + lodExpr + ')';
+    } else {
+      // texture(iChannel0, UV) → tex0.Sample(sampler0, _flipV(UV))
+      const uvExpr = text.slice(afterComma, pos).trim();
+      result += replacement + ' _flipV(' + uvExpr + '))';
+    }
+
+    lastEnd = pos + 1;
+    pattern.lastIndex = lastEnd;
+  }
+
+  result += text.slice(lastEnd);
   return result;
 }
 
