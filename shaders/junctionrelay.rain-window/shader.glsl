@@ -301,8 +301,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float bgRain = backgroundRain(bgUV, t) * rainAmount * mix(0.30, 0.02, fogAmount);
     col += bgRain * vec3(0.78, 0.86, 1.0);  // cool blue-white rain tint
 
-    // Visible condensation fog — semi-opaque film that drops and trails clear
-    float clearing = max(hf.x, hf.y);
+    // Visible condensation fog — semi-opaque film that drops and trails clear.
+    // smoothstep ignores tiny droplets and breathing noise, only real drops clear fog.
+    float clearing = smoothstep(0.1, 0.5, max(hf.x, hf.y));
     float fogVis = fogAmount * (1.0 - clearing);
     col = mix(col, vec3(0.82, 0.84, 0.88), fogVis * 0.55);
 
