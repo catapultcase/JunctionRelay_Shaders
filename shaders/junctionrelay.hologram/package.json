@@ -8,6 +8,7 @@
     "displayName": "Hologram",
     "description": "Cyan tint + scanlines + time-based flicker + edge glow. POC effect from XSD-VR Bridge V4.",
     "feedback": false,
+    "opaque": true,
     "passes": [
       {
         "entry": "hologram.glsl"

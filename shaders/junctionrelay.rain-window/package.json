@@ -9,6 +9,7 @@
     "description": "Rainy glass overlay with temporal persistence and bloom. Drops roll down the surface leaving trails that cut through condensation fog. Wet marks persist and slowly evaporate over ~3 seconds via feedback. Star-pattern bloom adds warm glow to specular highlights.",
     "usesTexture": true,
     "feedback": true,
+    "opaque": true,
     "passes": [
       { "entry": "rain.glsl" },
       { "entry": "bloom.glsl" }

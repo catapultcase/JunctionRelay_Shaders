@@ -8,6 +8,7 @@
     "displayName": "Thermal",
     "description": "Authentic FLIR infrared simulation. Classic iron/hot 5-stop heat palette, Sobel edge detection pushing hot edges to white, fixed pattern noise + temporal sensor noise, detector readout banding, thermal lag ghosting, germanium lens vignette, and a minimal targeting reticle HUD with corner brackets. Fully self-contained.",
     "feedback": false,
+    "opaque": true,
     "passes": [
       {
         "entry": "thermal.glsl"

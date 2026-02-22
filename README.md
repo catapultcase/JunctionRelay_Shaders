@@ -52,6 +52,7 @@ Name the GLSL file after the effect — `crt.glsl`, `vhs.glsl`, `bloom.glsl` —
     "displayName": "My Effect",
     "description": "What the effect does",
     "feedback": false,
+    "opaque": true,
     "passes": [
       { "entry": "my-effect.glsl" }
     ],
@@ -88,6 +89,7 @@ Multiple passes with ordered execution. Each pass is a separate GLSL file.
     "displayName": "Rain Window",
     "description": "Rainy window with bloom",
     "feedback": true,
+    "opaque": true,
     "passes": [
       { "entry": "rain.glsl" },
       { "entry": "bloom.glsl" }
@@ -106,6 +108,7 @@ Pass 0 (`rain.glsl`) receives the captured screen on `iChannel0`. Pass 1 (`bloom
 |-------|------|----------|-------------|
 | `shaderName` | `string` | Yes | Unique ID in `namespace.name` dot-notation (e.g. `junctionrelay.crt`). Must match `SHADER_ID_PATTERN`: each segment starts with a lowercase letter, then lowercase alphanumeric with optional hyphens. Bundled shaders use the `junctionrelay` namespace; third-party authors use their own. |
 | `feedback` | `boolean` | Yes | `true` = previous frame output available on `iChannel1`. `false` = no feedback texture. |
+| `opaque` | `boolean` | Yes | `true` = pipeline forces alpha=1.0 on the final output (solid display). `false` = shader's output alpha passes through to the Presenter for desktop transparency. |
 | `passes` | `array` | Yes | Ordered array of `{ "entry": "<file>.glsl" }` objects. Every shader uses this — even single-pass effects. |
 | `usesTexture` | `boolean` | Yes | `true` = postprocessing shader (reads `iChannel0`), `false` = generative shader (no texture input). |
 | `uniforms` | `array` | Yes | Custom uniforms exposed to the UI (see [Custom Uniforms](#custom-uniforms)). |

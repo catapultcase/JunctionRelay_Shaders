@@ -8,6 +8,7 @@
     "displayName": "Aurora",
     "description": "GPU-only generative northern lights effect. Layered sine waves create shimmering vertical curtains of light with subtle color gradients. Fully procedural \u2014 no texture input required. Intensity uniform controls brightness via sensor binding.",
     "feedback": false,
+    "opaque": true,
     "passes": [
       {
         "entry": "aurora.glsl"

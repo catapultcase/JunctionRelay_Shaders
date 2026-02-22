@@ -8,6 +8,7 @@
     "displayName": "Abyss",
     "description": "Viewport of a submersible at 4000m. Deep blue-black water grade, three layers of voronoi bioluminescent organisms (dinoflagellates, jellyfish, rare macro creatures), FBM water distortion, sonar ping ripple, ink diffusion clouds, faint caustic shafts from far above, marine snow particles, saltwater streaks on the glass, and chromatic aberration under pressure. Fully self-contained.",
     "feedback": false,
+    "opaque": true,
     "passes": [
       {
         "entry": "abyss.glsl"

@@ -58,7 +58,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Additive composite at 60% intensity
     vec3 result = col + bloom * 0.6;
 
-    // Alpha = 1.0 — temporal state is carried via intermediate→feedback path,
-    // not through the final output. Final output must be opaque for display.
-    fragColor = vec4(result, 1.0);
+    // Pass through alpha from pass 0 (clearing state for temporal feedback).
+    // The pipeline forces alpha=1.0 when opaque=true (manifest field).
+    fragColor = vec4(result, original.a);
 }

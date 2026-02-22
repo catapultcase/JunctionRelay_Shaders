@@ -184,6 +184,14 @@ for (const shaderName of shaderNames) {
           'feedback must be a boolean');
       });
 
+      it('has opaque boolean', () => {
+        pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        assert.notEqual(pkg.junctionrelay?.opaque, undefined,
+          'missing required field: opaque');
+        assert.equal(typeof pkg.junctionrelay.opaque, 'boolean',
+          'opaque must be a boolean');
+      });
+
       it('has usesTexture boolean', () => {
         pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
         assert.notEqual(pkg.junctionrelay?.usesTexture, undefined,
