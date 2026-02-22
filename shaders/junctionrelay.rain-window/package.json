@@ -78,6 +78,33 @@
         "max": 1.0,
         "description": "How clingy the glass surface is — low values let drops slide quickly, high values make them cling longer and fall slower"
       }
+    ],
+    "presets": [
+      {
+        "name": "Rainy Window",
+        "default": true,
+        "values": {
+          "rainAmount": 0.3,
+          "fogAmount": 0.1,
+          "dropSize": 0.6,
+          "pathVariance": 0.3,
+          "windDir": 0.7,
+          "glassTilt": 0.8,
+          "surfaceTension": 0.2
+        }
+      },
+      {
+        "name": "Light Rain",
+        "values": {
+          "rainAmount": 0.1152984635152754,
+          "fogAmount": 0.13562010533645408,
+          "dropSize": 0.5892303986195548,
+          "pathVariance": 0.47283729989150836,
+          "windDir": 0.9708059087093326,
+          "glassTilt": -0.8934737317726256,
+          "surfaceTension": 0.503908581858657
+        }
+      }
     ]
   }
 }

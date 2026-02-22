@@ -216,6 +216,51 @@ for (const shaderName of shaderNames) {
             `uniform ${u.name} missing default`);
         }
       });
+
+      it('presets are valid when present', () => {
+        pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        const presets = pkg.junctionrelay?.presets;
+        if (presets === undefined) return; // presets are optional
+
+        assert.ok(Array.isArray(presets), 'presets must be an array');
+
+        const uniformNames = new Set(
+          (pkg.junctionrelay.uniforms || []).map(u => u.name)
+        );
+
+        let defaultCount = 0;
+        for (const preset of presets) {
+          assert.ok(preset.name && typeof preset.name === 'string',
+            `preset missing name or name is not a string`);
+          assert.ok(preset.values && typeof preset.values === 'object' && !Array.isArray(preset.values),
+            `preset "${preset.name}" missing values or values is not an object`);
+
+          if (preset.default === true) defaultCount++;
+
+          // All keys in values must match declared uniform names
+          for (const key of Object.keys(preset.values)) {
+            assert.ok(uniformNames.has(key),
+              `preset "${preset.name}" references unknown uniform "${key}"`);
+          }
+
+          // All values must be valid for the declared uniform type
+          const uniforms = pkg.junctionrelay.uniforms || [];
+          for (const [key, val] of Object.entries(preset.values)) {
+            const decl = uniforms.find(u => u.name === key);
+            if (!decl) continue;
+            if (decl.type === 'float') {
+              assert.equal(typeof val, 'number',
+                `preset "${preset.name}" uniform "${key}" must be a number for type float`);
+            } else if (decl.type === 'color' || decl.type === 'vec2' || decl.type === 'vec3' || decl.type === 'vec4') {
+              assert.ok(Array.isArray(val),
+                `preset "${preset.name}" uniform "${key}" must be an array for type ${decl.type}`);
+            }
+          }
+        }
+
+        assert.ok(defaultCount <= 1,
+          `at most one preset may have "default": true (found ${defaultCount})`);
+      });
     });
 
     // -----------------------------------------------------------------------
