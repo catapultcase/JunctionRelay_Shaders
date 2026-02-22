@@ -132,10 +132,15 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
 
             // Wet trail: fog-clearing strip left behind a sliding drop
             if (dc == 0 && sliding > 0.5) {
-                float bw    = radius * 2.2;
+                // Trail edge noise — uneven rivulet width like real water on glass
+                float trailNoise = rng(floor(uv.y * 70.0) * 13.7 + base);
+                float bw    = radius * (1.5 + trailNoise * 1.4);
                 float band  = smoothstep(bw, bw * 0.3, abs(dx));
-                float above = smoothstep(-0.01, 0.35, uv.y - (0.5 - dropY));
-                trail = max(trail, band * above * (1.0 - hit) * 0.6);
+                // Top-down evaporation — trail fades with distance from drop
+                float distAbove = uv.y - (0.5 - dropY);
+                float above = smoothstep(-0.01, 0.35, distAbove);
+                float evap  = smoothstep(0.45, 0.02, distAbove);
+                trail = max(trail, band * above * evap * (1.0 - hit) * 0.7);
             }
         }
     }
@@ -283,6 +288,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float hU = heightField(uv + vec2(0.0, eps), t, rainAmount).x;
     vec2 n = vec2(hR - hf.x, hU - hf.x);
 
+    // Refraction wobble — water surface oscillates slightly when disturbed
+    float wobble = sin(uv.y * 40.0 + t * 3.0) * sin(uv.x * 35.0 + t * 2.3);
+    n += wobble * 0.0008 * hf.x;
+
     float blurR = mix(blurHi - hf.y * blurHi * 0.5, blurLo, smoothstep(0.05, 0.25, hf.x));
 
     // bgUV carries the drop-normal refraction offset — fog blur and background
@@ -315,6 +324,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float nLen = length(n);
     float specRing = smoothstep(0.01, 0.025, nLen) * smoothstep(0.05, 0.03, nLen);
     col += specRing * hf.x * 0.25 * vec3(0.9, 0.95, 1.0);
+
+    // Drop apex highlight — specular point at the thickest part of each drop
+    float apex = smoothstep(0.5, 0.8, hf.x) * (1.0 - smoothstep(0.0, 0.015, nLen));
+    col += apex * 0.15 * vec3(1.0, 0.98, 0.95);
+
+    // Warm color shift — light through water absorbs blue slightly
+    col *= mix(vec3(1.0), vec3(1.04, 1.02, 0.96), hf.x * 0.4);
 
     vec2 vc = texUV - 0.5;
     col *= 1.0 - dot(vc, vc) * 0.7;
