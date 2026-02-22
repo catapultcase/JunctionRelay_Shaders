@@ -7,7 +7,12 @@
     "shaderName": "junctionrelay.nostromo",
     "displayName": "Nostromo",
     "description": "Cassette-futurism CRT effect inspired by the USCSS Nostromo. Barrel warp, amber-green phosphor grade, chunky scanlines, drifting sync roll, raster ripple, thermal grain, heavy bezel vignette, and periodic data-corruption glyph strips. Fully self-contained.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "nostromo.glsl"
+      }
+    ],
     "usesTexture": true,
     "uniforms": []
   }

@@ -7,7 +7,12 @@
     "shaderName": "junctionrelay.aurora",
     "displayName": "Aurora",
     "description": "GPU-only generative northern lights effect. Layered sine waves create shimmering vertical curtains of light with subtle color gradients. Fully procedural \u2014 no texture input required. Intensity uniform controls brightness via sensor binding.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "aurora.glsl"
+      }
+    ],
     "usesTexture": false,
     "uniforms": [
       {

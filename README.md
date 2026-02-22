@@ -2,43 +2,66 @@
 
 GPU pixel shader plugins for JunctionRelay XSD. Shaders use the **Shadertoy convention** — any Shadertoy shader works with copy-paste. The `@junctionrelay/shader-sdk` auto-converts GLSL to HLSL SM5 for the Windows DX11 texture bridge.
 
-Authors write standard GLSL effect code. The runtime provides uniforms (`iChannel0`, `iTime`, `iResolution`). The converter handles HLSL translation — you never touch HLSL.
+Authors write standard GLSL effect code. The runtime provides uniforms (`iChannel0`, `iChannel1`, `iTime`, `iResolution`, `iFrame`). The converter handles HLSL translation — you never touch HLSL.
+
+## Architecture
+
+Every shader uses the **multi-pass pipeline**, even single-pass effects. Each pass is an independent GLSL file compiled to its own pixel shader. Passes execute in order — the output of pass N becomes the input (`iChannel0`) of pass N+1. The final pass renders to screen.
+
+Shaders that set `feedback: true` get access to `iChannel1` — a texture containing the **previous frame's final output**. This enables temporal effects like motion trails, persistence, and accumulation.
+
+```
+Pass 0               Pass 1              Screen
+┌──────────┐        ┌──────────┐        ┌──────────┐
+│ rain.glsl │──────▶│bloom.glsl │──────▶│  output   │
+│           │       │           │       │           │
+│ iChannel0 │       │ iChannel0 │       └──────────┘
+│ = capture │       │ = pass 0  │
+│ iChannel1 │       │ iChannel1 │──────┐
+│ = prev    │       │ = prev    │      │
+│   frame   │       │   frame   │      │ feedback
+└──────────┘        └──────────┘      │ (copy final
+                                       │  output to
+                                       │  iChannel1)
+                                       ▼
+                                   next frame
+```
 
 ## Creating a Shader
 
-Each shader is a directory in `shaders/` with two files:
+Each shader is a directory under `shaders/` named `junctionrelay.<effect-name>`:
 
 ```
-shaders/my-shader/
+shaders/junctionrelay.my-effect/
   package.json
-  shader.glsl
+  my-effect.glsl
 ```
+
+Name the GLSL file after the effect — `crt.glsl`, `vhs.glsl`, `bloom.glsl` — not `shader.glsl`.
+
+### Single-Pass Shader (most common)
 
 **package.json:**
 ```json
 {
-  "name": "@junctionrelay/shader-my-shader",
+  "name": "@junctionrelay/shader-my-effect",
   "version": "1.0.0",
-  "description": "Short description of the effect",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "mynamespace.my-shader",
-    "displayName": "My Shader",
-    "description": "Longer description of the effect",
-    "entry": "shader.glsl",
-    "usesTexture": false,
+    "shaderName": "junctionrelay.my-effect",
+    "displayName": "My Effect",
+    "description": "What the effect does",
+    "feedback": false,
+    "passes": [
+      { "entry": "my-effect.glsl" }
+    ],
+    "usesTexture": true,
     "uniforms": []
   }
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `shaderName` | `string` | Yes | Unique ID in `namespace.name` dot-notation (e.g. `junctionrelay.rainwindow`). Must match `SHADER_ID_PATTERN`: each segment starts with a lowercase letter, then lowercase alphanumeric with optional hyphens. Bundled shaders use the `junctionrelay` namespace; third-party authors should use their own. |
-| `usesTexture` | `boolean` | Yes | `true` = postprocessing shader (reads `iChannel0`), `false` = generative shader (no texture input) |
-| `uniforms` | `array` | Yes | Custom uniforms exposed to the UI (see [Custom Uniforms](#custom-uniforms)) |
-
-**shader.glsl** — Shadertoy convention (effect code only, no boilerplate):
+**my-effect.glsl:**
 ```glsl
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec2 uv = fragCoord / iResolution.xy;
@@ -50,13 +73,52 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 }
 ```
 
+### Multi-Pass Shader
+
+Multiple passes with ordered execution. Each pass is a separate GLSL file.
+
+**package.json:**
+```json
+{
+  "name": "@junctionrelay/shader-rain-window",
+  "version": "3.0.0",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "junctionrelay.rain-window",
+    "displayName": "Rain Window",
+    "description": "Rainy window with bloom",
+    "feedback": true,
+    "passes": [
+      { "entry": "rain.glsl" },
+      { "entry": "bloom.glsl" }
+    ],
+    "usesTexture": true,
+    "uniforms": []
+  }
+}
+```
+
+Pass 0 (`rain.glsl`) receives the captured screen on `iChannel0`. Pass 1 (`bloom.glsl`) receives pass 0's output on `iChannel0`. Both passes can read the previous frame's final output from `iChannel1` when `feedback` is `true`.
+
+### Manifest Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `shaderName` | `string` | Yes | Unique ID in `namespace.name` dot-notation (e.g. `junctionrelay.crt`). Must match `SHADER_ID_PATTERN`: each segment starts with a lowercase letter, then lowercase alphanumeric with optional hyphens. Bundled shaders use the `junctionrelay` namespace; third-party authors use their own. |
+| `feedback` | `boolean` | Yes | `true` = previous frame output available on `iChannel1`. `false` = no feedback texture. |
+| `passes` | `array` | Yes | Ordered array of `{ "entry": "<file>.glsl" }` objects. Every shader uses this — even single-pass effects. |
+| `usesTexture` | `boolean` | Yes | `true` = postprocessing shader (reads `iChannel0`), `false` = generative shader (no texture input). |
+| `uniforms` | `array` | Yes | Custom uniforms exposed to the UI (see [Custom Uniforms](#custom-uniforms)). |
+
 ### Available Uniforms (provided by the runtime)
 
 | Uniform | Type | Description |
 |---------|------|-------------|
-| `iChannel0` | `sampler2D` | Input texture (screen capture) |
+| `iChannel0` | `sampler2D` | Pass input — screen capture (pass 0) or previous pass output (pass 1+) |
+| `iChannel1` | `sampler2D` | Previous frame's final output (only when `feedback: true`) |
 | `iTime` | `float` | Elapsed time in seconds |
 | `iResolution` | `vec3` | Viewport resolution (`iResolution.xy` for width/height) |
+| `iFrame` | `int` | Frame counter (0 on first frame, increments each frame) |
 
 ### Rules
 
@@ -66,6 +128,31 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 - No `#version`, `precision`, `uniform`, or `out` declarations — the runtime adds these
 - No `void main()` — the runtime wraps `mainImage` with the platform entry point
 - Output to `fragColor` (the `out` parameter)
+- Each pass file must be self-contained — no `#include` across files
+
+### Feedback Pattern
+
+Use `iChannel1` to read the previous frame and `iFrame` to skip the first frame (where no previous data exists):
+
+```glsl
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+  vec2 uv = fragCoord / iResolution.xy;
+  vec4 current = texture(iChannel0, uv);
+
+  // Read previous frame (skip frame 0 — no data yet)
+  float trail = 0.0;
+  if (iFrame > 0) {
+    trail = texture(iChannel1, uv).a;
+  }
+
+  // Decay and accumulate
+  trail = max(trail * 0.995, current.a);
+
+  fragColor = vec4(current.rgb, trail);
+}
+```
+
+The alpha channel is a good place to store temporal state — it survives feedback but doesn't affect visual output if the next pass only reads `.rgb`.
 
 ### Custom Uniforms
 
@@ -117,7 +204,7 @@ Your shader is auto-converted to HLSL. Use these GLSL features freely — they a
 `mix`, `fract`, `mod`, `atan` (1 or 2 args), `inversesqrt`, `dFdx`, `dFdy`, `clamp`, `smoothstep`, `step`, `pow`, `sin`, `cos`, `tan`, `exp`, `log`, `sqrt`, `abs`, `sign`, `floor`, `ceil`, `round`, `min`, `max`, `dot`, `cross`, `normalize`, `length`, `distance`, `reflect`, `refract`
 
 **Texture sampling:**
-`texture(iChannel0, uv)`, `textureLod(iChannel0, uv, lod)`
+`texture(iChannel0, uv)`, `textureLod(iChannel0, uv, lod)`, `texture(iChannel1, uv)`, `textureLod(iChannel1, uv, lod)`
 
 **Matrix math:**
 `mat2 * vec2`, `vec2 * mat2` (auto-converted to `mul()`)
@@ -134,7 +221,6 @@ These GLSL features do NOT convert and will break on Windows:
 - `matrixCompMult` — use component-wise multiply manually
 - `struct` uniforms — use the `uniforms` array in `package.json` for custom inputs
 - Multiple `out` variables — only `fragColor` is supported
-- `#include` or multi-file shaders — everything must be in one file
 - `discard` statements
 - Geometry or vertex shader features
 
@@ -149,7 +235,7 @@ These GLSL features do NOT convert and will break on Windows:
 
 ```bash
 # Linux — run from repo root
-./scripts/test_linux.sh
+npm test
 ```
 
 ```powershell

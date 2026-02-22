@@ -1,14 +1,18 @@
 {
   "name": "@junctionrelay/shader-rain-window",
-  "version": "2.5.0",
-  "description": "Rain on glass — realistic drops with refraction, trails, and fog over a background texture",
+  "version": "3.0.0",
+  "description": "Rain on glass — realistic drops with refraction, trails, fog, temporal persistence, and bloom over a background texture",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.rain-window",
     "displayName": "Rain Window",
-    "description": "Rainy glass overlay. Drops roll down the surface leaving trails that cut through condensation fog. Tiny droplets scatter across the pane on hex-offset grids with breathing animation. The background texture refracts through each drop — sharp where water clears the surface, soft and foggy everywhere else.",
-    "entry": "shader.glsl",
+    "description": "Rainy glass overlay with temporal persistence and bloom. Drops roll down the surface leaving trails that cut through condensation fog. Wet marks persist and slowly evaporate over ~3 seconds via feedback. Star-pattern bloom adds warm glow to specular highlights.",
     "usesTexture": true,
+    "feedback": true,
+    "passes": [
+      { "entry": "rain.glsl" },
+      { "entry": "bloom.glsl" }
+    ],
     "uniforms": [
       {
         "name": "rainAmount",

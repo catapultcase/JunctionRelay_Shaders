@@ -7,7 +7,12 @@
     "shaderName": "junctionrelay.crt",
     "displayName": "CRT",
     "description": "Classic CRT monitor simulation. Barrel distortion curves the image like a glass tube. RGB phosphor subpixel grid with dot pitch separation. Visible scanlines with adjustable weight. Bloom halation bleeds bright areas into neighbors. Subtle frame flicker and warm color shift. Corner shadow vignette from the curved glass. Fully self-contained.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "crt.glsl"
+      }
+    ],
     "usesTexture": true,
     "uniforms": []
   }

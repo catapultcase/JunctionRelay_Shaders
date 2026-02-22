@@ -6,7 +6,12 @@
     "shaderName": "junctionrelay.fire-haze",
     "displayName": "Fire Haze",
     "description": "Content seen through rising hot air. FBM heat columns distort UVs strongest at the bottom, spectrum shifts toward red-orange, bright areas bloom with fire glow, rising ember particle sparks, smoke darkening in upper regions. Fully self-contained.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "fire-haze.glsl"
+      }
+    ],
     "usesTexture": true,
     "uniforms": []
   }

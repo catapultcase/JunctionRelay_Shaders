@@ -1,4 +1,4 @@
-// Rain Window — Glass Rain Overlay
+// Rain Window — Glass Rain Overlay (Pass 0: Rain Simulation)
 // Copyright (C) 2024-present Jonathan Mills, CatapultCase
 // All rights reserved.
 //
@@ -6,7 +6,11 @@
 // Drops cling to the glass, then slide with accelerating speed.
 // Larger drops cling less and fall faster. Adjacent drops merge.
 //
-// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount, dropSize, pathVariance, windDir, glassTilt, surfaceTension
+// Temporal feedback via iChannel1: accumulated clearing state persists across
+// frames in the alpha channel, decaying at 0.995 per frame (~3s evaporation).
+//
+// Inputs: iChannel0, iChannel1, iTime, iResolution, iFrame
+//         rainAmount, fogAmount, dropSize, pathVariance, windDir, glassTilt, surfaceTension
 
 // ── Hash functions ────────────────────────────────────────────
 
@@ -310,9 +314,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float bgRain = backgroundRain(bgUV, t) * rainAmount * mix(0.30, 0.02, fogAmount);
     col += bgRain * vec3(0.78, 0.86, 1.0);  // cool blue-white rain tint
 
+    // Temporal feedback: read previous clearing from alpha channel
+    float prevClearing = 0.0;
+    if (iFrame > 0) {
+        prevClearing = texture(iChannel1, texUV).a;
+    }
+
     // Visible condensation fog — semi-opaque film that drops and trails clear.
-    // smoothstep ignores tiny droplets and breathing noise, only real drops clear fog.
-    float clearing = smoothstep(0.1, 0.5, max(hf.x, hf.y));
+    float instantClearing = smoothstep(0.1, 0.5, max(hf.x, hf.y));
+    float clearing = max(prevClearing * 0.995, instantClearing);
     float fogVis = fogAmount * (1.0 - clearing);
     col = mix(col, vec3(0.82, 0.84, 0.88), fogVis * 0.55);
 
@@ -335,5 +345,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 vc = texUV - 0.5;
     col *= 1.0 - dot(vc, vc) * 0.7;
 
-    fragColor = vec4(col, 1.0);
+    // Output: RGB = color, A = accumulated clearing state for temporal feedback
+    fragColor = vec4(col, clearing);
 }

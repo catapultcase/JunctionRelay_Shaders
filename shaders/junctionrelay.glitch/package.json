@@ -7,7 +7,12 @@
     "shaderName": "junctionrelay.glitch",
     "displayName": "Glitch",
     "description": "Irregular burst-based corruption events: macroblock horizontal displacement, scanline-level jitter, independent RGB channel splitting, bit-depth quantisation, datamosh colour smear bands, and random row colour flashes. Fires in unpredictable bursts with quiet periods between. Fully self-contained.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "glitch.glsl"
+      }
+    ],
     "usesTexture": true,
     "uniforms": []
   }

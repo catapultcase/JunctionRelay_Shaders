@@ -7,7 +7,12 @@
     "shaderName": "junctionrelay.ascii",
     "displayName": "ASCII",
     "description": "Converts the scene into an 8x8 pixel character grid. Eight density glyphs (space through @) selected by cell brightness, rendered as actual bitmap pixels. Phosphor green foreground on near-black, with scanline darkening, CRT flicker, phosphor glow bleed into dark neighbouring cells, and vignette. Fully self-contained.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "ascii.glsl"
+      }
+    ],
     "usesTexture": true,
     "uniforms": []
   }

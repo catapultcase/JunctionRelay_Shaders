@@ -7,7 +7,12 @@
     "shaderName": "junctionrelay.plasma",
     "displayName": "Plasma",
     "description": "GPU-only generative plasma effect. Layered fractional Brownian motion creates swirling, organic color fields. Fully procedural \u2014 no texture input required. Custom uniforms control animation speed and two-tone color palette via sensor bindings.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "plasma.glsl"
+      }
+    ],
     "usesTexture": false,
     "uniforms": [
       {

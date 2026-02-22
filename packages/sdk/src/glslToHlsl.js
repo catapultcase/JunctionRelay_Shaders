@@ -39,9 +39,17 @@ function convertGlslToHlsl(glslSource, uniforms) {
   let s = glslSource;
 
   // 1. Prepend HLSL header (mainImage shaders have no declarations)
+  const usesChannel1 = /\biChannel1\b/.test(glslSource);
+
   let header = 'Texture2D tex0 : register(t0);\n' +
-      'SamplerState sampler0 : register(s0);\n' +
-      'cbuffer TimeBuffer : register(b0) { float time; float _pad; float2 resolution; };\n' +
+      'SamplerState sampler0 : register(s0);\n';
+
+  if (usesChannel1) {
+    header += 'Texture2D tex1 : register(t1);\n' +
+        'SamplerState sampler1 : register(s1);\n';
+  }
+
+  header += 'cbuffer TimeBuffer : register(b0) { float time; uint iFrame; float2 resolution; };\n' +
       'float2 _flipV(float2 uv) { return float2(uv.x, 1.0 - uv.y); }\n';
 
   // 1b. Inject custom uniforms cbuffer if any are declared in the manifest
@@ -311,6 +319,8 @@ function replaceSaturatePattern(text) {
 function replaceTextureSampling(text) {
   text = replaceTextureCall(text, /\btextureLod\s*\(\s*iChannel0\s*,/g, 'tex0.SampleLevel(sampler0,', true);
   text = replaceTextureCall(text, /\btexture\s*\(\s*iChannel0\s*,/g, 'tex0.Sample(sampler0,', false);
+  text = replaceTextureCall(text, /\btextureLod\s*\(\s*iChannel1\s*,/g, 'tex1.SampleLevel(sampler1,', true);
+  text = replaceTextureCall(text, /\btexture\s*\(\s*iChannel1\s*,/g, 'tex1.Sample(sampler1,', false);
   return text;
 }
 

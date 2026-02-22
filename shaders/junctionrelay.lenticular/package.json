@@ -6,7 +6,12 @@
     "shaderName": "junctionrelay.lenticular",
     "displayName": "Lenticular",
     "description": "Flip-card lenticular print. 40 lens ridges per width, time-driven view angle oscillates between two image states (original vs inverted-cool with parallax offset), lens ridge specular lines, chromatic fringing at the image boundary, moir\u00e9 interference pattern, surface sheen. Fully self-contained.",
-    "entry": "shader.glsl",
+    "feedback": false,
+    "passes": [
+      {
+        "entry": "lenticular.glsl"
+      }
+    ],
     "usesTexture": true,
     "uniforms": []
   }

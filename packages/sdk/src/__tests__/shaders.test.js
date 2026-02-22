@@ -10,6 +10,7 @@
  *
  * Shaders use the Shadertoy convention: void mainImage(out vec4 fragColor, in vec2 fragCoord)
  * The runtime provides iChannel0, iTime, and iResolution as uniforms.
+ * Multi-pass shaders may also use iChannel1 (feedback) and iFrame.
  *
  * Note: SPIR-V compilation runs in a child process because @webgpu/glslang
  * WASM deadlocks the node:test event loop on Node 22+.
@@ -36,7 +37,7 @@ function uniformGlslType(type) {
 
 /**
  * Wrap a mainImage shader in a full GLSL program for SPIR-V compilation.
- * Optionally injects custom uniform declarations from the manifest.
+ * Optionally injects custom uniform declarations and iChannel1/iFrame when present.
  */
 function wrapForSpirv(src, customUniforms = []) {
   let customBlock = '';
@@ -47,9 +48,15 @@ function wrapForSpirv(src, customUniforms = []) {
     customBlock = `layout(std140, binding=2) uniform CustomUB {\n${members}\n};\n`;
   }
 
+  const usesChannel1 = /\biChannel1\b/.test(src);
+  const usesIFrame = /\biFrame\b/.test(src);
+
   return '#version 310 es\nprecision mediump float;\nprecision lowp sampler2D;\n' +
     'layout(binding=0) uniform sampler2D iChannel0;\n' +
-    'layout(std140, binding=1) uniform UB { float iTime; float _pad; vec4 iResolution; };\n' +
+    (usesChannel1 ? 'layout(binding=3) uniform sampler2D iChannel1;\n' : '') +
+    'layout(std140, binding=1) uniform UB { float iTime; ' +
+    (usesIFrame ? 'int iFrame; ' : 'float _pad; ') +
+    'vec4 iResolution; };\n' +
     customBlock +
     'layout(location=0) out vec4 _fragColor;\n\n' +
     src + '\n' +
@@ -119,6 +126,8 @@ for (const shaderName of shaderNames) {
     const jr = shaderPkg.junctionrelay || {};
     const usesTexture = jr.usesTexture;
     const customUniforms = jr.uniforms;
+    const passes = jr.passes || [];
+    const hasFeedback = jr.feedback === true;
 
     // -----------------------------------------------------------------------
     // A. Package validation
@@ -152,15 +161,27 @@ for (const shaderName of shaderNames) {
         assert.ok(pkg.junctionrelay?.displayName, 'missing displayName');
       });
 
-      it('has entry field', () => {
+      it('has passes array with at least one entry', () => {
         pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-        assert.ok(pkg.junctionrelay?.entry, 'missing entry');
+        const p = pkg.junctionrelay?.passes;
+        assert.ok(Array.isArray(p) && p.length > 0, 'missing or empty passes array');
       });
 
-      it('entry file exists on disk', () => {
+      it('all pass entry files exist on disk', () => {
         pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-        const entryPath = path.join(shaderDir, pkg.junctionrelay.entry);
-        assert.ok(fs.existsSync(entryPath), `entry file not found: ${entryPath}`);
+        for (const pass of pkg.junctionrelay.passes) {
+          assert.ok(pass.entry, 'pass missing entry field');
+          const entryPath = path.join(shaderDir, pass.entry);
+          assert.ok(fs.existsSync(entryPath), `pass entry file not found: ${entryPath}`);
+        }
+      });
+
+      it('has feedback boolean', () => {
+        pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        assert.notEqual(pkg.junctionrelay?.feedback, undefined,
+          'missing required field: feedback');
+        assert.equal(typeof pkg.junctionrelay.feedback, 'boolean',
+          'feedback must be a boolean');
       });
 
       it('has usesTexture boolean', () => {
@@ -190,204 +211,226 @@ for (const shaderName of shaderNames) {
     });
 
     // -----------------------------------------------------------------------
-    // B. GLSL — SPIR-V compilation (child process)
+    // B. GLSL — SPIR-V compilation (child process) — per pass
     // -----------------------------------------------------------------------
     describe('GLSL compilation', () => {
-      it('compiles (glslang → SPIR-V)', () => {
-        const glsl = loadGlsl(shaderDir, pkgPath);
-        const result = compileToSpirvSync(glsl, customUniforms);
-        assert.ok(result.ok, `GLSL compilation failed: ${result.error || 'unknown'}`);
-        assert.ok(result.bytes > 0, 'SPIR-V output is empty');
-      });
+      for (let i = 0; i < passes.length; i++) {
+        const passEntry = passes[i].entry;
+        it(`pass ${i} (${passEntry}) compiles (glslang → SPIR-V)`, () => {
+          const glsl = fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+          const result = compileToSpirvSync(glsl, customUniforms);
+          assert.ok(result.ok, `GLSL compilation failed: ${result.error || 'unknown'}`);
+          assert.ok(result.bytes > 0, 'SPIR-V output is empty');
+        });
+      }
     });
 
     // -----------------------------------------------------------------------
-    // C. GLSL — structural contract (Shadertoy convention)
+    // C. GLSL — structural contract (Shadertoy convention) — per pass
     // -----------------------------------------------------------------------
     describe('GLSL structure', () => {
-      let glsl;
+      for (let i = 0; i < passes.length; i++) {
+        const passEntry = passes[i].entry;
+        describe(`pass ${i} (${passEntry})`, () => {
+          let glsl;
 
-      it('has void mainImage(out vec4 fragColor, in vec2 fragCoord)', () => {
-        glsl = loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/);
-      });
+          it('has void mainImage(out vec4 fragColor, in vec2 fragCoord)', () => {
+            glsl = fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.match(glsl, /void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/);
+          });
 
-      it('assigns to fragColor', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.match(glsl, /fragColor\s*=/);
-      });
+          it('assigns to fragColor', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.match(glsl, /fragColor\s*=/);
+          });
 
-      it('has no #version directive', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.doesNotMatch(glsl, /#version/);
-      });
+          it('has no #version directive', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.doesNotMatch(glsl, /#version/);
+          });
 
-      it('has no precision qualifier', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.doesNotMatch(glsl, /precision\s+mediump/);
-      });
+          it('has no precision qualifier', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.doesNotMatch(glsl, /precision\s+mediump/);
+          });
 
-      it('has no uniform declarations', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.doesNotMatch(glsl, /\buniform\b/);
-      });
+          it('has no uniform declarations', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.doesNotMatch(glsl, /\buniform\b/);
+          });
 
-      it('has no out vec4 declaration', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.doesNotMatch(glsl, /out\s+vec4\s+fragColor\s*;/);
-      });
+          it('has no out vec4 declaration', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.doesNotMatch(glsl, /out\s+vec4\s+fragColor\s*;/);
+          });
 
-      it('has no void main()', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.doesNotMatch(glsl, /void\s+main\s*\(\s*\)/);
-      });
+          it('has no void main()', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.doesNotMatch(glsl, /void\s+main\s*\(\s*\)/);
+          });
 
-      it('has no gl_FragCoord', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.doesNotMatch(glsl, /\bgl_FragCoord\b/);
-      });
+          it('has no gl_FragCoord', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.doesNotMatch(glsl, /\bgl_FragCoord\b/);
+          });
 
-      it('has no hardcoded 1920x1080 resolution', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        assert.doesNotMatch(glsl, /1920\.0/);
-        assert.doesNotMatch(glsl, /1080\.0/);
-      });
+          it('has no hardcoded 1920x1080 resolution', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            assert.doesNotMatch(glsl, /1920\.0/);
+            assert.doesNotMatch(glsl, /1080\.0/);
+          });
 
-      it('all texture() results are swizzled (prevents vec4 → vecN implicit cast rejected by WebGL2)', () => {
-        glsl = glsl || loadGlsl(shaderDir, pkgPath);
-        const unswizzled = findUnswizzledTextureResults(glsl);
-        assert.equal(unswizzled.length, 0,
-          `texture() result used without swizzle — WebGL2/ANGLE rejects implicit vec4 casts:\n` +
-          unswizzled.map(u => `  line ${u.line}: ${u.text}`).join('\n')
-        );
-      });
+          it('all texture() results are swizzled (prevents vec4 → vecN implicit cast rejected by WebGL2)', () => {
+            glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            const unswizzled = findUnswizzledTextureResults(glsl);
+            assert.equal(unswizzled.length, 0,
+              `texture() result used without swizzle — WebGL2/ANGLE rejects implicit vec4 casts:\n` +
+              unswizzled.map(u => `  line ${u.line}: ${u.text}`).join('\n')
+            );
+          });
+        });
+      }
     });
 
     // -----------------------------------------------------------------------
-    // D. HLSL — conversion + structural validation
+    // D. HLSL — conversion + structural validation — per pass
     // -----------------------------------------------------------------------
     describe('HLSL', () => {
-      let hlsl;
+      for (let i = 0; i < passes.length; i++) {
+        const passEntry = passes[i].entry;
+        describe(`pass ${i} (${passEntry})`, () => {
+          let hlsl;
 
-      it('converts without throwing', () => {
-        const glsl = loadGlsl(shaderDir, pkgPath);
-        hlsl = convertGlslToHlsl(glsl, customUniforms);
-        assert.ok(hlsl.length > 0, 'HLSL output is empty');
-      });
+          it('converts without throwing', () => {
+            const glsl = fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            hlsl = convertGlslToHlsl(glsl, customUniforms);
+            assert.ok(hlsl.length > 0, 'HLSL output is empty');
+          });
 
-      it('has Texture2D tex0', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.match(hlsl, /Texture2D\s+tex0/);
-      });
+          it('has Texture2D tex0', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.match(hlsl, /Texture2D\s+tex0/);
+          });
 
-      it('has SamplerState sampler0', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.match(hlsl, /SamplerState\s+sampler0/);
-      });
+          it('has SamplerState sampler0', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.match(hlsl, /SamplerState\s+sampler0/);
+          });
 
-      it('has cbuffer TimeBuffer', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.match(hlsl, /cbuffer\s+TimeBuffer/);
-      });
+          it('has cbuffer TimeBuffer', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.match(hlsl, /cbuffer\s+TimeBuffer/);
+          });
 
-      it('has float4 main(float4 pos : SV_Position', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.match(hlsl, /float4\s+main\s*\(\s*float4\s+pos\s*:\s*SV_Position/);
-      });
+          it('has float4 main(float4 pos : SV_Position', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.match(hlsl, /float4\s+main\s*\(\s*float4\s+pos\s*:\s*SV_Position/);
+          });
 
-      it('main body has return statement', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.match(hlsl, /\breturn\s+/);
-      });
+          it('main body has return statement', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.match(hlsl, /\breturn\s+/);
+          });
 
-      it('no vec2/vec3/vec4 types', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\bvec[234]\b/);
-      });
+          it('no vec2/vec3/vec4 types', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\bvec[234]\b/);
+          });
 
-      it('no fract( calls', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\bfract\s*\(/);
-      });
+          it('no fract( calls', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\bfract\s*\(/);
+          });
 
-      it('no mix( calls', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\bmix\s*\(/);
-      });
+          it('no mix( calls', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\bmix\s*\(/);
+          });
 
-      it('no gl_FragCoord', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\bgl_FragCoord\b/);
-      });
+          it('no gl_FragCoord', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\bgl_FragCoord\b/);
+          });
 
-      it('no fragColor', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\bfragColor\b/);
-      });
+          it('no fragColor', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\bfragColor\b/);
+          });
 
-      it('no #version directive', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /#version/);
-      });
+          it('no #version directive', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /#version/);
+          });
 
-      it('no precision mediump', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /precision\s+mediump/);
-      });
+          it('no precision mediump', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /precision\s+mediump/);
+          });
 
-      it('iTime replaced with time', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\biTime\b/);
-        assert.match(hlsl, /\btime\b/);
-      });
+          it('iTime replaced with time', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\biTime\b/);
+          });
 
-      it('iResolution replaced with resolution', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\biResolution\b/);
-      });
+          it('iResolution replaced with resolution', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\biResolution\b/);
+          });
 
-      it('iChannel0 sampling replaced with tex0.Sample/SampleLevel', { skip: !usesTexture }, () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /texture\s*\(\s*iChannel0/);
-        assert.doesNotMatch(hlsl, /textureLod\s*\(\s*iChannel0/);
-        assert.match(hlsl, /tex0\.Sample(?:Level)?\(sampler0/);
-      });
+          it('iChannel0 sampling replaced with tex0.Sample/SampleLevel', { skip: !usesTexture }, () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /texture\s*\(\s*iChannel0/);
+            assert.doesNotMatch(hlsl, /textureLod\s*\(\s*iChannel0/);
+            assert.match(hlsl, /tex0\.Sample(?:Level)?\(sampler0/);
+          });
 
-      it('custom uniforms declared in cbuffer', { skip: !customUniforms || customUniforms.length === 0 }, () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.match(hlsl, /cbuffer\s+CustomUniforms/,
-          'Missing cbuffer CustomUniforms for shader with custom uniforms');
-        for (const u of customUniforms) {
-          assert.match(hlsl, new RegExp('\\b' + u.name + '\\b'),
-            `Custom uniform ${u.name} not found in HLSL`);
-        }
-      });
+          it('custom uniforms declared in cbuffer', { skip: !customUniforms || customUniforms.length === 0 }, () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.match(hlsl, /cbuffer\s+CustomUniforms/,
+              'Missing cbuffer CustomUniforms for shader with custom uniforms');
+            for (const u of customUniforms) {
+              assert.match(hlsl, new RegExp('\\b' + u.name + '\\b'),
+                `Custom uniform ${u.name} not found in HLSL`);
+            }
+          });
 
-      it('no float2 uv redefinition (uv is a main parameter)', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\bfloat2\s+uv\s*=/,
-          'Found float2 uv declaration — should be assignment (uv =) since uv is a main() parameter');
-      });
+          it('no float2 uv redefinition (uv is a main parameter)', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\bfloat2\s+uv\s*=/,
+              'Found float2 uv declaration — should be assignment (uv =) since uv is a main() parameter');
+          });
 
-      it('const arrays use static const', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        const constArrays = hlsl.match(/(?<!static\s)\bconst\s+(uint|int|float)\b/g);
-        assert.equal(constArrays, null,
-          `Found non-static const arrays: ${constArrays}`);
-      });
+          it('const arrays use static const', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            const constArrays = hlsl.match(/(?<!static\s)\bconst\s+(uint|int|float)\b/g);
+            assert.equal(constArrays, null,
+              `Found non-static const arrays: ${constArrays}`);
+          });
 
-      it('no GLSL array constructors', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        assert.doesNotMatch(hlsl, /\w+\[\d+\]\s*\(/,
-          'Found GLSL-style array constructor');
-      });
+          it('no GLSL array constructors', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /\w+\[\d+\]\s*\(/,
+              'Found GLSL-style array constructor');
+          });
 
-      it('no single-arg floatN constructors (X3014)', () => {
-        hlsl = hlsl || convertShader(shaderDir, pkgPath);
-        const matches = findSingleArgFloatConstructors(hlsl);
-        assert.equal(matches.length, 0,
-          `Invalid single-arg float constructors (fxc X3014):\n${matches.join('\n')}`);
-      });
+          it('no single-arg floatN constructors (X3014)', () => {
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            const matches = findSingleArgFloatConstructors(hlsl);
+            assert.equal(matches.length, 0,
+              `Invalid single-arg float constructors (fxc X3014):\n${matches.join('\n')}`);
+          });
+
+          it('iChannel1 sampling replaced with tex1 when present', () => {
+            const glsl = fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+            if (!/\biChannel1\b/.test(glsl)) return; // skip if pass doesn't use iChannel1
+            hlsl = hlsl || convertPass(shaderDir, passEntry, customUniforms);
+            assert.doesNotMatch(hlsl, /texture\s*\(\s*iChannel1/);
+            assert.match(hlsl, /tex1\.Sample(?:Level)?\(sampler1/);
+            assert.match(hlsl, /Texture2D\s+tex1/);
+            assert.match(hlsl, /SamplerState\s+sampler1/);
+          });
+        });
+      }
     });
   });
 }
@@ -436,16 +479,9 @@ function findUnswizzledTextureResults(glsl) {
   return results;
 }
 
-function loadGlsl(shaderDir, pkgPath) {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  const entryPath = path.join(shaderDir, pkg.junctionrelay.entry);
-  return fs.readFileSync(entryPath, 'utf8');
-}
-
-function convertShader(shaderDir, pkgPath) {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  const uniforms = pkg.junctionrelay?.uniforms;
-  return convertGlslToHlsl(loadGlsl(shaderDir, pkgPath), uniforms);
+function convertPass(shaderDir, passEntry, customUniforms) {
+  const glsl = fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
+  return convertGlslToHlsl(glsl, customUniforms);
 }
 
 /**
