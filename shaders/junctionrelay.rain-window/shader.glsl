@@ -144,15 +144,15 @@ vec3 fogBlur(vec2 uv, float r) {
     c += texture(iChannel0, uv + vec2(-px.x,  0.0 )).rgb * 2.0;
     c += texture(iChannel0, uv + vec2( 0.0,   px.y)).rgb * 2.0;
     c += texture(iChannel0, uv + vec2( 0.0,  -px.y)).rgb * 2.0;
-    c += texture(iChannel0, uv + vec2( px.x,  px.y));
-    c += texture(iChannel0, uv + vec2(-px.x,  px.y));
-    c += texture(iChannel0, uv + vec2( px.x, -px.y));
-    c += texture(iChannel0, uv + vec2(-px.x, -px.y));
-    c += texture(iChannel0, uv + vec2( px2.x, 0.0 ));
-    c += texture(iChannel0, uv + vec2(-px2.x, 0.0 ));
-    c += texture(iChannel0, uv + vec2( 0.0,  px2.y));
-    c += texture(iChannel0, uv + vec2( 0.0, -px2.y));
-    return c.rgb / 24.0;
+    c += texture(iChannel0, uv + vec2( px.x,  px.y)).rgb;
+    c += texture(iChannel0, uv + vec2(-px.x,  px.y)).rgb;
+    c += texture(iChannel0, uv + vec2( px.x, -px.y)).rgb;
+    c += texture(iChannel0, uv + vec2(-px.x, -px.y)).rgb;
+    c += texture(iChannel0, uv + vec2( px2.x, 0.0 )).rgb;
+    c += texture(iChannel0, uv + vec2(-px2.x, 0.0 )).rgb;
+    c += texture(iChannel0, uv + vec2( 0.0,  px2.y)).rgb;
+    c += texture(iChannel0, uv + vec2( 0.0, -px2.y)).rgb;
+    return c / 24.0;
 }
 
 // ── Main ──────────────────────────────────────────────────────
