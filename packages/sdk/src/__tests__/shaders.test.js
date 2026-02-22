@@ -47,7 +47,7 @@ function wrapForSpirv(src, customUniforms = []) {
     customBlock = `layout(std140, binding=2) uniform CustomUB {\n${members}\n};\n`;
   }
 
-  return '#version 310 es\nprecision mediump float;\n' +
+  return '#version 310 es\nprecision mediump float;\nprecision lowp sampler2D;\n' +
     'layout(binding=0) uniform sampler2D iChannel0;\n' +
     'layout(std140, binding=1) uniform UB { float iTime; float _pad; vec4 iResolution; };\n' +
     customBlock +
@@ -252,6 +252,15 @@ for (const shaderName of shaderNames) {
         assert.doesNotMatch(glsl, /1920\.0/);
         assert.doesNotMatch(glsl, /1080\.0/);
       });
+
+      it('all texture() results are swizzled (prevents vec4 → vecN implicit cast rejected by WebGL2)', () => {
+        glsl = glsl || loadGlsl(shaderDir, pkgPath);
+        const unswizzled = findUnswizzledTextureResults(glsl);
+        assert.equal(unswizzled.length, 0,
+          `texture() result used without swizzle — WebGL2/ANGLE rejects implicit vec4 casts:\n` +
+          unswizzled.map(u => `  line ${u.line}: ${u.text}`).join('\n')
+        );
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -386,6 +395,46 @@ for (const shaderName of shaderNames) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Find texture() calls whose result is used directly in an assignment without
+ * a swizzle (e.g. `c += texture(iChannel0, uv)` where c is vec3).
+ * WebGL2/ANGLE rejects implicit vec4 → vec3 casts; glslang/SPIR-V does not.
+ * Handles nested parens within a single line (all known shader calls are single-line).
+ */
+function findUnswizzledTextureResults(glsl) {
+  const lines = glsl.split('\n');
+  const results = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // Match any compound-assignment or plain assignment followed by texture(
+    // Excludes == != <= >= comparisons
+    // Only check += compound assignments — plain `= texture(...)` is valid when LHS is vec4.
+    // The bug pattern is accumulating into a vec3 via += without .rgb swizzle.
+    const assignMatch = line.match(/\+=\s*texture\s*\(/);
+    if (!assignMatch) continue;
+
+    // Find where texture( starts and walk to its matching close paren
+    const textureStart = line.indexOf('texture(', assignMatch.index);
+    const openParen = textureStart + 'texture('.length - 1;
+    let depth = 1;
+    let pos = openParen + 1;
+    while (depth > 0 && pos < line.length) {
+      if (line[pos] === '(') depth++;
+      else if (line[pos] === ')') depth--;
+      pos++;
+    }
+
+    // After the closing paren, the next non-space character must be a '.'
+    const rest = line.slice(pos).trimStart();
+    if (!rest.startsWith('.')) {
+      results.push({ line: i + 1, text: line.trim() });
+    }
+  }
+
+  return results;
+}
 
 function loadGlsl(shaderDir, pkgPath) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
