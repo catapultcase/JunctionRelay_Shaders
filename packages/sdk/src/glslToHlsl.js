@@ -104,10 +104,10 @@ function convertGlslToHlsl(glslSource, uniforms) {
     /void\s+mainImage\s*\(\s*out\s+float4\s+fragColor\s*,\s*in\s+float2\s+fragCoord\s*\)/,
     'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target');
 
-  // 8b. Add Y-flip and fragCoord alias after opening brace of main
+  // 8b. Add fragCoord alias after opening brace of main
   s = s.replace(
     /float4 main\(float4 pos : SV_Position, float2 uv : TEXCOORD0\) : SV_Target\s*\{/,
-    'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target\n{\n  pos.y = resolution.y - pos.y;\n  float2 fragCoord = pos.xy;');
+    'float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target\n{\n  float2 fragCoord = pos.xy;');
 
   // 9. Replace fragColor assignments with return statements
   s = s.replace(/fragColor\s*=\s*/g, 'return ');
