@@ -1,6 +1,6 @@
 {
   "name": "@junctionrelay/shader-rain-window",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Rain on glass — realistic drops with refraction, trails, and fog over a background texture",
   "junctionrelay": {
     "type": "shader",

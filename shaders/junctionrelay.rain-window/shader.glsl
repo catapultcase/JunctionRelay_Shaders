@@ -77,7 +77,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
 
             // Y on screen: 0 = top, 1 = bottom
             // Drops form in the upper portion so we always see them start
-            float startY = 0.03 + sd * 0.45;
+            float startY = -0.15 + sd * 0.60;
 
             float dropY;
             float sliding;
@@ -284,10 +284,30 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 bgUV = texUV + n;
     vec3 col  = fogBlur(bgUV, blurR);
 
+    // Chromatic aberration at drop edges — offset R and B along refraction normal
+    vec2 caOff = n * 0.06;
+    float caStr = smoothstep(0.005, 0.03, length(n)) * 0.5;
+    col.r += (texture(iChannel0, bgUV + caOff).r - col.r) * caStr;
+    col.b += (texture(iChannel0, bgUV - caOff).b - col.b) * caStr;
+
     // Background rain: falling in the scene outside the glass.
     // Fades with fog (can't see distant rain through heavy condensation).
     float bgRain = backgroundRain(bgUV, t) * rainAmount * mix(0.30, 0.02, fogAmount);
     col += bgRain * vec3(0.78, 0.86, 1.0);  // cool blue-white rain tint
+
+    // Visible condensation fog — semi-opaque film that drops and trails clear
+    float clearing = max(hf.x, hf.y);
+    float fogVis = fogAmount * (1.0 - clearing);
+    col = mix(col, vec3(0.82, 0.84, 0.88), fogVis * 0.55);
+
+    // Caustic highlight — drops act as tiny lenses focusing background light
+    float caustic = pow(hf.x, 1.5) * 0.12;
+    col *= 1.0 + caustic;
+
+    // Edge specular ring — Fresnel rim at drop boundaries
+    float nLen = length(n);
+    float specRing = smoothstep(0.01, 0.025, nLen) * smoothstep(0.05, 0.03, nLen);
+    col += specRing * hf.x * 0.25 * vec3(0.9, 0.95, 1.0);
 
     vec2 vc = texUV - 0.5;
     col *= 1.0 - dot(vc, vc) * 0.7;
