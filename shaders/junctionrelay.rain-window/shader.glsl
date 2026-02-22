@@ -6,7 +6,7 @@
 // Drops cling to the glass, then slide with accelerating speed.
 // Larger drops cling less and fall faster. Adjacent drops merge.
 //
-// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount, dropSize, pathVariance
+// Inputs: iChannel0, iTime, iResolution, rainAmount, fogAmount, dropSize, pathVariance, windDir, surfaceTension
 
 // ── Hash functions ────────────────────────────────────────────
 
@@ -70,8 +70,8 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             // Lifecycle timing
             //   - longer period for slow/rare large drops
             //   - big drops cling for a SMALLER fraction (less surface tension)
-            float period    = mix(8.0, 22.0, sa) / speed;
-            float clingFrac = mix(0.87, 0.48, sizeNorm);
+            float period    = mix(8.0, 22.0, sa) * mix(0.7, 1.4, surfaceTension) / speed;
+            float clingFrac = clamp(mix(0.87, 0.48, sizeNorm) * mix(0.6, 1.25, surfaceTension), 0.30, 0.95);
             float clingDur  = period * clingFrac;
             float localT    = mod(t + sa * period * 3.71, period);
 
@@ -89,7 +89,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             } else {
                 // SLIDING — ease-in: starts slow, accelerates as it gains momentum
                 float slideT = (localT - clingDur) / (period - clingDur);
-                float accel  = mix(1.5, 3.2, sizeNorm);  // large drops steepen faster
+                float accel  = mix(1.5, 3.2, sizeNorm) * mix(1.3, 0.6, surfaceTension);
                 dropY   = startY + pow(slideT, accel) * (1.08 - startY);
                 sliding = 1.0;
             }
@@ -100,9 +100,12 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             // Horizontal centre within column; wobble only while sliding
             float cx = 0.25 + sa * 0.5;
             if (sliding > 0.5) {
+                float sT = (localT - clingDur) / (period - clingDur);
                 float w = sin(uv.y * 14.0 + t * (1.3 + sa) + sa * 6.28) * 0.04 * (pathVariance * 2.0)
                         + sin(uv.y * 7.3  + t * 0.7 + sb * 4.1) * 0.025 * (pathVariance * 2.0)
                         + sin(uv.y * 31.7 + t * (3.7 + sc) + sc * 9.2) * 0.02 * pathVariance;
+                // Wind pushes drops laterally; drift grows as the drop picks up speed
+                w += windDir * sT * 0.35;
                 cx += w;
             }
 
@@ -113,10 +116,14 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             float dy    = uv.y - (0.5 - dropY);
             float elong = mix(0.88, 0.72, sizeNorm);
             float d     = length(vec2(dx, dy * elong));
-            float hit = smoothstep(radius, radius * 0.2, d);
+            // Metaball field: falloff extends well beyond drop radius so
+            // nearby drops bulge toward each other and merge into one blob.
+            // At d=0 → 1.0, d=radius → ~0.7, d=2.5*radius → 0.
+            float mb = smoothstep(radius * 2.5, radius * 0.15, d);
+            field += mb;
 
-            // Metaball accumulation — overlapping drops merge
-            field += hit;
+            // Sharp per-drop shape (trail masking only)
+            float hit = smoothstep(radius, radius * 0.2, d);
 
             // Wet trail: fog-clearing strip left behind a sliding drop
             if (dc == 0 && sliding > 0.5) {
@@ -128,7 +135,11 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
         }
     }
 
-    return vec2(clamp(field, 0.0, 1.0), trail);
+    // Threshold the accumulated metaball field — nearby drops bulge and merge.
+    // Two drops within ~3 radii of each other form a connected blob; beyond ~3.5
+    // radii they separate. The iso-surface boundary drives refraction normals.
+    float shape = smoothstep(0.55, 0.8, field);
+    return vec2(shape, trail);
 }
 
 // ── Settled droplets ──────────────────────────────────────────
@@ -188,7 +199,7 @@ vec2 heightField(vec2 uv, float t, float amount) {
 // Three layers at different densities and speeds give a sense of depth.
 
 float bgRainLayer(vec2 uv, float t, float cols, float rowDensity, float speed, float seed) {
-    float sx  = uv.x * cols;
+    float sx  = (uv.x - uv.y * windDir * 0.3) * cols;
     // texUV.y = 0 at bottom, 1 at top (WebGL convention).
     // Adding t*speed increases sy → rId, shifting pattern to lower uv.y = falling down.
     float sy  = uv.y * rowDensity + t * speed;
