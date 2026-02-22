@@ -107,9 +107,12 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             }
 
             // Distance in UV space (dy converts screenY → uv.y)
-            float dx  = (nFrac - cx) * colW;
-            float dy  = uv.y - (0.5 - dropY);
-            float d   = length(vec2(dx, dy * 0.65));
+            // Elongation varies with size: small drops are nearly circular,
+            // large drops stretch slightly under gravity (physically accurate).
+            float dx    = (nFrac - cx) * colW;
+            float dy    = uv.y - (0.5 - dropY);
+            float elong = mix(0.88, 0.72, sizeNorm);
+            float d     = length(vec2(dx, dy * elong));
             float hit = smoothstep(radius, radius * 0.2, d);
 
             // Metaball accumulation — overlapping drops merge
