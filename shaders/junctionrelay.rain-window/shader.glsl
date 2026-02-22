@@ -189,7 +189,9 @@ vec2 heightField(vec2 uv, float t, float amount) {
 
 float bgRainLayer(vec2 uv, float t, float cols, float rowDensity, float speed, float seed) {
     float sx  = uv.x * cols;
-    float sy  = uv.y * rowDensity - t * speed;
+    // texUV.y = 0 at bottom, 1 at top (WebGL convention).
+    // Adding t*speed increases sy → rId, shifting pattern to lower uv.y = falling down.
+    float sy  = uv.y * rowDensity + t * speed;
 
     float cId = floor(sx);
     float rId = floor(sy);
