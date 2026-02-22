@@ -4,7 +4,7 @@
   "description": "Hologram effect \u2014 cyan tint, scanlines, and time-based flicker",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "hologram",
+    "shaderName": "junctionrelay.hologram",
     "displayName": "Hologram",
     "description": "Cyan tint + scanlines + time-based flicker + edge glow. POC effect from XSD-VR Bridge V4.",
     "entry": "shader.glsl",

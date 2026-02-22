@@ -128,6 +128,33 @@ vec2 heightField(vec2 uv, float t, float amount) {
     return vec2(height, trail);
 }
 
+// ── Fog blur — 13-tap weighted kernel ────────────────────────
+// textureLod requires mipmaps; this works with any texture filter.
+// Ring 1 (cardinal, weight 2): taps at ±r on each axis.
+// Ring 2 (diagonal, weight 1): taps at ±r on each diagonal.
+// Ring 3 (wide cardinal, weight 1): taps at ±2.3r on each axis.
+// Total weight: 4 + 8 + 8 + 4 = 24.
+
+vec3 fogBlur(vec2 uv, float r) {
+    if (r < 0.5) return texture(iChannel0, uv).rgb;
+    vec2 px  = r / iResolution.xy;
+    vec2 px2 = px * 2.3;
+    vec3 c = texture(iChannel0, uv).rgb * 4.0;
+    c += texture(iChannel0, uv + vec2( px.x,  0.0 )).rgb * 2.0;
+    c += texture(iChannel0, uv + vec2(-px.x,  0.0 )).rgb * 2.0;
+    c += texture(iChannel0, uv + vec2( 0.0,   px.y)).rgb * 2.0;
+    c += texture(iChannel0, uv + vec2( 0.0,  -px.y)).rgb * 2.0;
+    c += texture(iChannel0, uv + vec2( px.x,  px.y));
+    c += texture(iChannel0, uv + vec2(-px.x,  px.y));
+    c += texture(iChannel0, uv + vec2( px.x, -px.y));
+    c += texture(iChannel0, uv + vec2(-px.x, -px.y));
+    c += texture(iChannel0, uv + vec2( px2.x, 0.0 ));
+    c += texture(iChannel0, uv + vec2(-px2.x, 0.0 ));
+    c += texture(iChannel0, uv + vec2( 0.0,  px2.y));
+    c += texture(iChannel0, uv + vec2( 0.0, -px2.y));
+    return c.rgb / 24.0;
+}
+
 // ── Main ──────────────────────────────────────────────────────
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -135,9 +162,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 texUV = fragCoord / iResolution.xy;
     float t = iTime;
 
-    // Blur range from fog parameter
-    float blurHi = mix(1.5, 7.0, fogAmount);
-    float blurLo = mix(0.3, 2.0, fogAmount * 0.5);
+    // Blur radius in pixels from fog parameter
+    float blurHi = mix(0.0, 10.0, fogAmount);          // open glass: 0–10 px
+    float blurLo = mix(0.0,  1.5, fogAmount * 0.5);    // through a drop: stays sharp
 
     // Rain height field
     vec2 hf = heightField(uv, t, rainAmount);
@@ -148,11 +175,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float hU = heightField(uv + vec2(0.0, eps), t, rainAmount).x;
     vec2 n = vec2(hR - hf.x, hU - hf.x);
 
-    // Blur: drops clear the fog (sharp), trails thin it, glass stays foggy
-    float blur = mix(blurHi - hf.y * blurHi * 0.5, blurLo, smoothstep(0.05, 0.25, hf.x));
+    // Blur radius: drops clear the fog (sharp), trails thin it, glass stays foggy
+    float blurR = mix(blurHi - hf.y * blurHi * 0.5, blurLo, smoothstep(0.05, 0.25, hf.x));
 
-    // Sample background through wet glass
-    vec3 col = textureLod(iChannel0, texUV + n, blur).rgb;
+    // Sample background through wet glass with manual blur
+    vec3 col = fogBlur(texUV + n, blurR);
 
     // Gentle vignette
     vec2 vc = texUV - 0.5;

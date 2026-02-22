@@ -1,10 +1,10 @@
 {
-  "name": "@junctionrelay/shader-testpattern",
+  "name": "@junctionrelay/shader-test-pattern",
   "version": "1.0.0",
   "description": "TV test pattern \u2014 orientation, alignment, edges, color bars, aspect ratio circles",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "testpattern",
+    "shaderName": "junctionrelay.test-pattern",
     "displayName": "Test Pattern",
     "description": "Diagnostic shader for orientation and alignment verification. Corner markers (numbered 1-4), directional arrows, center crosshair, SMPTE color bars, grayscale ramp, diagonal lines, aspect ratio circles, grid overlay, and animated sweep line. Reveals flipping, mirroring, cropping, and color issues.",
     "entry": "shader.glsl",

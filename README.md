@@ -22,7 +22,7 @@ shaders/my-shader/
   "description": "Short description of the effect",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "my-shader",
+    "shaderName": "mynamespace.my-shader",
     "displayName": "My Shader",
     "description": "Longer description of the effect",
     "entry": "shader.glsl",
@@ -34,6 +34,7 @@ shaders/my-shader/
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `shaderName` | `string` | Yes | Unique ID in `namespace.name` dot-notation (e.g. `junctionrelay.rainwindow`). Must match `SHADER_ID_PATTERN`: each segment starts with a lowercase letter, then lowercase alphanumeric with optional hyphens. Bundled shaders use the `junctionrelay` namespace; third-party authors should use their own. |
 | `usesTexture` | `boolean` | Yes | `true` = postprocessing shader (reads `iChannel0`), `false` = generative shader (no texture input) |
 | `uniforms` | `array` | Yes | Custom uniforms exposed to the UI (see [Custom Uniforms](#custom-uniforms)) |
 

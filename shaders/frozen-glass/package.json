@@ -1,9 +1,9 @@
 {
-  "name": "@junctionrelay/shader-frozenglass",
+  "name": "@junctionrelay/shader-frozen-glass",
   "version": "1.0.0",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "frozenglass",
+    "shaderName": "junctionrelay.frozen-glass",
     "displayName": "Frozen Glass",
     "description": "Ice crystal refraction with fractal frost dendrites. Voronoi crystal facets each refract the content slightly differently, frost grows inward from screen edges, crystal boundary lines, condensation droplets in the thawed centre, desaturated blue-cold colour grade. Fully self-contained.",
     "entry": "shader.glsl",

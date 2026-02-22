@@ -1,12 +1,12 @@
 {
   "name": "@junctionrelay/shader-plasma",
   "version": "1.0.0",
-  "description": "Generative FBM plasma — swirling color fields driven by fractional Brownian motion, no texture input",
+  "description": "Generative FBM plasma \u2014 swirling color fields driven by fractional Brownian motion, no texture input",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "plasma",
+    "shaderName": "junctionrelay.plasma",
     "displayName": "Plasma",
-    "description": "GPU-only generative plasma effect. Layered fractional Brownian motion creates swirling, organic color fields. Fully procedural — no texture input required. Custom uniforms control animation speed and two-tone color palette via sensor bindings.",
+    "description": "GPU-only generative plasma effect. Layered fractional Brownian motion creates swirling, organic color fields. Fully procedural \u2014 no texture input required. Custom uniforms control animation speed and two-tone color palette via sensor bindings.",
     "entry": "shader.glsl",
     "usesTexture": false,
     "uniforms": [

@@ -140,6 +140,13 @@ for (const shaderName of shaderNames) {
         assert.ok(pkg.junctionrelay?.shaderName, 'missing shaderName');
       });
 
+      it('shaderName matches namespace.name pattern', () => {
+        pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        const pattern = /^[a-z][a-z0-9]*(-[a-z0-9]+)*\.[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+        assert.match(pkg.junctionrelay.shaderName, pattern,
+          `shaderName "${pkg.junctionrelay.shaderName}" must be namespace.name (e.g. junctionrelay.rainwindow)`);
+      });
+
       it('has displayName', () => {
         pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
         assert.ok(pkg.junctionrelay?.displayName, 'missing displayName');

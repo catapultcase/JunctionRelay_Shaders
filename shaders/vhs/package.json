@@ -4,7 +4,7 @@
   "description": "VHS retro effect \u2014 tape warble, chroma bleed, tracking glitches, grain",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "vhs",
+    "shaderName": "junctionrelay.vhs",
     "displayName": "VHS",
     "description": "Old VHS tape look: chroma channel separation, horizontal tracking glitch bands, tape warble, luminance grain, scanlines, and occasional dropout flashes. Fully self-contained \u2014 driven by time only.",
     "entry": "shader.glsl",

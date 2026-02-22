@@ -1,9 +1,9 @@
 {
-  "name": "@junctionrelay/shader-stainedglass",
+  "name": "@junctionrelay/shader-stained-glass",
   "version": "1.0.0",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "stainedglass",
+    "shaderName": "junctionrelay.stained-glass",
     "displayName": "Stained Glass",
     "description": "Cathedral leaded glass. Two-scale voronoi pane structure with smaller tracery pieces near large pane edges, unique HSV colour per pane, transmitted light modulated by scene brightness, hand-blown glass thickness variation and scatter, dark oxidised lead came lines with centre highlight, warm sunlight tint. Fully self-contained.",
     "entry": "shader.glsl",
