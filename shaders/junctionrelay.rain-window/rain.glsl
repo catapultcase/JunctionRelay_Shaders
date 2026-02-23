@@ -315,7 +315,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Background rain: falling in the scene outside the glass.
     // Fades with fog (can't see distant rain through heavy condensation).
     float bgRain = backgroundRain(bgUV, t) * rainAmount * mix(0.30, 0.02, fogAmount);
-    col += bgRain * vec3(0.78, 0.86, 1.0);  // cool blue-white rain tint
+    vec3 rainTint = mix(vec3(0.78, 0.86, 1.0), liquidColor, liquidOpacity);
+    col += bgRain * rainTint;
 
     // Temporal feedback: read previous clearing from alpha channel
     float prevClearing = 0.0;
