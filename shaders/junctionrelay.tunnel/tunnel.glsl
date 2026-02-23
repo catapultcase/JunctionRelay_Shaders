@@ -23,14 +23,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     // Centre UV, normalise by shortest axis for aspect-correct shape
     vec2 uv = (fragCoord - 0.5 * iResolution.xy) / min(iResolution.x, iResolution.y);
 
-    // ── 1. Tunnel rotation ────────────────────────────────────────────────────
+    // ── 1. Origin — move the vanishing point (screen-space, rotation-independent)
+    uv -= vec2(originX, originY);
+
+    // ── 2. Tunnel rotation (spins the grid around the vanishing point) ───────
     float rot = iTime * rotationSpeed;
     float cs  = cos(rot);
     float sn  = sin(rot);
     uv = vec2(uv.x * cs - uv.y * sn, uv.x * sn + uv.y * cs);
-
-    // ── 2. Origin — move the vanishing point ──────────────────────────────────
-    uv -= vec2(originX, originY);
 
     // ── 3. Curvature — bend the near end sideways ─────────────────────────────
     //    r0² gives a smooth quadratic arc: zero shift at the vanishing point
