@@ -13,8 +13,7 @@
 // Single pass, no texture required.
 //
 // Uniforms: gridColor, speed, gridDensity, lineWidth, glowIntensity,
-//           rotationSpeed, curvature, depthScale, depthOffset,
-//           originX, originY
+//           rotationSpeed, curvature, depthScale, originX, originY
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
@@ -53,7 +52,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
     for (float n = 0.0; n < 48.0; n += 1.0) {
         float ringN = floor(tScroll) + n;         // ring index
-        float z     = ringN - tScroll + 1.0 + depthOffset;  // actual depth (shifted by offset)
+        float z     = ringN - tScroll + 1.0;      // actual depth for this ring
         if (z < 0.05 || z > maxZ) continue;
 
         float df   = clamp(1.0 - z / maxZ, 0.0, 1.0);
