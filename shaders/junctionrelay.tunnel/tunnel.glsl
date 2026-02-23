@@ -7,7 +7,7 @@
 // All other use requires explicit written permission from CatapultCase.
 //
 // Procedural wireframe tunnel — transparent between grid lines.
-// Curvature bends the path like a pipe; origin aims the far end.
+// Origin sets curve direction; curvature controls arc width.
 // Classic polar-to-depth mapping with animated forward motion,
 // neon grid lines, soft glow, and optional rotation.
 // Single pass, no texture required.
@@ -29,20 +29,22 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float sn  = sin(rot);
     uv = vec2(uv.x * cs - uv.y * sn, uv.x * sn + uv.y * cs);
 
-    // ── 2. Origin — shift only the far end of the tunnel ──────────────────────
+    // ── 2. Curve path — origin sets direction, curvature sets arc width ────────
+    // Near-end (edge pixels, large r0) shift toward origin; far-end stays centred.
+    // curvature widens the transition: 0 = almost straight, 1 = full smooth arc.
     float r0 = length(uv);
-    float originWeight = smoothstep(0.4, 0.02, r0);
-    uv -= vec2(originX, originY) * originWeight;
+    float edgeStart = mix(0.05, 0.5, curvature);
+    float curveWeight = smoothstep(edgeStart, 0.02, r0);
+    uv -= vec2(originX, originY) * curveWeight;
 
-    // ── 3. Straight tunnel mapping ────────────────────────────────────────────
+    // ── 3. Tunnel mapping ─────────────────────────────────────────────────────
     float angle  = atan(uv.y, uv.x);
     float radius = length(uv);
     float depth  = depthScale / (radius + 0.001) + depthOffset;
 
     // ── 4. Animated tunnel coordinates ────────────────────────────────────────
     float tunnelZ = depth + iTime * speed;
-    // Curvature: arc the grid lines with depth — no UV distortion.
-    float tunnelA = angle * gridDensity / 3.14159265 + curvature * depth * 0.15;
+    float tunnelA = angle * gridDensity / 3.14159265;
 
     // ── 5. Grid lines — distance to nearest grid edge ────────────────────────
     float distZ = abs(fract(tunnelZ) - 0.5) * 2.0;   // 0 at line, 1 between

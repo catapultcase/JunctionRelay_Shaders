@@ -84,7 +84,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "Path arc — 0 is dead straight, 1 bends the tunnel into an orbit-like curve"
+        "description": "How gradually the tunnel curves toward Origin — 0 is nearly straight, 1 is a smooth wide arc"
       },
       {
         "name": "depthScale",
@@ -154,11 +154,11 @@
           "lineWidth": 0.4,
           "glowIntensity": 1.2,
           "rotationSpeed": 0.1,
-          "curvature": 0.4,
+          "curvature": 0.5,
           "depthScale": 0.6,
           "depthOffset": 1.0,
-          "originX": 0.0,
-          "originY": 0.0
+          "originX": 0.3,
+          "originY": -0.2
         }
       },
       {
@@ -218,11 +218,11 @@
           "lineWidth": 0.6,
           "glowIntensity": 1.8,
           "rotationSpeed": 0.15,
-          "curvature": 0.5,
+          "curvature": 0.7,
           "depthScale": 1.2,
           "depthOffset": 2.0,
-          "originX": 0.0,
-          "originY": 0.0
+          "originX": -0.2,
+          "originY": 0.15
         }
       }
     ]
