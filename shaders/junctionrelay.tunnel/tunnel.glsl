@@ -7,7 +7,7 @@
 // All other use requires explicit written permission from CatapultCase.
 //
 // Procedural wireframe tunnel — transparent between grid lines.
-// Cross-section blends from square to circle via curvature uniform.
+// Path bends like a pipe via curvature uniform.
 // Classic polar-to-depth mapping with animated forward motion,
 // neon grid lines, soft glow, and optional rotation.
 // Single pass, no texture required.
@@ -33,24 +33,26 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float sn  = sin(rot);
     uv = vec2(uv.x * cs - uv.y * sn, uv.x * sn + uv.y * cs);
 
-    // ── 3. Cross-section shape ───────────────────────────────────────────────
-    // Blend between Chebyshev distance (square) and Euclidean distance (circle).
-    // curvature 0 = perfect square, 1 = perfect circle.
-    float angle    = atan(uv.y, uv.x);
-    float circleR  = length(uv);
-    float squareR  = max(abs(uv.x), abs(uv.y));
-    float radius   = mix(squareR, circleR, curvature);
+    // ── 3. Preliminary depth for curvature calculation ───────────────────────
+    float r0 = length(uv);
+    float d0 = depthScale / (r0 + 0.001);
 
-    // ── 4. Tunnel mapping — depth = scale / radius ───────────────────────────
-    // depthScale controls how deep the corridor stretches.
-    // depthOffset shifts the camera start position along the tunnel.
-    float depth = depthScale / (radius + 0.001) + depthOffset;
+    // ── 4. Path curvature — bend the tunnel like a pipe ────────────────────
+    // Displace the UV centre based on depth so the tunnel traces a curved path.
+    // curvature 0 = dead straight, 1 = strongly bent.
+    uv.x += curvature * sin(d0 * 0.8 + iTime * speed * 0.5) * 0.3;
+    uv.y += curvature * cos(d0 * 0.6 + iTime * speed * 0.3) * 0.2;
 
-    // ── 5. Animated tunnel coordinates ───────────────────────────────────────
+    // ── 5. Tunnel mapping from bent UV ─────────────────────────────────────
+    float angle  = atan(uv.y, uv.x);
+    float radius = length(uv);
+    float depth  = depthScale / (radius + 0.001) + depthOffset;
+
+    // ── 6. Animated tunnel coordinates ─────────────────────────────────────
     float tunnelZ = depth + iTime * speed;
     float tunnelA = angle * gridDensity / 3.14159265;
 
-    // ── 6. Grid lines — distance to nearest grid edge ────────────────────────
+    // ── 7. Grid lines — distance to nearest grid edge ────────────────────────
     float distZ = abs(fract(tunnelZ) - 0.5) * 2.0;   // 0 at line, 1 between
     float distA = abs(fract(tunnelA) - 0.5) * 2.0;
 
@@ -63,18 +65,18 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float lineA = 1.0 - smoothstep(0.0, lw, distA);
     float gridLine = max(lineZ, lineA);
 
-    // ── 7. Soft glow around lines ────────────────────────────────────────────
+    // ── 8. Soft glow around lines ────────────────────────────────────────────
     float glowFalloff = 12.0 / max(glowIntensity, 0.01);
     float glowZ = exp(-distZ * glowFalloff);
     float glowA = exp(-distA * glowFalloff);
     float glow  = max(glowZ, glowA) * glowIntensity * 0.4;
 
-    // ── 8. Depth-based fade ──────────────────────────────────────────────────
+    // ── 9. Depth-based fade ──────────────────────────────────────────────────
     // Vanishing point (centre) fades to avoid infinite brightness;
     // extreme edges fade to keep the tunnel feeling bounded.
     float fade = smoothstep(0.0, 0.08, radius) * smoothstep(2.5, 0.3, radius);
 
-    // ── 9. Combine line + glow ───────────────────────────────────────────────
+    // ── 10. Combine line + glow ──────────────────────────────────────────────
     float intensity = (gridLine + glow) * fade;
 
     // Neon colour with a bright white core on hard line edges
