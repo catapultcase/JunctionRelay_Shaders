@@ -35,8 +35,9 @@ vec2 rng22(vec2 p) {
 //
 // Larger drops cling for a shorter fraction of the cycle and
 // accelerate more steeply (size → speed correlation).
-// Three adjacent columns are sampled so drops near cell boundaries
-// merge into a single shape via metaball field accumulation.
+// Five adjacent columns are sampled so drops merge across boundaries.
+// Per-column horizontal jitter and full-width positioning make the
+// underlying grid invisible — drops are placed in continuous UV space.
 //
 // hashSeed: per-layer offset so the two layers are decorrelated.
 // Returns: vec2(dropHeight, trailClearing)
@@ -53,10 +54,13 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
     float field = 0.0;
     float trail = 0.0;
 
-    // Check left, centre, right columns so nearby drops merge
-    for (int dc = -1; dc <= 1; dc++) {
+    // Check 5 neighboring columns so drops merge across boundaries
+    for (int dc = -2; dc <= 2; dc++) {
         float nCol  = colId + float(dc);
         float nFrac = colFrac - float(dc);   // x within neighbor column
+
+        // Per-column horizontal jitter breaks the ruler-straight grid pattern
+        float colJitter = (rng(nCol * 43.7 + hashSeed + 777.0) - 0.5) * 0.6;
 
         // Column sparsity — roughly one in four columns has no drops
         if (rng(nCol * 91.3 + hashSeed) < 0.25) continue;
@@ -104,7 +108,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             if (dropY < -0.08 || dropY > 1.08) continue;
 
             // Horizontal centre within column; wobble only while sliding
-            float cx = 0.25 + sa * 0.5;
+            float cx = sa + colJitter;
             if (sliding > 0.5) {
                 float wobbleMul = mix(1.0, 0.25, viscosity);
                 float w = sin(uv.y * 14.0 + t * (1.3 + sa) + sa * 6.28) * 0.04 * (pathVariance * 2.0) * wobbleMul
@@ -137,7 +141,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             float hit = smoothstep(radius, radius * 0.2, d);
 
             // Wet trail: fog-clearing strip left behind a sliding drop
-            if (dc == 0 && sliding > 0.5) {
+            if (sliding > 0.5) {
                 // Trail edge noise — uneven rivulet width like real water on glass
                 float trailNoise = rng(floor(uv.y * 70.0) * 13.7 + base);
                 float bw    = radius * (1.5 + trailNoise * 1.4) * (1.0 + viscosity * 1.0);
