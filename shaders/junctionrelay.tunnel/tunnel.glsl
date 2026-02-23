@@ -29,30 +29,22 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float sn  = sin(rot);
     uv = vec2(uv.x * cs - uv.y * sn, uv.x * sn + uv.y * cs);
 
-    // ── 2. Preliminary depth ──────────────────────────────────────────────────
+    // ── 2. Origin — shift only the far end of the tunnel ──────────────────────
     float r0 = length(uv);
-
-    // ── 3. Origin — shift only the far end of the tunnel ──────────────────────
-    // Near the camera mouth (large r0): no shift.
-    // Deep in the tunnel (small r0): full origin offset.
     float originWeight = smoothstep(0.4, 0.02, r0);
     uv -= vec2(originX, originY) * originWeight;
 
-    // ── 4. Curvature — smooth arc like a bending pipe ─────────────────────────
-    // t = 0 at edges (near camera), 1 at centre (deep). Quadratic = clean arc.
-    float t = 1.0 - clamp(r0 * 2.5, 0.0, 1.0);
-    uv.x += curvature * t * t * 0.3;
-
-    // ── 5. Tunnel mapping from bent UV ────────────────────────────────────────
+    // ── 3. Straight tunnel mapping ────────────────────────────────────────────
     float angle  = atan(uv.y, uv.x);
     float radius = length(uv);
     float depth  = depthScale / (radius + 0.001) + depthOffset;
 
-    // ── 6. Animated tunnel coordinates ────────────────────────────────────────
+    // ── 4. Animated tunnel coordinates ────────────────────────────────────────
     float tunnelZ = depth + iTime * speed;
-    float tunnelA = angle * gridDensity / 3.14159265;
+    // Curvature: arc the grid lines with depth — no UV distortion.
+    float tunnelA = angle * gridDensity / 3.14159265 + curvature * depth * 0.15;
 
-    // ── 7. Grid lines — distance to nearest grid edge ────────────────────────
+    // ── 5. Grid lines — distance to nearest grid edge ────────────────────────
     float distZ = abs(fract(tunnelZ) - 0.5) * 2.0;   // 0 at line, 1 between
     float distA = abs(fract(tunnelA) - 0.5) * 2.0;
 
@@ -65,18 +57,18 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float lineA = 1.0 - smoothstep(0.0, lw, distA);
     float gridLine = max(lineZ, lineA);
 
-    // ── 8. Soft glow around lines ────────────────────────────────────────────
+    // ── 6. Soft glow around lines ────────────────────────────────────────────
     float glowFalloff = 12.0 / max(glowIntensity, 0.01);
     float glowZ = exp(-distZ * glowFalloff);
     float glowA = exp(-distA * glowFalloff);
     float glow  = max(glowZ, glowA) * glowIntensity * 0.4;
 
-    // ── 9. Depth-based fade ──────────────────────────────────────────────────
+    // ── 7. Depth-based fade ──────────────────────────────────────────────────
     // Vanishing point (centre) fades to avoid infinite brightness;
     // extreme edges fade to keep the tunnel feeling bounded.
     float fade = smoothstep(0.0, 0.08, radius) * smoothstep(2.5, 0.3, radius);
 
-    // ── 10. Combine line + glow ──────────────────────────────────────────────
+    // ── 8. Combine line + glow ──────────────────────────────────────────────
     float intensity = (gridLine + glow) * fade;
 
     // Neon colour with a bright white core on hard line edges
