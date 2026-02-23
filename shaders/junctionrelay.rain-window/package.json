@@ -1,18 +1,19 @@
 {
   "name": "@junctionrelay/shader-rain-window",
-  "version": "4.0.0",
-  "description": "Rain on glass — realistic drops with refraction, trails, fog, temporal persistence, and bloom over a background texture",
+  "version": "4.1.0",
+  "description": "Rain on glass — realistic drops with refraction, trails, fog, temporal persistence, bloom, and ambient lighting over a background texture",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.rain-window",
     "displayName": "Rain Window",
-    "description": "Rainy glass overlay with temporal persistence and bloom. Drops roll down the surface leaving trails that cut through condensation fog. Wet marks persist and slowly evaporate over ~3 seconds via feedback. Star-pattern bloom adds warm glow to specular highlights.",
+    "description": "Rainy glass overlay with temporal persistence, bloom, and ambient lighting. Drops roll down the surface leaving trails that cut through condensation fog. Wet marks persist and slowly evaporate over ~3 seconds via feedback. Star-pattern bloom adds warm glow to specular highlights. Ambient light pass provides scene-wide colored lighting, directional gradients, and atmospheric haze.",
     "usesTexture": true,
     "feedback": true,
     "opaque": true,
     "passes": [
       { "entry": "rain.glsl", "displayName": "Rain" },
-      { "entry": "bloom.glsl", "displayName": "Bloom" }
+      { "entry": "bloom.glsl", "displayName": "Bloom" },
+      { "entry": "ambient.glsl", "displayName": "Ambient Light" }
     ],
     "uniforms": [
       {
@@ -152,6 +153,72 @@
         "min": 0.0,
         "max": 1.0,
         "description": "Warm tint on bloom — 0 is neutral white, 1 is warm golden (light through water absorbs blue)"
+      },
+      {
+        "name": "lightColor",
+        "displayName": "Light Color",
+        "type": "color",
+        "pass": 2,
+        "default": [1.0, 1.0, 1.0],
+        "description": "Scene light color — white is neutral, red for horror, amber for warm"
+      },
+      {
+        "name": "lightIntensity",
+        "displayName": "Light Intensity",
+        "type": "float",
+        "pass": 2,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "How strongly the light tints the scene — 0 means no effect"
+      },
+      {
+        "name": "lightAngle",
+        "displayName": "Light Angle",
+        "type": "float",
+        "pass": 2,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Light direction — maps to 0-360 degrees. 0=right, 0.25=top, 0.5=left, 0.75=bottom"
+      },
+      {
+        "name": "lightFocus",
+        "displayName": "Light Focus",
+        "type": "float",
+        "pass": 2,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "0=uniform ambient everywhere, 1=strong directional gradient (lit side vs shadow side)"
+      },
+      {
+        "name": "atmosphereColor",
+        "displayName": "Atmosphere Color",
+        "type": "color",
+        "pass": 2,
+        "default": [1.0, 1.0, 1.0],
+        "description": "Haze/fog particle color — adds colored atmosphere to the scene"
+      },
+      {
+        "name": "atmosphereDensity",
+        "displayName": "Atmosphere Density",
+        "type": "float",
+        "pass": 2,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "How thick the atmospheric haze is — 0 is clear, 1 is dense fog"
+      },
+      {
+        "name": "exposure",
+        "displayName": "Exposure",
+        "type": "float",
+        "pass": 2,
+        "default": 0.0,
+        "min": -1.0,
+        "max": 1.0,
+        "description": "Overall brightness — negative darkens, positive brightens (EV-style: 2^exposure)"
       }
     ],
     "presets": [
@@ -172,7 +239,14 @@
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.6,
           "bloomSpread": 2.5,
-          "bloomWarmth": 0.5
+          "bloomWarmth": 0.5,
+          "lightColor": [1.0, 1.0, 1.0],
+          "lightIntensity": 0.0,
+          "lightAngle": 0.0,
+          "lightFocus": 0.0,
+          "atmosphereColor": [1.0, 1.0, 1.0],
+          "atmosphereDensity": 0.0,
+          "exposure": 0.0
         }
       },
       {
@@ -191,15 +265,22 @@
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.6,
           "bloomSpread": 2.5,
-          "bloomWarmth": 0.5
+          "bloomWarmth": 0.5,
+          "lightColor": [1.0, 1.0, 1.0],
+          "lightIntensity": 0.0,
+          "lightAngle": 0.0,
+          "lightFocus": 0.0,
+          "atmosphereColor": [1.0, 1.0, 1.0],
+          "atmosphereDensity": 0.0,
+          "exposure": 0.0
         }
       },
       {
         "name": "Blood on Glass",
         "values": {
-          "rainAmount": 0.35,
+          "rainAmount": 0.56,
           "fogAmount": 0.05,
-          "dropSize": 0.7,
+          "dropSize": 0.85,
           "pathVariance": 0.15,
           "windDir": 0.0,
           "glassTilt": 0.3,
@@ -210,7 +291,14 @@
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.5,
           "bloomSpread": 2.0,
-          "bloomWarmth": 0.7
+          "bloomWarmth": 0.7,
+          "lightColor": [1.0, 0.15, 0.1],
+          "lightIntensity": 0.45,
+          "lightAngle": 0.75,
+          "lightFocus": 0.3,
+          "atmosphereColor": [0.6, 0.05, 0.02],
+          "atmosphereDensity": 0.15,
+          "exposure": -0.15
         }
       },
       {
@@ -229,7 +317,14 @@
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.4,
           "bloomSpread": 2.0,
-          "bloomWarmth": 0.8
+          "bloomWarmth": 0.8,
+          "lightColor": [1.0, 0.8, 0.4],
+          "lightIntensity": 0.3,
+          "lightAngle": 0.25,
+          "lightFocus": 0.2,
+          "atmosphereColor": [0.9, 0.7, 0.3],
+          "atmosphereDensity": 0.08,
+          "exposure": 0.1
         }
       }
     ]
