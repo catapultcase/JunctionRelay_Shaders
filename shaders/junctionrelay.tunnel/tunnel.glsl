@@ -33,13 +33,16 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
     // ── 3. Explicit ring search ─────────────────────────────────────────────
     //    Each ring at depth Z is a perfect circle:
-    //      centre = (curvature * (1 − Z/maxZ) * 0.25,  0)
-    //      radius = depthScale / Z
-    //    Near rings shift more (like old Canvas code); far rings stay centred.
+    //      centre shifted by curvature * (1 − Z/maxZ) in SCREEN-SPACE +X,
+    //      then rotated into the tunnel's coordinate system so the curve
+    //      direction stays fixed on screen while the grid lines spin.
 
     float maxZ      = 12.0;
     float curveAmt  = curvature * 0.25;   // matches Canvas (width/4) in UV space
     float tScroll   = iTime * speed;
+
+    // Curve direction: screen-space +X rotated into tunnel space
+    vec2 curveDir = vec2(cs, sn);
 
     float bestDist  = 1000.0;
     float bestZ     = 1.0;
@@ -51,7 +54,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         if (z < 0.05 || z > maxZ) continue;
 
         float df   = clamp(1.0 - z / maxZ, 0.0, 1.0);
-        vec2  ctr  = vec2(curveAmt * df, 0.0);
+        vec2  ctr  = curveDir * curveAmt * df;
         float rR   = depthScale / z;
         float d    = abs(length(uv - ctr) - rR);
 
@@ -73,8 +76,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float zHi     = zLo + 1.0;
     float dfLo    = clamp(1.0 - max(zLo, 0.0) / maxZ, 0.0, 1.0);
     float dfHi    = clamp(1.0 - max(zHi, 0.0) / maxZ, 0.0, 1.0);
-    vec2  ctrLo   = vec2(curveAmt * dfLo, 0.0);
-    vec2  ctrHi   = vec2(curveAmt * dfHi, 0.0);
+    vec2  ctrLo   = curveDir * curveAmt * dfLo;
+    vec2  ctrHi   = curveDir * curveAmt * dfHi;
     vec2  blendC  = mix(ctrLo, ctrHi, cellFr);
 
     float angle   = atan((uv - blendC).y, (uv - blendC).x);
