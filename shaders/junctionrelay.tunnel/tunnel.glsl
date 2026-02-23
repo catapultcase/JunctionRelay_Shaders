@@ -38,7 +38,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     //      direction stays fixed on screen while the grid lines spin.
     //    Track the two nearest rings for spoke interpolation.
 
-    float maxZ      = 12.0;
+    float maxZ      = 12.0 + depthScale * 12.0;
     float curveAmt  = curvature * 0.25;   // matches Canvas (width/4) in UV space
     float tScroll   = iTime * speed;
 
@@ -51,7 +51,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float secondDist = 1000.0;
     vec2  secondCtr  = vec2(0.0);
 
-    for (float n = 0.0; n < 25.0; n += 1.0) {
+    for (float n = 0.0; n < 48.0; n += 1.0) {
         float ringN = floor(tScroll) + n;         // ring index
         float z     = ringN - tScroll + 1.0 + depthOffset;  // actual depth (shifted by offset)
         if (z < 0.05 || z > maxZ) continue;
