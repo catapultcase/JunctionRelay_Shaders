@@ -211,6 +211,34 @@
     ],
     "presets": [
       {
+        "name": "Data Stream",
+        "default": true,
+        "values": {
+          "phosphorColor": [
+            0.15,
+            1.0,
+            0.25
+          ],
+          "phosphorDrive": 1.0,
+          "scanlineWeight": 0.35,
+          "warpAmount": 0.03,
+          "pixelGrid": 0.4,
+          "brightness": 0.05,
+          "staticAmount": 0.05,
+          "rippleStrength": 0.02,
+          "rollSpeed": 0.1,
+          "glitchRate": 0.3,
+          "ghostOffset": 0.015,
+          "tearStrength": 0.03,
+          "glowStrength": 0.45,
+          "glowSpread": 2.5,
+          "vignetteAmount": 0.4,
+          "flickerAmount": 0.02,
+          "grainAmount": 0.02,
+          "warmth": 0.0
+        }
+      },
+      {
         "name": "Green Terminal",
         "values": {
           "phosphorColor": [
@@ -397,34 +425,6 @@
           "flickerAmount": 0.08,
           "grainAmount": 0.08,
           "warmth": 0.6
-        }
-      },
-      {
-        "name": "Data Stream",
-        "default": true,
-        "values": {
-          "phosphorColor": [
-            0.15,
-            1.0,
-            0.25
-          ],
-          "phosphorDrive": 1.0,
-          "scanlineWeight": 0.35,
-          "warpAmount": 0.03,
-          "pixelGrid": 0.4,
-          "brightness": 0.05,
-          "staticAmount": 0.05,
-          "rippleStrength": 0.02,
-          "rollSpeed": 0.1,
-          "glitchRate": 0.3,
-          "ghostOffset": 0.015,
-          "tearStrength": 0.03,
-          "glowStrength": 0.45,
-          "glowSpread": 2.5,
-          "vignetteAmount": 0.4,
-          "flickerAmount": 0.02,
-          "grainAmount": 0.02,
-          "warmth": 0.0
         }
       }
     ]
