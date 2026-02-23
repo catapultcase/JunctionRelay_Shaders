@@ -1,6 +1,6 @@
 {
   "name": "@junctionrelay/shader-rain-window",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Rain on glass — realistic drops with refraction, trails, fog, temporal persistence, and bloom over a background texture",
   "junctionrelay": {
     "type": "shader",
@@ -11,14 +11,15 @@
     "feedback": true,
     "opaque": true,
     "passes": [
-      { "entry": "rain.glsl" },
-      { "entry": "bloom.glsl" }
+      { "entry": "rain.glsl", "displayName": "Rain" },
+      { "entry": "bloom.glsl", "displayName": "Bloom" }
     ],
     "uniforms": [
       {
         "name": "rainAmount",
         "displayName": "Rain Amount",
         "type": "float",
+        "pass": 0,
         "default": 0.3,
         "min": 0.0,
         "max": 1.0,
@@ -28,6 +29,7 @@
         "name": "fogAmount",
         "displayName": "Glass Fog",
         "type": "float",
+        "pass": 0,
         "default": 0.1,
         "min": 0.0,
         "max": 1.0,
@@ -37,6 +39,7 @@
         "name": "dropSize",
         "displayName": "Drop Size",
         "type": "float",
+        "pass": 0,
         "default": 0.6,
         "min": 0.1,
         "max": 1.5,
@@ -46,6 +49,7 @@
         "name": "pathVariance",
         "displayName": "Path Variance",
         "type": "float",
+        "pass": 0,
         "default": 0.3,
         "min": 0.0,
         "max": 1.0,
@@ -55,6 +59,7 @@
         "name": "windDir",
         "displayName": "Wind Direction",
         "type": "float",
+        "pass": 0,
         "default": 0.7,
         "min": -1.0,
         "max": 1.0,
@@ -64,6 +69,7 @@
         "name": "glassTilt",
         "displayName": "Glass Tilt",
         "type": "float",
+        "pass": 0,
         "default": 0.8,
         "min": -1.0,
         "max": 1.0,
@@ -73,10 +79,51 @@
         "name": "surfaceTension",
         "displayName": "Glass Cling",
         "type": "float",
+        "pass": 0,
         "default": 0.2,
         "min": 0.0,
         "max": 1.0,
         "description": "How clingy the glass surface is — low values let drops slide quickly, high values make them cling longer and fall slower"
+      },
+      {
+        "name": "bloomThreshold",
+        "displayName": "Threshold",
+        "type": "float",
+        "pass": 1,
+        "default": 0.72,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Luminance cutoff — how bright a pixel must be to glow. Lower values bloom more of the image."
+      },
+      {
+        "name": "bloomIntensity",
+        "displayName": "Intensity",
+        "type": "float",
+        "pass": 1,
+        "default": 0.6,
+        "min": 0.0,
+        "max": 2.0,
+        "description": "Strength of the additive bloom composite — 0 disables bloom entirely, higher values create stronger glow"
+      },
+      {
+        "name": "bloomSpread",
+        "displayName": "Spread",
+        "type": "float",
+        "pass": 1,
+        "default": 2.5,
+        "min": 0.5,
+        "max": 6.0,
+        "description": "How far bloom rays extend from bright spots — higher values create wider, softer glow"
+      },
+      {
+        "name": "bloomWarmth",
+        "displayName": "Warmth",
+        "type": "float",
+        "pass": 1,
+        "default": 0.5,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Warm tint on bloom — 0 is neutral white, 1 is warm golden (light through water absorbs blue)"
       }
     ],
     "presets": [
@@ -90,19 +137,27 @@
           "pathVariance": 0.3,
           "windDir": 0.7,
           "glassTilt": 0.8,
-          "surfaceTension": 0.2
+          "surfaceTension": 0.2,
+          "bloomThreshold": 0.72,
+          "bloomIntensity": 0.6,
+          "bloomSpread": 2.5,
+          "bloomWarmth": 0.5
         }
       },
       {
-        "name": "Light Rain",
+        "name": "Foggy with Light Rain",
         "values": {
-          "rainAmount": 0.1152984635152754,
+          "rainAmount": 0.2152984635152754,
           "fogAmount": 0.13562010533645408,
           "dropSize": 0.5892303986195548,
           "pathVariance": 0.47283729989150836,
           "windDir": 0.9708059087093326,
           "glassTilt": -0.8934737317726256,
-          "surfaceTension": 0.503908581858657
+          "surfaceTension": 0.503908581858657,
+          "bloomThreshold": 0.72,
+          "bloomIntensity": 0.6,
+          "bloomSpread": 2.5,
+          "bloomWarmth": 0.5
         }
       }
     ]

@@ -11,7 +11,8 @@
     "opaque": true,
     "passes": [
       {
-        "entry": "aurora.glsl"
+        "entry": "aurora.glsl",
+        "displayName": "Aurora"
       }
     ],
     "usesTexture": false,
@@ -20,6 +21,7 @@
         "name": "uIntensity",
         "displayName": "Intensity",
         "type": "float",
+        "pass": 0,
         "default": 1.0,
         "min": 0.1,
         "max": 2.0,

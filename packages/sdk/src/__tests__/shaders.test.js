@@ -203,6 +203,7 @@ for (const shaderName of shaderNames) {
       it('has uniforms array', () => {
         pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
         const uniforms = pkg.junctionrelay?.uniforms;
+        const passCount = (pkg.junctionrelay?.passes || []).length;
         assert.notEqual(uniforms, undefined,
           'missing required field: uniforms');
         assert.ok(Array.isArray(uniforms), 'uniforms must be an array');
@@ -214,6 +215,13 @@ for (const shaderName of shaderNames) {
             `uniform ${u.name} has invalid type: ${u.type}`);
           assert.notEqual(u.default, undefined,
             `uniform ${u.name} missing default`);
+          // pass field is required — integer index into passes array
+          assert.notEqual(u.pass, undefined,
+            `uniform ${u.name} missing required field: pass`);
+          assert.equal(typeof u.pass, 'number',
+            `uniform ${u.name} pass must be a number`);
+          assert.ok(Number.isInteger(u.pass) && u.pass >= 0 && u.pass < passCount,
+            `uniform ${u.name} pass must be an integer in [0, ${passCount}), got ${u.pass}`);
         }
       });
 
