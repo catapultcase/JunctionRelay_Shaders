@@ -7,7 +7,7 @@
     "shaderName": "junctionrelay.tunnel",
     "emoji": "🕳️",
     "displayName": "Tunnel",
-    "description": "Procedural retro-CGI wireframe tunnel with transparent background. Polar-to-depth mapping creates an infinite corridor of neon grid lines rushing toward the viewer. Configurable grid colour, line width, glow intensity, speed, density, rotation, and perspective. 7 uniforms, 6 presets.",
+    "description": "Procedural retro-CGI wireframe tunnel with transparent background. Cross-section blends from square to circle. Polar-to-depth mapping creates an infinite corridor of neon grid lines rushing toward the viewer. Configurable shape, depth, offset, grid colour, line width, glow, speed, density, and rotation. 9 uniforms, 6 presets.",
     "usesTexture": false,
     "feedback": false,
     "opaque": false,
@@ -77,14 +77,34 @@
         "description": "Tunnel barrel-roll rate — subtle drift or full spin"
       },
       {
-        "name": "perspectiveStrength",
-        "displayName": "Perspective",
+        "name": "curvature",
+        "displayName": "Curvature",
+        "type": "float",
+        "pass": 0,
+        "default": 1.0,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Cross-section shape — 0 is a perfect square, 1 is a perfect circle, values between give rounded corners"
+      },
+      {
+        "name": "depthScale",
+        "displayName": "Depth",
         "type": "float",
         "pass": 0,
         "default": 0.5,
-        "min": 0.2,
+        "min": 0.1,
         "max": 2.0,
-        "description": "Depth compression — low values feel close-up, high values stretch the corridor deeper"
+        "description": "How deep the corridor stretches — low values feel close-up, high values stretch infinitely"
+      },
+      {
+        "name": "depthOffset",
+        "displayName": "Depth Offset",
+        "type": "float",
+        "pass": 0,
+        "default": 0.0,
+        "min": -5.0,
+        "max": 5.0,
+        "description": "Shifts the camera start position along the tunnel — negative pulls back, positive pushes deeper"
       }
     ],
     "presets": [
@@ -98,7 +118,9 @@
           "lineWidth": 0.5,
           "glowIntensity": 0.8,
           "rotationSpeed": 0.05,
-          "perspectiveStrength": 0.5
+          "curvature": 1.0,
+          "depthScale": 0.5,
+          "depthOffset": 0.0
         }
       },
       {
@@ -110,7 +132,9 @@
           "lineWidth": 0.4,
           "glowIntensity": 1.2,
           "rotationSpeed": 0.1,
-          "perspectiveStrength": 0.6
+          "curvature": 0.0,
+          "depthScale": 0.6,
+          "depthOffset": 1.0
         }
       },
       {
@@ -122,7 +146,9 @@
           "lineWidth": 0.3,
           "glowIntensity": 0.6,
           "rotationSpeed": 0.02,
-          "perspectiveStrength": 0.4
+          "curvature": 0.3,
+          "depthScale": 0.4,
+          "depthOffset": 0.0
         }
       },
       {
@@ -134,7 +160,9 @@
           "lineWidth": 0.8,
           "glowIntensity": 1.0,
           "rotationSpeed": 0.03,
-          "perspectiveStrength": 0.5
+          "curvature": 0.5,
+          "depthScale": 0.5,
+          "depthOffset": -1.0
         }
       },
       {
@@ -146,7 +174,9 @@
           "lineWidth": 0.2,
           "glowIntensity": 0.3,
           "rotationSpeed": 0.01,
-          "perspectiveStrength": 0.5
+          "curvature": 0.0,
+          "depthScale": 0.5,
+          "depthOffset": 0.0
         }
       },
       {
@@ -158,7 +188,9 @@
           "lineWidth": 0.6,
           "glowIntensity": 1.8,
           "rotationSpeed": 0.15,
-          "perspectiveStrength": 0.8
+          "curvature": 1.0,
+          "depthScale": 1.2,
+          "depthOffset": 2.0
         }
       }
     ]

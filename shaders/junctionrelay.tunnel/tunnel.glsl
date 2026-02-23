@@ -7,28 +7,19 @@
 // All other use requires explicit written permission from CatapultCase.
 //
 // Procedural wireframe tunnel — transparent between grid lines.
+// Cross-section blends from square to circle via curvature uniform.
 // Classic polar-to-depth mapping with animated forward motion,
 // neon grid lines, soft glow, and optional rotation.
 // Single pass, no texture required.
 //
-// Uniforms: gridColor, speed, gridDensity, lineWidth,
-//           glowIntensity, rotationSpeed, perspectiveStrength
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-float hash11(float p)
-{
-    p = fract(p * 0.1031);
-    p *= p + 33.33;
-    p *= p + p;
-    return fract(p);
-}
+// Uniforms: gridColor, speed, gridDensity, lineWidth, glowIntensity,
+//           rotationSpeed, curvature, depthScale, depthOffset
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    // Centre UV, normalise by shortest axis for aspect-correct circle
+    // Centre UV, normalise by shortest axis for aspect-correct shape
     vec2 uv = (fragCoord - 0.5 * iResolution.xy) / min(iResolution.x, iResolution.y);
 
     // ── 1. Tunnel rotation ───────────────────────────────────────────────────
@@ -37,17 +28,20 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float sn  = sin(rot);
     uv = vec2(uv.x * cs - uv.y * sn, uv.x * sn + uv.y * cs);
 
-    // ── 2. Polar coordinates ─────────────────────────────────────────────────
-    float angle  = atan(uv.y, uv.x);
-    float radius = length(uv);
+    // ── 2. Cross-section shape ───────────────────────────────────────────────
+    // Blend between Chebyshev distance (square) and Euclidean distance (circle).
+    // curvature 0 = perfect square, 1 = perfect circle.
+    float angle    = atan(uv.y, uv.x);
+    float circleR  = length(uv);
+    float squareR  = max(abs(uv.x), abs(uv.y));
+    float radius   = mix(squareR, circleR, curvature);
 
-    // ── 3. Tunnel mapping — depth = perspective / radius ─────────────────────
-    // As radius → 0 (screen centre), depth → infinity (vanishing point).
-    // As radius grows (screen edges), depth → 0 (tunnel mouth).
-    float depth = perspectiveStrength / (radius + 0.001);
+    // ── 3. Tunnel mapping — depth = scale / radius ───────────────────────────
+    // depthScale controls how deep the corridor stretches.
+    // depthOffset shifts the camera start position along the tunnel.
+    float depth = depthScale / (radius + 0.001) + depthOffset;
 
     // ── 4. Animated tunnel coordinates ───────────────────────────────────────
-    // tunnelZ moves forward in time; tunnelA wraps the angular grid.
     float tunnelZ = depth + iTime * speed;
     float tunnelA = angle * gridDensity / 3.14159265;
 
@@ -56,8 +50,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float distA = abs(fract(tunnelA) - 0.5) * 2.0;
 
     // Line width scales with radius so lines thin out toward the vanishing point
-    float depthScale = clamp(radius * 2.5, 0.1, 1.0);
-    float lw = lineWidth * 0.08 * depthScale;
+    float lwScale = clamp(radius * 2.5, 0.1, 1.0);
+    float lw = lineWidth * 0.08 * lwScale;
 
     // Sharp neon edges
     float lineZ = 1.0 - smoothstep(0.0, lw, distZ);
