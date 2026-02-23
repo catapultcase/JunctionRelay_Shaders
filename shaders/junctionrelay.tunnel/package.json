@@ -84,7 +84,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "How gradually the tunnel curves toward Origin — 0 is nearly straight, 1 is a smooth wide arc"
+        "description": "Bends the near end of the tunnel sideways — 0 is straight, higher values create a wider arc"
       },
       {
         "name": "depthScale",
