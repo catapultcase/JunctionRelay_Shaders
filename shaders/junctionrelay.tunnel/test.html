@@ -80,6 +80,17 @@ let gl, prog, locs = {};
 
 // Load package.json from same directory
 async function init() {
+  // file:// can't use fetch — need a local HTTP server
+  if (window.location.protocol === 'file:') {
+    document.getElementById('title').textContent = 'Local Server Required';
+    document.getElementById('desc').innerHTML =
+      'Open a terminal in this folder and run:<br>' +
+      '<code style="background:#222;padding:2px 6px;border-radius:3px;color:#0f0;user-select:all">' +
+      'python -m http.server 8080</code><br>' +
+      'Then open <a href="http://localhost:8080/test.html" style="color:#4af">localhost:8080/test.html</a>';
+    return;
+  }
+
   try {
     const res = await fetch('package.json');
     const pkg = await res.json();
