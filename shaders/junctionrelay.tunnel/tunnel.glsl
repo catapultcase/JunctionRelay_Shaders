@@ -53,12 +53,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
     for (float n = 0.0; n < 25.0; n += 1.0) {
         float ringN = floor(tScroll) + n;         // ring index
-        float z     = ringN - tScroll + 1.0;      // actual depth for this ring
+        float z     = ringN - tScroll + 1.0 + depthOffset;  // actual depth (shifted by offset)
         if (z < 0.05 || z > maxZ) continue;
 
         float df   = clamp(1.0 - z / maxZ, 0.0, 1.0);
         vec2  ctr  = curveDir * curveAmt * df;
-        float rR   = depthScale / z;
+        float rR   = 0.25 / (z * depthScale);
         float d    = abs(length(uv - ctr) - rR);
 
         if (d < bestDist) {
