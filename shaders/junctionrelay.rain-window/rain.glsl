@@ -330,9 +330,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     col = mix(col, vec3(0.82, 0.84, 0.88), fogVis * 0.55);
 
     // Liquid tint — colored liquids absorb light; opaque liquids obscure background
+    // Sharpen the drop mask as opacity increases — soft metaball edges look right
+    // for transparent water but opaque liquids need hard coverage boundaries.
+    float tintMask = mix(hf.x, smoothstep(0.05, 0.15, hf.x), liquidOpacity);
     vec3 absorbed = col * liquidColor;
     vec3 solidLiquid = liquidColor * 0.2;
-    col = mix(col, mix(absorbed, solidLiquid, liquidOpacity), hf.x);
+    col = mix(col, mix(absorbed, solidLiquid, liquidOpacity), tintMask);
 
     // Caustic highlight — drops act as tiny lenses focusing background light
     float caustic = pow(hf.x, 1.5) * 0.12;
