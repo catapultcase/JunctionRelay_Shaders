@@ -2,6 +2,10 @@
 // Copyright (C) 2024-present Jonathan Mills, CatapultCase
 // All rights reserved.
 //
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // Barrel warp → luminance → phosphor tint → scanlines → pixel grid → brightness.
 // Converts the source texture to monochrome phosphor display output.
 // All subsequent passes read this result via iChannel0.

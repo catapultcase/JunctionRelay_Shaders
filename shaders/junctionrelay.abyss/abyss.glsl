@@ -1,3 +1,10 @@
+// Copyright (C) 2024-present Jonathan Mills, CatapultCase
+// All rights reserved.
+//
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // Abyss — Deep sea bioluminescence pixel shader
 // Crushing darkness + drifting luminous particles + chromatic pressure waves + ink diffusion
 // Like viewing through the viewport of a submersible at 4000m depth.

@@ -2,6 +2,10 @@
 // Copyright (C) 2024-present Jonathan Mills, CatapultCase
 // All rights reserved.
 //
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // Scene-wide lighting, directional gradient, atmospheric haze, and exposure.
 // At all defaults (white colors, 0 intensities, 0 exposure) output = input.
 // Alpha pass-through: preserves clearing state from pass 0 for feedback.

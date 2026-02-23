@@ -1,3 +1,10 @@
+// Copyright (C) 2024-present Jonathan Mills, CatapultCase
+// All rights reserved.
+//
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // StainedGlass — Cathedral leaded pane segmentation
 // Voronoi cells as glass panes + lead lines + transmitted light colour + imperfections
 //

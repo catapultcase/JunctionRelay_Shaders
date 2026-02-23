@@ -2,6 +2,10 @@
 // Copyright (C) 2024-present Jonathan Mills, CatapultCase
 // All rights reserved.
 //
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // Star-pattern bloom on specular highlights from pass 0 (rain simulation).
 // 4 directions (H, V, 2 diagonals) x 6 taps = 24 reads + 1 center + 1 original = 26.
 // Warm tint controlled by bloomWarmth — light through water absorbs blue.

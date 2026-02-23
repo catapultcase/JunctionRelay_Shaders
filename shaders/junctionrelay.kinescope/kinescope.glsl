@@ -1,3 +1,10 @@
+// Copyright (C) 2024-present Jonathan Mills, CatapultCase
+// All rights reserved.
+//
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // Kinescope — 1940s TV broadcast recorded off a CRT onto 16mm film
 // Softer and ghostlier than VHS — bloom halation, phosphor persistence, film weave
 //

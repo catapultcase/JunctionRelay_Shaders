@@ -2,6 +2,10 @@
 // Copyright (C) 2024-present Jonathan Mills, CatapultCase
 // All rights reserved.
 //
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // Texture overlay: background viewed through wet, condensed glass.
 // Drops cling to the glass, then slide with accelerating speed.
 // Larger drops cling less and fall faster. Adjacent drops merge.

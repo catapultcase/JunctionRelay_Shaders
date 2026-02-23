@@ -1,3 +1,10 @@
+// Copyright (C) 2024-present Jonathan Mills, CatapultCase
+// All rights reserved.
+//
+// Permission is granted to use, modify, and redistribute this shader
+// solely as a plugin for the JunctionRelay platform (junctionrelay.com).
+// All other use requires explicit written permission from CatapultCase.
+//
 // Hologram pixel shader — cyan tint + scanlines + iTime-based flicker + edge glow.
 // Ported from XSD-VR Bridge V4 POC.
 //
