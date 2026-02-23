@@ -13,12 +13,11 @@ if os.path.isdir(shaders_dir):
         pkg = os.path.join(shaders_dir, name, "package.json")
         if os.path.isfile(pkg):
             try:
-                with open(pkg) as f:
+                with open(pkg, encoding="utf-8") as f:
                     data = json.load(f)
                 jr = data.get("junctionrelay", {})
                 label = jr.get("displayName", name)
-                emoji = jr.get("emoji", "")
-                shaders.append((name, f"{emoji} {label}".strip()))
+                shaders.append((name, label))
             except Exception:
                 pass
 
