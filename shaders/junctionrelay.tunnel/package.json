@@ -7,7 +7,7 @@
     "shaderName": "junctionrelay.tunnel",
     "emoji": "🕳️",
     "displayName": "Tunnel",
-    "description": "Procedural retro-CGI wireframe tunnel with transparent background. Cross-section blends from square to circle. Polar-to-depth mapping creates an infinite corridor of neon grid lines rushing toward the viewer. Configurable shape, depth, offset, grid colour, line width, glow, speed, density, and rotation. 9 uniforms, 6 presets.",
+    "description": "Procedural retro-CGI wireframe tunnel with transparent background. Cross-section blends from square to circle. Movable vanishing point, configurable depth and offset, grid colour, line width, glow, speed, density, and rotation. 11 uniforms, 6 presets.",
     "usesTexture": false,
     "feedback": false,
     "opaque": false,
@@ -105,6 +105,26 @@
         "min": -5.0,
         "max": 5.0,
         "description": "Shifts the camera start position along the tunnel — negative pulls back, positive pushes deeper"
+      },
+      {
+        "name": "originX",
+        "displayName": "Origin X",
+        "type": "float",
+        "pass": 0,
+        "default": 0.0,
+        "min": -1.0,
+        "max": 1.0,
+        "description": "Horizontal position of the vanishing point — 0 is centred, negative moves left, positive moves right"
+      },
+      {
+        "name": "originY",
+        "displayName": "Origin Y",
+        "type": "float",
+        "pass": 0,
+        "default": 0.0,
+        "min": -1.0,
+        "max": 1.0,
+        "description": "Vertical position of the vanishing point — 0 is centred, negative moves down, positive moves up"
       }
     ],
     "presets": [
@@ -120,7 +140,9 @@
           "rotationSpeed": 0.05,
           "curvature": 1.0,
           "depthScale": 0.5,
-          "depthOffset": 0.0
+          "depthOffset": 0.0,
+          "originX": 0.0,
+          "originY": 0.0
         }
       },
       {
@@ -134,7 +156,9 @@
           "rotationSpeed": 0.1,
           "curvature": 0.0,
           "depthScale": 0.6,
-          "depthOffset": 1.0
+          "depthOffset": 1.0,
+          "originX": 0.0,
+          "originY": 0.0
         }
       },
       {
@@ -148,7 +172,9 @@
           "rotationSpeed": 0.02,
           "curvature": 0.3,
           "depthScale": 0.4,
-          "depthOffset": 0.0
+          "depthOffset": 0.0,
+          "originX": -0.3,
+          "originY": 0.2
         }
       },
       {
@@ -162,7 +188,9 @@
           "rotationSpeed": 0.03,
           "curvature": 0.5,
           "depthScale": 0.5,
-          "depthOffset": -1.0
+          "depthOffset": -1.0,
+          "originX": 0.0,
+          "originY": -0.2
         }
       },
       {
@@ -176,7 +204,9 @@
           "rotationSpeed": 0.01,
           "curvature": 0.0,
           "depthScale": 0.5,
-          "depthOffset": 0.0
+          "depthOffset": 0.0,
+          "originX": 0.4,
+          "originY": 0.0
         }
       },
       {
@@ -190,7 +220,9 @@
           "rotationSpeed": 0.15,
           "curvature": 1.0,
           "depthScale": 1.2,
-          "depthOffset": 2.0
+          "depthOffset": 2.0,
+          "originX": 0.0,
+          "originY": 0.0
         }
       }
     ]
