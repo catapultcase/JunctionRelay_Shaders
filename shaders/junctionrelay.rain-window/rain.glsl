@@ -130,7 +130,11 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             // Early-out: pixel too far horizontally for metaball (2.5r) or trail (~5.8r)
             if (abs(dx) > radius * 6.0) continue;
 
-            float dy    = uv.y - (0.5 - dropY);
+            // Early-out: pixel too far vertically (metaball reach ~5r with elongation, trail ceiling 0.45)
+            float dy_raw = uv.y - (0.5 - dropY);
+            if (dy_raw < -radius * 5.0 || dy_raw > 0.5) continue;
+
+            float dy    = dy_raw;
             dy += sliding * slideT * radius * 0.35;
             float elongBase = mix(0.92, 0.80, sizeNorm) * mix(1.0, 0.65, viscosity);
             float elong = elongBase - sliding * pow(slideT, 0.7) * 0.18;
