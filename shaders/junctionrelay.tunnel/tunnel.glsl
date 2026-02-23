@@ -36,6 +36,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     //      centre shifted by curvature * (1 − Z/maxZ) in SCREEN-SPACE +X,
     //      then rotated into the tunnel's coordinate system so the curve
     //      direction stays fixed on screen while the grid lines spin.
+    //    Track the two nearest rings for spoke interpolation.
 
     float maxZ      = 12.0;
     float curveAmt  = curvature * 0.25;   // matches Canvas (width/4) in UV space
@@ -44,9 +45,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     // Curve direction: screen-space +X rotated into tunnel space
     vec2 curveDir = vec2(cs, sn);
 
-    float bestDist  = 1000.0;
-    float bestZ     = 1.0;
-    vec2  bestCtr   = vec2(0.0);
+    float bestDist   = 1000.0;
+    float bestZ      = 1.0;
+    vec2  bestCtr    = vec2(0.0);
+    float secondDist = 1000.0;
+    vec2  secondCtr  = vec2(0.0);
 
     for (float n = 0.0; n < 25.0; n += 1.0) {
         float ringN = floor(tScroll) + n;         // ring index
@@ -59,15 +62,25 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         float d    = abs(length(uv - ctr) - rR);
 
         if (d < bestDist) {
-            bestDist = d;
-            bestZ    = z;
-            bestCtr  = ctr;
+            secondDist = bestDist;
+            secondCtr  = bestCtr;
+            bestDist   = d;
+            bestZ      = z;
+            bestCtr    = ctr;
+        } else if (d < secondDist) {
+            secondDist = d;
+            secondCtr  = ctr;
         }
     }
 
-    // ── 4. Angular lines — radiate from the nearest ring's centre ───────────
+    // ── 4. Angular lines — spokes connecting adjacent rings ─────────────────
+    //    Interpolate centre between the two nearest rings so spokes
+    //    smoothly transition from one ring's centre to the next.
     float r0      = length(uv);
-    float angle   = atan((uv - bestCtr).y, (uv - bestCtr).x);
+    float blendT  = bestDist / (bestDist + secondDist + 0.001);
+    vec2  spokeCtr = mix(bestCtr, secondCtr, blendT);
+
+    float angle   = atan((uv - spokeCtr).y, (uv - spokeCtr).x);
     float tunnelA = angle * gridDensity / 3.14159265;
     float distA   = abs(fract(tunnelA) - 0.5) * 2.0;
 
@@ -86,7 +99,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float glow  = max(glowR, glowA) * glowIntensity * 0.4;
 
     // ── 7. Depth fade ───────────────────────────────────────────────────────
-    float fade = smoothstep(0.0, 0.06, r0) * smoothstep(0.8, 0.15, r0);
+    //    Fade by screen radius (inner + outer) AND by ring depth so
+    //    deep rings near the vanishing point don't pile up.
+    float depthFade = smoothstep(maxZ, maxZ * 0.4, bestZ);
+    float fade = smoothstep(0.0, 0.06, r0) * smoothstep(0.8, 0.15, r0) * depthFade;
 
     // ── 8. Combine ──────────────────────────────────────────────────────────
     float intensity = (gridLine + glow) * fade;
