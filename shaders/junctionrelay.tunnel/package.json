@@ -1,0 +1,166 @@
+{
+  "name": "@junctionrelay/shader-tunnel",
+  "version": "1.0.0",
+  "description": "Procedural sci-fi wireframe tunnel — transparent between neon grid lines. Single lightweight pass.",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "junctionrelay.tunnel",
+    "emoji": "🕳️",
+    "displayName": "Tunnel",
+    "description": "Procedural retro-CGI wireframe tunnel with transparent background. Polar-to-depth mapping creates an infinite corridor of neon grid lines rushing toward the viewer. Configurable grid colour, line width, glow intensity, speed, density, rotation, and perspective. 7 uniforms, 6 presets.",
+    "usesTexture": false,
+    "feedback": false,
+    "opaque": false,
+    "passes": [
+      {
+        "entry": "tunnel.glsl",
+        "displayName": "Tunnel"
+      }
+    ],
+    "uniforms": [
+      {
+        "name": "gridColor",
+        "displayName": "Grid Colour",
+        "type": "color",
+        "pass": 0,
+        "default": [0.0, 0.85, 1.0],
+        "description": "Neon colour of the tunnel grid lines — cyan, red, green, magenta, white"
+      },
+      {
+        "name": "speed",
+        "displayName": "Speed",
+        "type": "float",
+        "pass": 0,
+        "default": 0.5,
+        "min": 0.0,
+        "max": 2.0,
+        "description": "Forward velocity through the tunnel — 0 is frozen, 2 is hyperdrive"
+      },
+      {
+        "name": "gridDensity",
+        "displayName": "Grid Density",
+        "type": "float",
+        "pass": 0,
+        "default": 6.0,
+        "min": 2.0,
+        "max": 16.0,
+        "description": "Number of angular grid segments around the tunnel — higher values create a tighter mesh"
+      },
+      {
+        "name": "lineWidth",
+        "displayName": "Line Width",
+        "type": "float",
+        "pass": 0,
+        "default": 0.5,
+        "min": 0.1,
+        "max": 2.0,
+        "description": "Thickness of the neon grid lines — thin wires to bold beams"
+      },
+      {
+        "name": "glowIntensity",
+        "displayName": "Glow",
+        "type": "float",
+        "pass": 0,
+        "default": 0.8,
+        "min": 0.0,
+        "max": 2.0,
+        "description": "Soft bloom spread around each grid line — 0 disables, 2 is maximum haze"
+      },
+      {
+        "name": "rotationSpeed",
+        "displayName": "Rotation",
+        "type": "float",
+        "pass": 0,
+        "default": 0.05,
+        "min": 0.0,
+        "max": 0.5,
+        "description": "Tunnel barrel-roll rate — subtle drift or full spin"
+      },
+      {
+        "name": "perspectiveStrength",
+        "displayName": "Perspective",
+        "type": "float",
+        "pass": 0,
+        "default": 0.5,
+        "min": 0.2,
+        "max": 2.0,
+        "description": "Depth compression — low values feel close-up, high values stretch the corridor deeper"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Tron Classic",
+        "default": true,
+        "values": {
+          "gridColor": [0.0, 0.85, 1.0],
+          "speed": 0.5,
+          "gridDensity": 6.0,
+          "lineWidth": 0.5,
+          "glowIntensity": 0.8,
+          "rotationSpeed": 0.05,
+          "perspectiveStrength": 0.5
+        }
+      },
+      {
+        "name": "MCP Core",
+        "values": {
+          "gridColor": [1.0, 0.2, 0.05],
+          "speed": 0.9,
+          "gridDensity": 8.0,
+          "lineWidth": 0.4,
+          "glowIntensity": 1.2,
+          "rotationSpeed": 0.1,
+          "perspectiveStrength": 0.6
+        }
+      },
+      {
+        "name": "Matrix Conduit",
+        "values": {
+          "gridColor": [0.1, 1.0, 0.3],
+          "speed": 0.6,
+          "gridDensity": 10.0,
+          "lineWidth": 0.3,
+          "glowIntensity": 0.6,
+          "rotationSpeed": 0.02,
+          "perspectiveStrength": 0.4
+        }
+      },
+      {
+        "name": "Synthwave",
+        "values": {
+          "gridColor": [1.0, 0.1, 0.7],
+          "speed": 0.35,
+          "gridDensity": 5.0,
+          "lineWidth": 0.8,
+          "glowIntensity": 1.0,
+          "rotationSpeed": 0.03,
+          "perspectiveStrength": 0.5
+        }
+      },
+      {
+        "name": "Ghost Wire",
+        "values": {
+          "gridColor": [0.85, 0.9, 1.0],
+          "speed": 0.25,
+          "gridDensity": 6.0,
+          "lineWidth": 0.2,
+          "glowIntensity": 0.3,
+          "rotationSpeed": 0.01,
+          "perspectiveStrength": 0.5
+        }
+      },
+      {
+        "name": "Hyperdrive",
+        "values": {
+          "gridColor": [0.5, 0.7, 1.0],
+          "speed": 1.8,
+          "gridDensity": 4.0,
+          "lineWidth": 0.6,
+          "glowIntensity": 1.8,
+          "rotationSpeed": 0.15,
+          "perspectiveStrength": 0.8
+        }
+      }
+    ]
+  }
+}
