@@ -32,18 +32,23 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float sn  = sin(rot);
     uv = vec2(uv.x * cs - uv.y * sn, uv.x * sn + uv.y * cs);
 
-    // ── 3. Curvature — bend the near end sideways ─────────────────────────────
-    //    r0² gives a smooth quadratic arc: zero shift at the vanishing point
-    //    (r0≈0), increasing shift at the edges (near camera).
-    //    Both depth and angle are computed from the SAME shifted centre
-    //    so rings and angular lines stay aligned — no warping.
+    // ── 3. Curvature — shift ring centres like the old Canvas tunnel ────────────
+    //    Each ring at depth Z had its centre offset by:
+    //      curveStrength * (1 − Z/maxDepth) * screenScale
+    //    Near rings (large on screen, small Z) shift a lot; far rings stay put.
+    //    We use screen radius as a depth proxy (z = depthScale / r) so:
+    //      depthFactor = 1 − z/maxZ  →  smoothstep of screen radius.
+    //    Depth AND angle are both computed from the shifted centre —
+    //    no mismatch, no warping.
     float r0 = length(uv);
-    vec2 arcUV = uv + vec2(curvature * r0 * r0, 0.0);
+    float depthFactor = smoothstep(0.0, 0.35, r0);   // 0 at centre, 1 at edges
+    vec2 ringCenter = vec2(curvature * depthFactor * 0.5, 0.0);
+    vec2 fromCenter = uv - ringCenter;
 
-    // ── 4. Depth and angle — both from the arc-shifted centre ─────────────────
-    float radius = length(arcUV);
+    // ── 4. Depth and angle — both from the shifted ring centre ────────────────
+    float radius = length(fromCenter);
     float depth  = depthScale / (radius + 0.001) + depthOffset;
-    float angle  = atan(arcUV.y, arcUV.x);
+    float angle  = atan(fromCenter.y, fromCenter.x);
 
     // ── 5. Animated tunnel coordinates ────────────────────────────────────────
     float tunnelZ = depth + iTime * speed;

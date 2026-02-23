@@ -78,21 +78,21 @@ let uniformState = {};
 let uniformInputs = {};
 let gl, prog, locs = {};
 
-// Load package.json from same directory
+// Resolve shader path from ?path= query param or current directory
+const params = new URLSearchParams(window.location.search);
+const shaderPath = params.get('path') || '.';
+
 async function init() {
-  // file:// can't use fetch — need a local HTTP server
   if (window.location.protocol === 'file:') {
     document.getElementById('title').textContent = 'Local Server Required';
     document.getElementById('desc').innerHTML =
-      'Open a terminal in this folder and run:<br>' +
-      '<code style="background:#222;padding:2px 6px;border-radius:3px;color:#0f0;user-select:all">' +
-      'python serve.py</code><br>' +
-      'It will open <a href="http://localhost:8080/test.html" style="color:#4af">localhost:8080/test.html</a> automatically.';
+      'Run <code style="background:#222;padding:2px 6px;border-radius:3px;color:#0f0;user-select:all">' +
+      'python serve.py</code> from the <code>shaders/</code> directory.';
     return;
   }
 
   try {
-    const res = await fetch('package.json');
+    const res = await fetch(`${shaderPath}/package.json`);
     const pkg = await res.json();
     shaderDef = pkg.junctionrelay;
 
@@ -104,7 +104,6 @@ async function init() {
     uniformDefs = shaderDef.uniforms || [];
     presetDefs = shaderDef.presets || [];
 
-    // Init state from defaults
     for (const u of uniformDefs) {
       uniformState[u.name] = Array.isArray(u.default) ? [...u.default] : u.default;
     }
@@ -112,15 +111,15 @@ async function init() {
     buildPresets();
     buildUniforms();
 
-    // Load GLSL source
     const pass = (shaderDef.passes && shaderDef.passes[0]) ? shaderDef.passes[0].entry : null;
     if (!pass) { document.getElementById('title').textContent = 'No passes found'; return; }
-    const glslRes = await fetch(pass);
+    const glslRes = await fetch(`${shaderPath}/${pass}`);
     const glslSrc = await glslRes.text();
 
     initWebGL(glslSrc);
   } catch (e) {
-    document.getElementById('title').textContent = 'Error loading package.json';
+    document.getElementById('title').textContent = 'Error loading shader';
+    document.getElementById('desc').textContent = e.message;
     console.error(e);
   }
 }
@@ -141,15 +140,12 @@ function buildPresets() {
     if (!p) return;
     applyValues(p.values);
   };
-  // Auto-select default
   const def = presetDefs.find(p => p.default);
   if (def) sel.value = def.name;
 }
 
 function buildUniforms() {
   const container = document.getElementById('uniforms');
-
-  // Group by pass
   const passMap = new Map();
   for (const u of uniformDefs) {
     const p = u.pass ?? 0;
@@ -294,7 +290,6 @@ function initWebGL(glslSrc) {
 
   const vs = `attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}`;
 
-  // Build uniform declarations
   const uniformDecls = uniformDefs.map(u => {
     if (u.type === 'color') return `uniform vec3 ${u.name};`;
     return `uniform float ${u.name};`;
