@@ -1,0 +1,386 @@
+{
+  "name": "@junctionrelay/shader-vintage-display",
+  "version": "1.0.0",
+  "description": "Configurable retro CRT — phosphor tint, scanlines, signal degradation, bitmap corruption, phosphor bloom",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "junctionrelay.vintage-display",
+    "displayName": "Vintage Display",
+    "description": "Fully configurable retro CRT shader across 3 passes. Pass 0 simulates the display surface: barrel distortion, monochrome phosphor color grading, scanlines, and pixel grid. Pass 1 applies signal degradation: raster ripple, vertical sync roll, horizontal tears, ghosting, static snow, and bitmap digit corruption strips. Pass 2 adds phosphor afterglow bloom, bezel vignette, power supply flicker, film grain, and age yellowing. 18 uniforms, 8 presets spanning green terminals, amber displays, CCTV surveillance, broken signals, and cyberpunk data streams.",
+    "usesTexture": true,
+    "feedback": false,
+    "opaque": true,
+    "passes": [
+      { "entry": "display.glsl", "displayName": "Display" },
+      { "entry": "signal.glsl", "displayName": "Signal" },
+      { "entry": "glow.glsl", "displayName": "Glow" }
+    ],
+    "uniforms": [
+      {
+        "name": "phosphorColor",
+        "displayName": "Phosphor Color",
+        "type": "color",
+        "pass": 0,
+        "default": [0.2, 1.0, 0.3],
+        "description": "Monochrome phosphor tint — green P1, amber, white, blue"
+      },
+      {
+        "name": "phosphorDrive",
+        "displayName": "Phosphor Drive",
+        "type": "float",
+        "pass": 0,
+        "default": 0.85,
+        "min": 0.3,
+        "max": 1.5,
+        "description": "Luminance response curve — lower darkens mids, higher overdrives bright areas"
+      },
+      {
+        "name": "scanlineWeight",
+        "displayName": "Scanline Weight",
+        "type": "float",
+        "pass": 0,
+        "default": 0.5,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Scanline darkness — 0 disables, 1 is maximum (full black alternating lines)"
+      },
+      {
+        "name": "warpAmount",
+        "displayName": "Screen Warp",
+        "type": "float",
+        "pass": 0,
+        "default": 0.04,
+        "min": 0.0,
+        "max": 0.12,
+        "description": "CRT barrel distortion strength — higher values curve the edges more"
+      },
+      {
+        "name": "pixelGrid",
+        "displayName": "Pixel Grid",
+        "type": "float",
+        "pass": 0,
+        "default": 0.25,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Shadow mask / dot grid visibility — simulates phosphor dot structure"
+      },
+      {
+        "name": "brightness",
+        "displayName": "Brightness",
+        "type": "float",
+        "pass": 0,
+        "default": 0.0,
+        "min": -0.5,
+        "max": 0.5,
+        "description": "Screen brightness offset — negative darkens, positive brightens"
+      },
+      {
+        "name": "staticAmount",
+        "displayName": "Static",
+        "type": "float",
+        "pass": 1,
+        "default": 0.04,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Snow / noise overlay — simulates RF interference or weak signal"
+      },
+      {
+        "name": "rippleStrength",
+        "displayName": "Raster Ripple",
+        "type": "float",
+        "pass": 1,
+        "default": 0.03,
+        "min": 0.0,
+        "max": 0.15,
+        "description": "Horizontal interference bands — overlapping sine wave distortion"
+      },
+      {
+        "name": "rollSpeed",
+        "displayName": "Sync Roll",
+        "type": "float",
+        "pass": 1,
+        "default": 0.07,
+        "min": 0.0,
+        "max": 0.5,
+        "description": "Vertical hold drift rate — dim bar scrolls up like an unsynchronised monitor"
+      },
+      {
+        "name": "glitchRate",
+        "displayName": "Glitch Rate",
+        "type": "float",
+        "pass": 1,
+        "default": 0.08,
+        "min": 0.0,
+        "max": 0.5,
+        "description": "Data corruption strip frequency — bitmap digit strips replace scan rows"
+      },
+      {
+        "name": "ghostOffset",
+        "displayName": "Ghosting",
+        "type": "float",
+        "pass": 1,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 0.05,
+        "description": "Signal echo / double image — blends a horizontally shifted ghost copy"
+      },
+      {
+        "name": "tearStrength",
+        "displayName": "H-Tear",
+        "type": "float",
+        "pass": 1,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 0.1,
+        "description": "Horizontal displacement tears — random bands shift left or right"
+      },
+      {
+        "name": "glowStrength",
+        "displayName": "Phosphor Glow",
+        "type": "float",
+        "pass": 2,
+        "default": 0.35,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Bloom / phosphor afterglow intensity — star-pattern diffusion"
+      },
+      {
+        "name": "glowSpread",
+        "displayName": "Glow Spread",
+        "type": "float",
+        "pass": 2,
+        "default": 2.0,
+        "min": 0.5,
+        "max": 5.0,
+        "description": "Bloom radius in pixels — how far glow diffuses from bright areas"
+      },
+      {
+        "name": "vignetteAmount",
+        "displayName": "Vignette",
+        "type": "float",
+        "pass": 2,
+        "default": 0.6,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Bezel edge darkening — simulates CRT shadow mask fall-off at corners"
+      },
+      {
+        "name": "flickerAmount",
+        "displayName": "Flicker",
+        "type": "float",
+        "pass": 2,
+        "default": 0.02,
+        "min": 0.0,
+        "max": 0.15,
+        "description": "Power supply instability — slow brightness oscillation"
+      },
+      {
+        "name": "grainAmount",
+        "displayName": "Film Grain",
+        "type": "float",
+        "pass": 2,
+        "default": 0.03,
+        "min": 0.0,
+        "max": 0.15,
+        "description": "Phosphor / film noise overlay — adds organic texture to the image"
+      },
+      {
+        "name": "warmth",
+        "displayName": "Warmth",
+        "type": "float",
+        "pass": 2,
+        "default": 0.15,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Age yellowing / warm shift — simulates glass yellowing and phosphor aging"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Green Terminal",
+        "default": true,
+        "values": {
+          "phosphorColor": [0.2, 1.0, 0.3],
+          "phosphorDrive": 0.85,
+          "scanlineWeight": 0.5,
+          "warpAmount": 0.04,
+          "pixelGrid": 0.25,
+          "brightness": 0.0,
+          "staticAmount": 0.04,
+          "rippleStrength": 0.03,
+          "rollSpeed": 0.07,
+          "glitchRate": 0.08,
+          "ghostOffset": 0.0,
+          "tearStrength": 0.0,
+          "glowStrength": 0.35,
+          "glowSpread": 2.0,
+          "vignetteAmount": 0.6,
+          "flickerAmount": 0.02,
+          "grainAmount": 0.03,
+          "warmth": 0.15
+        }
+      },
+      {
+        "name": "Amber Terminal",
+        "values": {
+          "phosphorColor": [1.0, 0.7, 0.1],
+          "phosphorDrive": 0.9,
+          "scanlineWeight": 0.4,
+          "warpAmount": 0.035,
+          "pixelGrid": 0.2,
+          "brightness": 0.05,
+          "staticAmount": 0.01,
+          "rippleStrength": 0.01,
+          "rollSpeed": 0.02,
+          "glitchRate": 0.0,
+          "ghostOffset": 0.0,
+          "tearStrength": 0.0,
+          "glowStrength": 0.3,
+          "glowSpread": 2.0,
+          "vignetteAmount": 0.5,
+          "flickerAmount": 0.01,
+          "grainAmount": 0.02,
+          "warmth": 0.3
+        }
+      },
+      {
+        "name": "Surveillance",
+        "values": {
+          "phosphorColor": [0.8, 0.8, 0.8],
+          "phosphorDrive": 0.7,
+          "scanlineWeight": 0.6,
+          "warpAmount": 0.03,
+          "pixelGrid": 0.3,
+          "brightness": -0.05,
+          "staticAmount": 0.15,
+          "rippleStrength": 0.05,
+          "rollSpeed": 0.03,
+          "glitchRate": 0.12,
+          "ghostOffset": 0.01,
+          "tearStrength": 0.02,
+          "glowStrength": 0.15,
+          "glowSpread": 1.5,
+          "vignetteAmount": 0.7,
+          "flickerAmount": 0.04,
+          "grainAmount": 0.08,
+          "warmth": 0.05
+        }
+      },
+      {
+        "name": "Broken Signal",
+        "values": {
+          "phosphorColor": [0.3, 1.0, 0.3],
+          "phosphorDrive": 0.8,
+          "scanlineWeight": 0.5,
+          "warpAmount": 0.05,
+          "pixelGrid": 0.2,
+          "brightness": -0.1,
+          "staticAmount": 0.3,
+          "rippleStrength": 0.1,
+          "rollSpeed": 0.2,
+          "glitchRate": 0.35,
+          "ghostOffset": 0.03,
+          "tearStrength": 0.07,
+          "glowStrength": 0.2,
+          "glowSpread": 2.0,
+          "vignetteAmount": 0.5,
+          "flickerAmount": 0.08,
+          "grainAmount": 0.06,
+          "warmth": 0.1
+        }
+      },
+      {
+        "name": "Oscilloscope",
+        "values": {
+          "phosphorColor": [0.1, 1.0, 0.2],
+          "phosphorDrive": 1.2,
+          "scanlineWeight": 0.15,
+          "warpAmount": 0.02,
+          "pixelGrid": 0.1,
+          "brightness": 0.1,
+          "staticAmount": 0.01,
+          "rippleStrength": 0.0,
+          "rollSpeed": 0.0,
+          "glitchRate": 0.0,
+          "ghostOffset": 0.005,
+          "tearStrength": 0.0,
+          "glowStrength": 0.7,
+          "glowSpread": 3.5,
+          "vignetteAmount": 0.4,
+          "flickerAmount": 0.01,
+          "grainAmount": 0.01,
+          "warmth": 0.0
+        }
+      },
+      {
+        "name": "Cold War",
+        "values": {
+          "phosphorColor": [0.6, 0.7, 1.0],
+          "phosphorDrive": 0.8,
+          "scanlineWeight": 0.55,
+          "warpAmount": 0.05,
+          "pixelGrid": 0.3,
+          "brightness": -0.05,
+          "staticAmount": 0.03,
+          "rippleStrength": 0.02,
+          "rollSpeed": 0.04,
+          "glitchRate": 0.05,
+          "ghostOffset": 0.005,
+          "tearStrength": 0.0,
+          "glowStrength": 0.3,
+          "glowSpread": 2.0,
+          "vignetteAmount": 0.8,
+          "flickerAmount": 0.03,
+          "grainAmount": 0.04,
+          "warmth": 0.0
+        }
+      },
+      {
+        "name": "Vacuum Tube",
+        "values": {
+          "phosphorColor": [1.0, 0.5, 0.05],
+          "phosphorDrive": 0.75,
+          "scanlineWeight": 0.6,
+          "warpAmount": 0.06,
+          "pixelGrid": 0.35,
+          "brightness": -0.05,
+          "staticAmount": 0.06,
+          "rippleStrength": 0.04,
+          "rollSpeed": 0.05,
+          "glitchRate": 0.06,
+          "ghostOffset": 0.01,
+          "tearStrength": 0.01,
+          "glowStrength": 0.4,
+          "glowSpread": 2.5,
+          "vignetteAmount": 0.7,
+          "flickerAmount": 0.08,
+          "grainAmount": 0.08,
+          "warmth": 0.6
+        }
+      },
+      {
+        "name": "Data Stream",
+        "values": {
+          "phosphorColor": [0.15, 1.0, 0.25],
+          "phosphorDrive": 1.0,
+          "scanlineWeight": 0.35,
+          "warpAmount": 0.03,
+          "pixelGrid": 0.4,
+          "brightness": 0.05,
+          "staticAmount": 0.05,
+          "rippleStrength": 0.02,
+          "rollSpeed": 0.1,
+          "glitchRate": 0.3,
+          "ghostOffset": 0.015,
+          "tearStrength": 0.03,
+          "glowStrength": 0.45,
+          "glowSpread": 2.5,
+          "vignetteAmount": 0.4,
+          "flickerAmount": 0.02,
+          "grainAmount": 0.02,
+          "warmth": 0.0
+        }
+      }
+    ]
+  }
+}
