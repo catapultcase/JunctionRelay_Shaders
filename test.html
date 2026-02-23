@@ -80,7 +80,8 @@ let gl, prog, locs = {};
 
 // Resolve shader path from ?path= query param or current directory
 const params = new URLSearchParams(window.location.search);
-const shaderPath = params.get('path') || '.';
+const shaderName = params.get('path') || '';
+const shaderPath = shaderName ? `shaders/${shaderName}` : '.';
 
 async function init() {
   if (window.location.protocol === 'file:') {
