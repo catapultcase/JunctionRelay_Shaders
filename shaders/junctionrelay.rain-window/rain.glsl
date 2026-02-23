@@ -126,6 +126,10 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             // Elongation varies with size: small drops are nearly circular,
             // large drops stretch slightly under gravity (physically accurate).
             float dx    = (nFrac - cx) * colW;
+
+            // Early-out: pixel too far horizontally for metaball (2.5r) or trail (~5.8r)
+            if (abs(dx) > radius * 6.0) continue;
+
             float dy    = uv.y - (0.5 - dropY);
             dy += sliding * slideT * radius * 0.35;
             float elongBase = mix(0.92, 0.80, sizeNorm) * mix(1.0, 0.65, viscosity);
@@ -137,11 +141,10 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             float mb = smoothstep(radius * 2.5, radius * 0.15, d);
             field += mb;
 
-            // Sharp per-drop shape (trail masking only)
-            float hit = smoothstep(radius, radius * 0.2, d);
-
             // Wet trail: fog-clearing strip left behind a sliding drop
             if (sliding > 0.5) {
+                // Sharp per-drop shape — masks trail directly under the drop body
+                float hit = smoothstep(radius, radius * 0.2, d);
                 // Trail edge noise — uneven rivulet width like real water on glass
                 float trailNoise = rng(floor(uv.y * 70.0) * 13.7 + base);
                 float bw    = radius * (1.5 + trailNoise * 1.4) * (1.0 + viscosity * 1.0);
