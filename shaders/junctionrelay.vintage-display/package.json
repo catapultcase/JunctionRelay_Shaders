@@ -212,7 +212,6 @@
     "presets": [
       {
         "name": "Green Terminal",
-        "default": true,
         "values": {
           "phosphorColor": [
             0.2,
@@ -402,6 +401,7 @@
       },
       {
         "name": "Data Stream",
+        "default": true,
         "values": {
           "phosphorColor": [
             0.15,
