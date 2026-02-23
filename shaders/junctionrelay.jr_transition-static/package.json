@@ -1,18 +1,17 @@
 {
   "name": "@junctionrelay/shader-jr-transition-static",
   "version": "1.0.0",
-  "description": "Procedural CRT channel-change static — no texture required. Pure analogue noise across 2 passes.",
+  "description": "Procedural CRT channel-change static — no texture required. Single lightweight pass.",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.jr_transition-static",
     "displayName": "Transition Static",
-    "description": "Procedural CRT channel-change static with no texture input. Pass 0 generates multi-octave analogue noise: barrel distortion, horizontal tears, row-band modulation, signal dropout bands, vertical sync roll bars, scanlines, and shadow mask — tinted with a phosphor colour or full RGB noise. Pass 1 adds phosphor bloom, power-supply flicker, bezel vignette, film grain, and age warmth. 13 uniforms, 6 presets spanning classic broadcast end-card, green terminal crash, amber dropout, VHF blizzard, cold surveillance loss, and colour cable noise.",
+    "description": "Procedural CRT channel-change static with no texture input. Single pass: multi-octave noise with row-band modulation, signal dropout, vertical sync roll bars, horizontal tears, scanlines, shadow mask, vignette, and phosphor tint. Optionally shifts to full RGB colour noise. 8 uniforms, 6 presets.",
     "usesTexture": false,
     "feedback": false,
     "opaque": true,
     "passes": [
-      { "entry": "static.glsl",     "displayName": "Static" },
-      { "entry": "atmosphere.glsl", "displayName": "Atmosphere" }
+      { "entry": "static.glsl", "displayName": "Static" }
     ],
     "uniforms": [
       {
@@ -22,16 +21,6 @@
         "pass": 0,
         "default": [0.88, 0.88, 0.85],
         "description": "Phosphor tint of the monochrome static — white/grey, green terminal, amber, blue surveillance"
-      },
-      {
-        "name": "warpAmount",
-        "displayName": "Screen Warp",
-        "type": "float",
-        "pass": 0,
-        "default": 0.04,
-        "min": 0.0,
-        "max": 0.12,
-        "description": "CRT barrel distortion strength — higher values curve the screen edges more"
       },
       {
         "name": "scanlineWeight",
@@ -84,30 +73,10 @@
         "description": "Blend from monochrome phosphor tint (0) to full per-channel RGB static (1)"
       },
       {
-        "name": "glowStrength",
-        "displayName": "Phosphor Glow",
-        "type": "float",
-        "pass": 1,
-        "default": 0.2,
-        "min": 0.0,
-        "max": 1.0,
-        "description": "Bloom intensity — bright sparks and hot static bands diffuse as phosphor afterglow"
-      },
-      {
-        "name": "glowSpread",
-        "displayName": "Glow Spread",
-        "type": "float",
-        "pass": 1,
-        "default": 1.5,
-        "min": 0.5,
-        "max": 5.0,
-        "description": "Bloom radius in pixels — how far phosphor glow diffuses from bright areas"
-      },
-      {
         "name": "vignetteAmount",
         "displayName": "Vignette",
         "type": "float",
-        "pass": 1,
+        "pass": 0,
         "default": 0.65,
         "min": 0.0,
         "max": 1.0,
@@ -117,31 +86,11 @@
         "name": "flickerAmount",
         "displayName": "Flicker",
         "type": "float",
-        "pass": 1,
+        "pass": 0,
         "default": 0.03,
         "min": 0.0,
         "max": 0.15,
-        "description": "Power supply instability — slow brightness oscillation from capacitor ripple"
-      },
-      {
-        "name": "grainAmount",
-        "displayName": "Film Grain",
-        "type": "float",
-        "pass": 1,
-        "default": 0.02,
-        "min": 0.0,
-        "max": 0.15,
-        "description": "Phosphor / film noise overlay — adds organic texture over the static"
-      },
-      {
-        "name": "warmth",
-        "displayName": "Warmth",
-        "type": "float",
-        "pass": 1,
-        "default": 0.15,
-        "min": 0.0,
-        "max": 1.0,
-        "description": "Age yellowing / warm shift — simulates glass yellowing and phosphor aging"
+        "description": "Power supply instability — slow brightness oscillation"
       }
     ],
     "presets": [
@@ -150,108 +99,78 @@
         "default": true,
         "values": {
           "staticColor": [0.88, 0.88, 0.85],
-          "warpAmount": 0.04,
           "scanlineWeight": 0.45,
           "pixelGrid": 0.2,
           "rollSpeed": 0.12,
           "tearStrength": 0.025,
           "colorShift": 0.0,
-          "glowStrength": 0.2,
-          "glowSpread": 1.5,
           "vignetteAmount": 0.65,
-          "flickerAmount": 0.03,
-          "grainAmount": 0.02,
-          "warmth": 0.15
+          "flickerAmount": 0.03
         }
       },
       {
         "name": "Green Terminal Crash",
         "values": {
           "staticColor": [0.2, 1.0, 0.3],
-          "warpAmount": 0.035,
           "scanlineWeight": 0.55,
           "pixelGrid": 0.3,
           "rollSpeed": 0.08,
           "tearStrength": 0.04,
           "colorShift": 0.0,
-          "glowStrength": 0.45,
-          "glowSpread": 2.5,
           "vignetteAmount": 0.7,
-          "flickerAmount": 0.06,
-          "grainAmount": 0.03,
-          "warmth": 0.0
+          "flickerAmount": 0.06
         }
       },
       {
         "name": "Amber Dropout",
         "values": {
           "staticColor": [1.0, 0.65, 0.1],
-          "warpAmount": 0.05,
           "scanlineWeight": 0.5,
           "pixelGrid": 0.25,
           "rollSpeed": 0.18,
           "tearStrength": 0.03,
           "colorShift": 0.0,
-          "glowStrength": 0.35,
-          "glowSpread": 2.0,
           "vignetteAmount": 0.6,
-          "flickerAmount": 0.08,
-          "grainAmount": 0.05,
-          "warmth": 0.5
+          "flickerAmount": 0.08
         }
       },
       {
         "name": "VHF Blizzard",
         "values": {
           "staticColor": [0.95, 0.95, 0.95],
-          "warpAmount": 0.03,
           "scanlineWeight": 0.3,
           "pixelGrid": 0.1,
           "rollSpeed": 0.25,
           "tearStrength": 0.08,
           "colorShift": 0.08,
-          "glowStrength": 0.15,
-          "glowSpread": 1.0,
           "vignetteAmount": 0.5,
-          "flickerAmount": 0.05,
-          "grainAmount": 0.04,
-          "warmth": 0.05
+          "flickerAmount": 0.05
         }
       },
       {
         "name": "Surveillance Lost",
         "values": {
           "staticColor": [0.7, 0.75, 0.9],
-          "warpAmount": 0.025,
           "scanlineWeight": 0.6,
           "pixelGrid": 0.3,
           "rollSpeed": 0.05,
           "tearStrength": 0.01,
           "colorShift": 0.0,
-          "glowStrength": 0.1,
-          "glowSpread": 1.0,
           "vignetteAmount": 0.8,
-          "flickerAmount": 0.02,
-          "grainAmount": 0.08,
-          "warmth": 0.0
+          "flickerAmount": 0.02
         }
       },
       {
         "name": "Colour Noise",
         "values": {
           "staticColor": [0.8, 0.8, 0.8],
-          "warpAmount": 0.04,
           "scanlineWeight": 0.35,
           "pixelGrid": 0.15,
           "rollSpeed": 0.2,
           "tearStrength": 0.06,
           "colorShift": 0.85,
-          "glowStrength": 0.2,
-          "glowSpread": 1.5,
           "vignetteAmount": 0.55,
-          "flickerAmount": 0.04,
-          "grainAmount": 0.03,
-          "warmth": 0.0
+          "flickerAmount": 0.04
         }
       }
     ]
