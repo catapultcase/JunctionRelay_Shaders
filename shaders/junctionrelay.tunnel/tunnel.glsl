@@ -89,7 +89,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float lw      = lineWidth * 0.015 * lwScale;
 
     float ringLine    = 1.0 - smoothstep(0.0, lw, bestDist);
-    float angularLine = 1.0 - smoothstep(0.0, lineWidth * 0.08, distA);
+    float spokeFade   = 1.0 - smoothstep(0.0, 0.12, bestDist);  // only show spokes near rings
+    float angularLine = (1.0 - smoothstep(0.0, lineWidth * 0.08, distA)) * spokeFade;
     float gridLine    = max(ringLine, angularLine);
 
     // ── 6. Glow ─────────────────────────────────────────────────────────────
