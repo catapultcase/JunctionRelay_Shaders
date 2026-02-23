@@ -39,12 +39,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     uv -= vec2(originX, originY) * originWeight;
 
     // ── 4. Curvature — smooth arc like a bending pipe ─────────────────────────
-    // Quadratic displacement that grows with depth.
-    // curvature 0 = dead straight, 1 = full orbit-like arc.
-    float nd = clamp(depthScale / (r0 + 0.001) * 0.12, 0.0, 1.0);
-    float arc = nd * nd;
-    uv.x += curvature * arc * 0.5;
-    uv.y += curvature * arc * 0.25;
+    // t = 0 at edges (near camera), 1 at centre (deep). Quadratic = clean arc.
+    float t = 1.0 - clamp(r0 * 2.5, 0.0, 1.0);
+    uv.x += curvature * t * t * 0.3;
 
     // ── 5. Tunnel mapping from bent UV ────────────────────────────────────────
     float angle  = atan(uv.y, uv.x);
