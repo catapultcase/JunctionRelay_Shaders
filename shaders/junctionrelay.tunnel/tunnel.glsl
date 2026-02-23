@@ -7,7 +7,7 @@
 // All other use requires explicit written permission from CatapultCase.
 //
 // Procedural wireframe tunnel — transparent between grid lines.
-// Path bends like a pipe via curvature uniform.
+// Curvature bends the path like a pipe; origin aims the far end.
 // Classic polar-to-depth mapping with animated forward motion,
 // neon grid lines, soft glow, and optional rotation.
 // Single pass, no texture required.
@@ -23,32 +23,35 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     // Centre UV, normalise by shortest axis for aspect-correct shape
     vec2 uv = (fragCoord - 0.5 * iResolution.xy) / min(iResolution.x, iResolution.y);
 
-    // ── 1. Shift vanishing point ─────────────────────────────────────────────
-    // originX/originY move where the tunnel recedes to on screen.
-    uv -= vec2(originX, originY);
-
-    // ── 2. Tunnel rotation ──────────────────────────────────────────────────
+    // ── 1. Tunnel rotation ────────────────────────────────────────────────────
     float rot = iTime * rotationSpeed;
     float cs  = cos(rot);
     float sn  = sin(rot);
     uv = vec2(uv.x * cs - uv.y * sn, uv.x * sn + uv.y * cs);
 
-    // ── 3. Preliminary depth for curvature calculation ───────────────────────
+    // ── 2. Preliminary depth ──────────────────────────────────────────────────
     float r0 = length(uv);
-    float d0 = depthScale / (r0 + 0.001);
 
-    // ── 4. Path curvature — bend the tunnel like a pipe ────────────────────
-    // Displace the UV centre based on depth so the tunnel traces a curved path.
-    // curvature 0 = dead straight, 1 = strongly bent.
-    uv.x += curvature * sin(d0 * 0.8 + iTime * speed * 0.5) * 0.3;
-    uv.y += curvature * cos(d0 * 0.6 + iTime * speed * 0.3) * 0.2;
+    // ── 3. Origin — shift only the far end of the tunnel ──────────────────────
+    // Near the camera mouth (large r0): no shift.
+    // Deep in the tunnel (small r0): full origin offset.
+    float originWeight = smoothstep(0.4, 0.02, r0);
+    uv -= vec2(originX, originY) * originWeight;
 
-    // ── 5. Tunnel mapping from bent UV ─────────────────────────────────────
+    // ── 4. Curvature — smooth arc like a bending pipe ─────────────────────────
+    // Quadratic displacement that grows with depth.
+    // curvature 0 = dead straight, 1 = full orbit-like arc.
+    float nd = clamp(depthScale / (r0 + 0.001) * 0.12, 0.0, 1.0);
+    float arc = nd * nd;
+    uv.x += curvature * arc * 0.5;
+    uv.y += curvature * arc * 0.25;
+
+    // ── 5. Tunnel mapping from bent UV ────────────────────────────────────────
     float angle  = atan(uv.y, uv.x);
     float radius = length(uv);
     float depth  = depthScale / (radius + 0.001) + depthOffset;
 
-    // ── 6. Animated tunnel coordinates ─────────────────────────────────────
+    // ── 6. Animated tunnel coordinates ────────────────────────────────────────
     float tunnelZ = depth + iTime * speed;
     float tunnelA = angle * gridDensity / 3.14159265;
 

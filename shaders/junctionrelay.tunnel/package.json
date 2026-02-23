@@ -84,7 +84,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "Path curvature — 0 is dead straight, 1 bends the tunnel like a winding pipe"
+        "description": "Path arc — 0 is dead straight, 1 bends the tunnel into an orbit-like curve"
       },
       {
         "name": "depthScale",
@@ -114,7 +114,7 @@
         "default": 0.0,
         "min": -1.0,
         "max": 1.0,
-        "description": "Horizontal position of the vanishing point — 0 is centred, negative moves left, positive moves right"
+        "description": "Horizontal aim of the far end — 0 is centred, the near mouth stays fixed"
       },
       {
         "name": "originY",
@@ -124,7 +124,7 @@
         "default": 0.0,
         "min": -1.0,
         "max": 1.0,
-        "description": "Vertical position of the vanishing point — 0 is centred, negative moves down, positive moves up"
+        "description": "Vertical aim of the far end — 0 is centred, the near mouth stays fixed"
       }
     ],
     "presets": [
