@@ -279,7 +279,7 @@
         "name": "Blood on Glass",
         "values": {
           "rainAmount": 0.56,
-          "fogAmount": 0.05,
+          "fogAmount": 0.00,
           "dropSize": 0.85,
           "pathVariance": 0.15,
           "windDir": 0.0,
@@ -293,7 +293,7 @@
           "bloomSpread": 2.0,
           "bloomWarmth": 0.7,
           "lightColor": [1.0, 0.15, 0.1],
-          "lightIntensity": 0.45,
+          "lightIntensity": 0.25,
           "lightAngle": 0.75,
           "lightFocus": 0.3,
           "atmosphereColor": [0.6, 0.05, 0.02],
