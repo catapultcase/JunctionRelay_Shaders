@@ -155,12 +155,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     float cs=cos(rot),sn=sin(rot);
     uv=vec2(uv.x*cs-uv.y*sn,uv.x*sn+uv.y*cs);
 
+    uv-=vec2(originX,originY);
+
     float rStraight=length(uv);
     float depth=depthScale/(rStraight+0.001)+depthOffset;
 
     float depthNorm=clamp(1.0-depth/10.0,0.0,1.0);
-    vec2 ringOffset=vec2(originX,originY)*curvature*depthNorm*0.3;
-    vec2 curvedUV=uv-ringOffset;
+    vec2 curvedUV=uv+vec2(curvature*depthNorm*0.3,0.0);
 
     float angle=atan(curvedUV.y,curvedUV.x);
     float radius=length(curvedUV);
