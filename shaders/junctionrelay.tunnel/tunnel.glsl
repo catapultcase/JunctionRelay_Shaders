@@ -65,22 +65,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         }
     }
 
-    // ── 4. Angular lines — interpolated centre for smooth radials ───────────
-    //    Use straight-line depth as proxy to find which two rings we're between,
-    //    then blend their centres so the angular coordinate is continuous.
+    // ── 4. Angular lines — radiate from the nearest ring's centre ───────────
     float r0      = length(uv);
-    float proxyZ  = depthScale / (r0 + 0.001);
-    float scrollZ = proxyZ + tScroll;
-    float cellFr  = fract(scrollZ);
-    float zLo     = floor(scrollZ) - tScroll;
-    float zHi     = zLo + 1.0;
-    float dfLo    = clamp(1.0 - max(zLo, 0.0) / maxZ, 0.0, 1.0);
-    float dfHi    = clamp(1.0 - max(zHi, 0.0) / maxZ, 0.0, 1.0);
-    vec2  ctrLo   = curveDir * curveAmt * dfLo;
-    vec2  ctrHi   = curveDir * curveAmt * dfHi;
-    vec2  blendC  = mix(ctrLo, ctrHi, cellFr);
-
-    float angle   = atan((uv - blendC).y, (uv - blendC).x);
+    float angle   = atan((uv - bestCtr).y, (uv - bestCtr).x);
     float tunnelA = angle * gridDensity / 3.14159265;
     float distA   = abs(fract(tunnelA) - 0.5) * 2.0;
 
