@@ -5,15 +5,25 @@
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.vintage-display",
+    "emoji": "🖥️",
     "displayName": "Vintage Display",
     "description": "Fully configurable retro CRT shader across 3 passes. Pass 0 simulates the display surface: barrel distortion, monochrome phosphor color grading, scanlines, and pixel grid. Pass 1 applies signal degradation: raster ripple, vertical sync roll, horizontal tears, ghosting, static snow, and bitmap digit corruption strips. Pass 2 adds phosphor afterglow bloom, bezel vignette, power supply flicker, film grain, and age yellowing. 18 uniforms, 8 presets spanning green terminals, amber displays, CCTV surveillance, broken signals, and cyberpunk data streams.",
     "usesTexture": true,
     "feedback": false,
     "opaque": true,
     "passes": [
-      { "entry": "display.glsl", "displayName": "Display" },
-      { "entry": "signal.glsl", "displayName": "Signal" },
-      { "entry": "glow.glsl", "displayName": "Glow" }
+      {
+        "entry": "display.glsl",
+        "displayName": "Display"
+      },
+      {
+        "entry": "signal.glsl",
+        "displayName": "Signal"
+      },
+      {
+        "entry": "glow.glsl",
+        "displayName": "Glow"
+      }
     ],
     "uniforms": [
       {
@@ -21,7 +31,11 @@
         "displayName": "Phosphor Color",
         "type": "color",
         "pass": 0,
-        "default": [0.2, 1.0, 0.3],
+        "default": [
+          0.2,
+          1.0,
+          0.3
+        ],
         "description": "Monochrome phosphor tint — green P1, amber, white, blue"
       },
       {
@@ -200,7 +214,11 @@
         "name": "Green Terminal",
         "default": true,
         "values": {
-          "phosphorColor": [0.2, 1.0, 0.3],
+          "phosphorColor": [
+            0.2,
+            1.0,
+            0.3
+          ],
           "phosphorDrive": 0.85,
           "scanlineWeight": 0.5,
           "warpAmount": 0.04,
@@ -223,7 +241,11 @@
       {
         "name": "Amber Terminal",
         "values": {
-          "phosphorColor": [1.0, 0.7, 0.1],
+          "phosphorColor": [
+            1.0,
+            0.7,
+            0.1
+          ],
           "phosphorDrive": 0.9,
           "scanlineWeight": 0.4,
           "warpAmount": 0.035,
@@ -246,7 +268,11 @@
       {
         "name": "Surveillance",
         "values": {
-          "phosphorColor": [0.8, 0.8, 0.8],
+          "phosphorColor": [
+            0.8,
+            0.8,
+            0.8
+          ],
           "phosphorDrive": 0.7,
           "scanlineWeight": 0.6,
           "warpAmount": 0.03,
@@ -269,7 +295,11 @@
       {
         "name": "Broken Signal",
         "values": {
-          "phosphorColor": [0.3, 1.0, 0.3],
+          "phosphorColor": [
+            0.3,
+            1.0,
+            0.3
+          ],
           "phosphorDrive": 0.8,
           "scanlineWeight": 0.5,
           "warpAmount": 0.05,
@@ -292,7 +322,11 @@
       {
         "name": "Oscilloscope",
         "values": {
-          "phosphorColor": [0.1, 1.0, 0.2],
+          "phosphorColor": [
+            0.1,
+            1.0,
+            0.2
+          ],
           "phosphorDrive": 1.2,
           "scanlineWeight": 0.15,
           "warpAmount": 0.02,
@@ -315,7 +349,11 @@
       {
         "name": "Cold War",
         "values": {
-          "phosphorColor": [0.6, 0.7, 1.0],
+          "phosphorColor": [
+            0.6,
+            0.7,
+            1.0
+          ],
           "phosphorDrive": 0.8,
           "scanlineWeight": 0.55,
           "warpAmount": 0.05,
@@ -338,7 +376,11 @@
       {
         "name": "Vacuum Tube",
         "values": {
-          "phosphorColor": [1.0, 0.5, 0.05],
+          "phosphorColor": [
+            1.0,
+            0.5,
+            0.05
+          ],
           "phosphorDrive": 0.75,
           "scanlineWeight": 0.6,
           "warpAmount": 0.06,
@@ -361,7 +403,11 @@
       {
         "name": "Data Stream",
         "values": {
-          "phosphorColor": [0.15, 1.0, 0.25],
+          "phosphorColor": [
+            0.15,
+            1.0,
+            0.25
+          ],
           "phosphorDrive": 1.0,
           "scanlineWeight": 0.35,
           "warpAmount": 0.03,

@@ -4,6 +4,7 @@
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.fire-haze",
+    "emoji": "🔥",
     "displayName": "Fire Haze",
     "description": "Content seen through rising hot air. FBM heat columns distort UVs strongest at the bottom, spectrum shifts toward red-orange, bright areas bloom with fire glow, rising ember particle sparks, smoke darkening in upper regions. Fully self-contained.",
     "feedback": false,

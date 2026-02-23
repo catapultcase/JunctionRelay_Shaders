@@ -4,8 +4,9 @@
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.risograph",
+    "emoji": "🖨️",
     "displayName": "Risograph",
-    "description": "Two-colour stencil print aesthetic. Rotated halftone dots at classic 15\u00b0 and 75\u00b0 screen angles, fluorescent pink and teal inks, plate misregistration offset, ink overlap moir\u00e9 colour, ink bleed into cream paper texture with noise grain, boosted ink saturation. Fully self-contained.",
+    "description": "Two-colour stencil print aesthetic. Rotated halftone dots at classic 15° and 75° screen angles, fluorescent pink and teal inks, plate misregistration offset, ink overlap moiré colour, ink bleed into cream paper texture with noise grain, boosted ink saturation. Fully self-contained.",
     "feedback": false,
     "opaque": true,
     "passes": [

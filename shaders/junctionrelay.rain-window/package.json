@@ -5,15 +5,25 @@
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.rain-window",
+    "emoji": "🌧️",
     "displayName": "Rain Window",
     "description": "Rainy glass overlay with temporal persistence, bloom, and ambient lighting. Drops roll down the surface leaving trails that cut through condensation fog. Wet marks persist and slowly evaporate over ~3 seconds via feedback. Star-pattern bloom adds warm glow to specular highlights. Ambient light pass provides scene-wide colored lighting, directional gradients, and atmospheric haze.",
     "usesTexture": true,
     "feedback": true,
     "opaque": true,
     "passes": [
-      { "entry": "rain.glsl", "displayName": "Rain" },
-      { "entry": "bloom.glsl", "displayName": "Bloom" },
-      { "entry": "ambient.glsl", "displayName": "Ambient Light" }
+      {
+        "entry": "rain.glsl",
+        "displayName": "Rain"
+      },
+      {
+        "entry": "bloom.glsl",
+        "displayName": "Bloom"
+      },
+      {
+        "entry": "ambient.glsl",
+        "displayName": "Ambient Light"
+      }
     ],
     "uniforms": [
       {
@@ -101,7 +111,11 @@
         "displayName": "Liquid Color",
         "type": "color",
         "pass": 0,
-        "default": [1.0, 1.0, 1.0],
+        "default": [
+          1.0,
+          1.0,
+          1.0
+        ],
         "description": "Tint color of the liquid — white for water, red for blood, amber for honey"
       },
       {
@@ -159,7 +173,11 @@
         "displayName": "Light Color",
         "type": "color",
         "pass": 2,
-        "default": [1.0, 1.0, 1.0],
+        "default": [
+          1.0,
+          1.0,
+          1.0
+        ],
         "description": "Scene light color — white is neutral, red for horror, amber for warm"
       },
       {
@@ -197,7 +215,11 @@
         "displayName": "Atmosphere Color",
         "type": "color",
         "pass": 2,
-        "default": [1.0, 1.0, 1.0],
+        "default": [
+          1.0,
+          1.0,
+          1.0
+        ],
         "description": "Haze/fog particle color — adds colored atmosphere to the scene"
       },
       {
@@ -234,17 +256,29 @@
           "glassTilt": 0.8,
           "surfaceTension": 0.2,
           "viscosity": 0.0,
-          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "liquidOpacity": 0.0,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.6,
           "bloomSpread": 2.5,
           "bloomWarmth": 0.5,
-          "lightColor": [1.0, 1.0, 1.0],
+          "lightColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "lightIntensity": 0.0,
           "lightAngle": 0.0,
           "lightFocus": 0.0,
-          "atmosphereColor": [1.0, 1.0, 1.0],
+          "atmosphereColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "atmosphereDensity": 0.0,
           "exposure": 0.0
         }
@@ -260,17 +294,29 @@
           "glassTilt": -0.8934737317726256,
           "surfaceTension": 0.503908581858657,
           "viscosity": 0.0,
-          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "liquidOpacity": 0.0,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.6,
           "bloomSpread": 2.5,
           "bloomWarmth": 0.5,
-          "lightColor": [1.0, 1.0, 1.0],
+          "lightColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "lightIntensity": 0.0,
           "lightAngle": 0.0,
           "lightFocus": 0.0,
-          "atmosphereColor": [1.0, 1.0, 1.0],
+          "atmosphereColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "atmosphereDensity": 0.0,
           "exposure": 0.0
         }
@@ -279,24 +325,36 @@
         "name": "Blood on Glass",
         "values": {
           "rainAmount": 0.56,
-          "fogAmount": 0.00,
+          "fogAmount": 0.0,
           "dropSize": 0.85,
           "pathVariance": 0.15,
           "windDir": 0.0,
           "glassTilt": 0.3,
           "surfaceTension": 0.5,
           "viscosity": 0.55,
-          "liquidColor": [0.55, 0.02, 0.02],
+          "liquidColor": [
+            0.55,
+            0.02,
+            0.02
+          ],
           "liquidOpacity": 0.65,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.5,
           "bloomSpread": 2.0,
           "bloomWarmth": 0.7,
-          "lightColor": [1.0, 0.15, 0.1],
+          "lightColor": [
+            1.0,
+            0.15,
+            0.1
+          ],
           "lightIntensity": 0.25,
           "lightAngle": 0.75,
           "lightFocus": 0.3,
-          "atmosphereColor": [0.6, 0.05, 0.02],
+          "atmosphereColor": [
+            0.6,
+            0.05,
+            0.02
+          ],
           "atmosphereDensity": 0.15,
           "exposure": -0.15
         }
@@ -312,17 +370,29 @@
           "glassTilt": 0.5,
           "surfaceTension": 0.7,
           "viscosity": 0.85,
-          "liquidColor": [0.85, 0.55, 0.08],
+          "liquidColor": [
+            0.85,
+            0.55,
+            0.08
+          ],
           "liquidOpacity": 0.7,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.4,
           "bloomSpread": 2.0,
           "bloomWarmth": 0.8,
-          "lightColor": [1.0, 0.8, 0.4],
+          "lightColor": [
+            1.0,
+            0.8,
+            0.4
+          ],
           "lightIntensity": 0.3,
           "lightAngle": 0.25,
           "lightFocus": 0.2,
-          "atmosphereColor": [0.9, 0.7, 0.3],
+          "atmosphereColor": [
+            0.9,
+            0.7,
+            0.3
+          ],
           "atmosphereDensity": 0.08,
           "exposure": 0.1
         }
@@ -338,17 +408,29 @@
           "glassTilt": 0.3,
           "surfaceTension": 0.05,
           "viscosity": 0.0,
-          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "liquidOpacity": 0.0,
           "bloomThreshold": 0.6,
           "bloomIntensity": 0.8,
           "bloomSpread": 3.5,
           "bloomWarmth": 0.4,
-          "lightColor": [1.0, 1.0, 1.0],
+          "lightColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "lightIntensity": 0.0,
           "lightAngle": 0.0,
           "lightFocus": 0.0,
-          "atmosphereColor": [1.0, 1.0, 1.0],
+          "atmosphereColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "atmosphereDensity": 0.0,
           "exposure": -0.2
         }
@@ -364,17 +446,29 @@
           "glassTilt": 0.4,
           "surfaceTension": 0.6,
           "viscosity": 0.0,
-          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "liquidOpacity": 0.0,
           "bloomThreshold": 0.55,
           "bloomIntensity": 1.0,
           "bloomSpread": 4.0,
           "bloomWarmth": 0.85,
-          "lightColor": [1.0, 0.95, 0.8],
+          "lightColor": [
+            1.0,
+            0.95,
+            0.8
+          ],
           "lightIntensity": 0.3,
           "lightAngle": 0.25,
           "lightFocus": 0.4,
-          "atmosphereColor": [1.0, 0.95, 0.85],
+          "atmosphereColor": [
+            1.0,
+            0.95,
+            0.85
+          ],
           "atmosphereDensity": 0.05,
           "exposure": 0.15
         }
@@ -390,17 +484,29 @@
           "glassTilt": 0.5,
           "surfaceTension": 0.2,
           "viscosity": 0.0,
-          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "liquidOpacity": 0.0,
           "bloomThreshold": 0.5,
           "bloomIntensity": 1.4,
           "bloomSpread": 4.5,
           "bloomWarmth": 0.2,
-          "lightColor": [1.0, 1.0, 1.0],
+          "lightColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "lightIntensity": 0.0,
           "lightAngle": 0.0,
           "lightFocus": 0.0,
-          "atmosphereColor": [0.3, 0.1, 0.5],
+          "atmosphereColor": [
+            0.3,
+            0.1,
+            0.5
+          ],
           "atmosphereDensity": 0.12,
           "exposure": -0.25
         }
@@ -416,17 +522,29 @@
           "glassTilt": 0.0,
           "surfaceTension": 0.95,
           "viscosity": 0.3,
-          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "liquidOpacity": 0.0,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.3,
           "bloomSpread": 2.5,
           "bloomWarmth": 0.1,
-          "lightColor": [0.7, 0.85, 1.0],
+          "lightColor": [
+            0.7,
+            0.85,
+            1.0
+          ],
           "lightIntensity": 0.2,
           "lightAngle": 0.25,
           "lightFocus": 0.3,
-          "atmosphereColor": [0.8, 0.9, 1.0],
+          "atmosphereColor": [
+            0.8,
+            0.9,
+            1.0
+          ],
           "atmosphereDensity": 0.2,
           "exposure": -0.1
         }
@@ -442,17 +560,29 @@
           "glassTilt": 0.4,
           "surfaceTension": 0.3,
           "viscosity": 0.65,
-          "liquidColor": [0.1, 0.9, 0.15],
+          "liquidColor": [
+            0.1,
+            0.9,
+            0.15
+          ],
           "liquidOpacity": 0.55,
           "bloomThreshold": 0.55,
           "bloomIntensity": 1.2,
           "bloomSpread": 3.0,
           "bloomWarmth": 0.15,
-          "lightColor": [0.2, 1.0, 0.3],
+          "lightColor": [
+            0.2,
+            1.0,
+            0.3
+          ],
           "lightIntensity": 0.25,
           "lightAngle": 0.5,
           "lightFocus": 0.2,
-          "atmosphereColor": [0.1, 0.4, 0.1],
+          "atmosphereColor": [
+            0.1,
+            0.4,
+            0.1
+          ],
           "atmosphereDensity": 0.15,
           "exposure": -0.15
         }
@@ -468,17 +598,29 @@
           "glassTilt": 0.1,
           "surfaceTension": 0.7,
           "viscosity": 0.15,
-          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "liquidOpacity": 0.0,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.4,
           "bloomSpread": 2.5,
           "bloomWarmth": 0.6,
-          "lightColor": [0.9, 0.9, 1.0],
+          "lightColor": [
+            0.9,
+            0.9,
+            1.0
+          ],
           "lightIntensity": 0.15,
           "lightAngle": 0.25,
           "lightFocus": 0.3,
-          "atmosphereColor": [1.0, 1.0, 1.0],
+          "atmosphereColor": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "atmosphereDensity": 0.0,
           "exposure": -0.05
         }
@@ -494,17 +636,29 @@
           "glassTilt": 0.6,
           "surfaceTension": 0.4,
           "viscosity": 0.9,
-          "liquidColor": [1.0, 0.3, 0.0],
+          "liquidColor": [
+            1.0,
+            0.3,
+            0.0
+          ],
           "liquidOpacity": 0.8,
           "bloomThreshold": 0.4,
           "bloomIntensity": 1.5,
           "bloomSpread": 5.0,
           "bloomWarmth": 0.9,
-          "lightColor": [1.0, 0.4, 0.1],
+          "lightColor": [
+            1.0,
+            0.4,
+            0.1
+          ],
           "lightIntensity": 0.4,
           "lightAngle": 0.75,
           "lightFocus": 0.3,
-          "atmosphereColor": [0.5, 0.15, 0.0],
+          "atmosphereColor": [
+            0.5,
+            0.15,
+            0.0
+          ],
           "atmosphereDensity": 0.2,
           "exposure": -0.1
         }
