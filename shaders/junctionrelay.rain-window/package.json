@@ -1,6 +1,6 @@
 {
   "name": "@junctionrelay/shader-rain-window",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "description": "Rain on glass — realistic drops with refraction, trails, fog, temporal persistence, and bloom over a background texture",
   "junctionrelay": {
     "type": "shader",
@@ -86,6 +86,34 @@
         "description": "How clingy the glass surface is — low values let drops slide quickly, high values make them cling longer and fall slower"
       },
       {
+        "name": "viscosity",
+        "displayName": "Viscosity",
+        "type": "float",
+        "pass": 0,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Liquid thickness — 0 is water, higher values produce slower, rounder drops with wider trails (blood, honey, syrup)"
+      },
+      {
+        "name": "liquidColor",
+        "displayName": "Liquid Color",
+        "type": "color",
+        "pass": 0,
+        "default": [1.0, 1.0, 1.0],
+        "description": "Tint color of the liquid — white for water, red for blood, amber for honey"
+      },
+      {
+        "name": "liquidOpacity",
+        "displayName": "Liquid Opacity",
+        "type": "float",
+        "pass": 0,
+        "default": 0.0,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "How opaque the liquid is — 0 is fully clear (refraction only), 1 is solid colored liquid"
+      },
+      {
         "name": "bloomThreshold",
         "displayName": "Threshold",
         "type": "float",
@@ -138,6 +166,9 @@
           "windDir": 0.7,
           "glassTilt": 0.8,
           "surfaceTension": 0.2,
+          "viscosity": 0.0,
+          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidOpacity": 0.0,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.6,
           "bloomSpread": 2.5,
@@ -154,10 +185,51 @@
           "windDir": 0.9708059087093326,
           "glassTilt": -0.8934737317726256,
           "surfaceTension": 0.503908581858657,
+          "viscosity": 0.0,
+          "liquidColor": [1.0, 1.0, 1.0],
+          "liquidOpacity": 0.0,
           "bloomThreshold": 0.72,
           "bloomIntensity": 0.6,
           "bloomSpread": 2.5,
           "bloomWarmth": 0.5
+        }
+      },
+      {
+        "name": "Blood on Glass",
+        "values": {
+          "rainAmount": 0.35,
+          "fogAmount": 0.05,
+          "dropSize": 0.7,
+          "pathVariance": 0.15,
+          "windDir": 0.0,
+          "glassTilt": 0.3,
+          "surfaceTension": 0.5,
+          "viscosity": 0.55,
+          "liquidColor": [0.55, 0.02, 0.02],
+          "liquidOpacity": 0.65,
+          "bloomThreshold": 0.72,
+          "bloomIntensity": 0.5,
+          "bloomSpread": 2.0,
+          "bloomWarmth": 0.7
+        }
+      },
+      {
+        "name": "Honey Drip",
+        "values": {
+          "rainAmount": 0.25,
+          "fogAmount": 0.0,
+          "dropSize": 0.9,
+          "pathVariance": 0.1,
+          "windDir": 0.0,
+          "glassTilt": 0.5,
+          "surfaceTension": 0.7,
+          "viscosity": 0.85,
+          "liquidColor": [0.85, 0.55, 0.08],
+          "liquidOpacity": 0.7,
+          "bloomThreshold": 0.72,
+          "bloomIntensity": 0.4,
+          "bloomSpread": 2.0,
+          "bloomWarmth": 0.8
         }
       }
     ]

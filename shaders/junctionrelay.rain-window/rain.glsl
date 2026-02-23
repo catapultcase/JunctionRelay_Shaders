@@ -10,7 +10,8 @@
 // frames in the alpha channel, decaying at 0.995 per frame (~3s evaporation).
 //
 // Inputs: iChannel0, iChannel1, iTime, iResolution, iFrame
-//         rainAmount, fogAmount, dropSize, pathVariance, windDir, glassTilt, surfaceTension
+//         rainAmount, fogAmount, dropSize, pathVariance, windDir, glassTilt, surfaceTension,
+//         viscosity, liquidColor, liquidOpacity
 
 // ── Hash functions ────────────────────────────────────────────
 
@@ -105,9 +106,10 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             // Horizontal centre within column; wobble only while sliding
             float cx = 0.25 + sa * 0.5;
             if (sliding > 0.5) {
-                float w = sin(uv.y * 14.0 + t * (1.3 + sa) + sa * 6.28) * 0.04 * (pathVariance * 2.0)
-                        + sin(uv.y * 7.3  + t * 0.7 + sb * 4.1) * 0.025 * (pathVariance * 2.0)
-                        + sin(uv.y * 31.7 + t * (3.7 + sc) + sc * 9.2) * 0.02 * pathVariance;
+                float wobbleMul = mix(1.0, 0.25, viscosity);
+                float w = sin(uv.y * 14.0 + t * (1.3 + sa) + sa * 6.28) * 0.04 * (pathVariance * 2.0) * wobbleMul
+                        + sin(uv.y * 7.3  + t * 0.7 + sb * 4.1) * 0.025 * (pathVariance * 2.0) * wobbleMul
+                        + sin(uv.y * 31.7 + t * (3.7 + sc) + sc * 9.2) * 0.02 * pathVariance * wobbleMul;
                 // Wind pushes drops laterally; drift grows as the drop picks up speed
                 w += windDir * slideT * 0.35;
                 cx += w;
@@ -122,7 +124,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             float dx    = (nFrac - cx) * colW;
             float dy    = uv.y - (0.5 - dropY);
             dy += sliding * slideT * radius * 0.35;
-            float elongBase = mix(0.92, 0.80, sizeNorm);
+            float elongBase = mix(0.92, 0.80, sizeNorm) * mix(1.0, 0.65, viscosity);
             float elong = elongBase - sliding * pow(slideT, 0.7) * 0.18;
             float d     = length(vec2(dx, dy * elong));
             // Metaball field: falloff extends well beyond drop radius so
@@ -138,7 +140,7 @@ vec2 rollingDrops(vec2 uv, float t, float cols, float hashSeed, float speed) {
             if (dc == 0 && sliding > 0.5) {
                 // Trail edge noise — uneven rivulet width like real water on glass
                 float trailNoise = rng(floor(uv.y * 70.0) * 13.7 + base);
-                float bw    = radius * (1.5 + trailNoise * 1.4);
+                float bw    = radius * (1.5 + trailNoise * 1.4) * (1.0 + viscosity * 1.0);
                 float band  = smoothstep(bw, bw * 0.3, abs(dx));
                 // Top-down evaporation — trail fades with distance from drop
                 float distAbove = uv.y - (0.5 - dropY);
@@ -197,8 +199,9 @@ vec2 heightField(vec2 uv, float t, float amount) {
 
     float s  = settledDrops(uv, t) * wSettled;
     // Large slow drops (8 wide columns) and small fast drops (18 narrow columns)
-    vec2  d1 = rollingDrops(uv, t,  8.0,  0.0,  1.0) * wLarge;
-    vec2  d2 = rollingDrops(uv, t, 18.0, 17.5,  2.5) * wSmall;
+    float speedMul = 1.0 / (1.0 + viscosity * 4.0);
+    vec2  d1 = rollingDrops(uv, t,  8.0,  0.0,  1.0 * speedMul) * wLarge;
+    vec2  d2 = rollingDrops(uv, t, 18.0, 17.5,  2.5 * speedMul) * wSmall;
 
     float height = clamp(s + d1.x + d2.x, 0.0, 1.0);
     float trail  = max(d1.y, d2.y);
@@ -326,6 +329,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float fogVis = fogAmount * (1.0 - clearing);
     col = mix(col, vec3(0.82, 0.84, 0.88), fogVis * 0.55);
 
+    // Liquid tint — colored liquids absorb light; opaque liquids obscure background
+    vec3 absorbed = col * liquidColor;
+    vec3 solidLiquid = liquidColor * 0.2;
+    col = mix(col, mix(absorbed, solidLiquid, liquidOpacity), hf.x);
+
     // Caustic highlight — drops act as tiny lenses focusing background light
     float caustic = pow(hf.x, 1.5) * 0.12;
     col *= 1.0 + caustic;
@@ -333,11 +341,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Edge specular ring — Fresnel rim at drop boundaries
     float nLen = length(n);
     float specRing = smoothstep(0.01, 0.025, nLen) * smoothstep(0.05, 0.03, nLen);
-    col += specRing * hf.x * 0.25 * vec3(0.9, 0.95, 1.0);
+    vec3 specTint = mix(vec3(1.0), liquidColor, 0.5 + liquidOpacity * 0.5);
+    col += specRing * hf.x * 0.25 * vec3(0.9, 0.95, 1.0) * specTint;
 
     // Drop apex highlight — specular point at the thickest part of each drop
     float apex = smoothstep(0.5, 0.8, hf.x) * (1.0 - smoothstep(0.0, 0.015, nLen));
-    col += apex * 0.15 * vec3(1.0, 0.98, 0.95);
+    col += apex * 0.15 * vec3(1.0, 0.98, 0.95) * specTint;
 
     // Warm color shift — light through water absorbs blue slightly
     col *= mix(vec3(1.0), vec3(1.04, 1.02, 0.96), hf.x * 0.4);
