@@ -144,7 +144,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         for (int i = 0; i < 80; i++) {
             if (t > tMax || sum.a > 0.99) break;
 
-            float dt = max(0.05, 0.02 * t);
+            float dt = max(0.05, min(0.02 * t, 0.2));
             vec3 pos = ro + t * rd;
 
             // LOD: fewer octaves for distant samples
