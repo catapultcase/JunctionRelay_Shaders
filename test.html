@@ -171,6 +171,8 @@ async function init() {
       glslSources.push(await glslRes.text());
     }
 
+    // Apply initial display size from dropdown
+    setDisplaySize(document.getElementById('display-select').value);
     initWebGL(glslSources);
   } catch (e) {
     document.getElementById('title').textContent = 'Error loading shader';
@@ -394,8 +396,21 @@ function setDisplaySize(val) {
 function setRenderResolution(val) {
   const [w, h] = val.split('x').map(Number);
   const canvas = document.getElementById('c');
+  // Preserve CSS display size — setting canvas.width resets inline styles
+  const cssW = canvas.style.width;
+  const cssH = canvas.style.height;
+  const hasFit = canvas.classList.contains('fit');
   canvas.width = w;
   canvas.height = h;
+  if (hasFit) {
+    canvas.classList.add('fit');
+  } else if (cssW) {
+    canvas.style.width = cssW;
+    canvas.style.height = cssH;
+  } else {
+    // No explicit display size set — apply current display selection
+    setDisplaySize(document.getElementById('display-select').value);
+  }
   if (gl) {
     gl.viewport(0, 0, w, h);
     // Rebuild FBOs for intermediate passes
