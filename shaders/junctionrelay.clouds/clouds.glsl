@@ -7,73 +7,92 @@
 // All other use requires explicit written permission from CatapultCase.
 //
 // Camera above a cloud plane, looking down at an angle — flying over clouds.
-// Density = height threshold + FBM. Flat bottoms, billowing tops.
-// Each cloud formation is different because FBM varies across the xz plane.
-// Directional derivative lighting (one extra sample toward sun per step).
+// Density = height falloff + FBM noise. Flat bottoms, billowing tops.
+// Directional derivative lighting (one extra density sample toward sun).
+//
+// Uniforms: sunAngle, sunColor, shadowColor, cloudCoverage, cloudSpeed
 
-// ── Noise ────────────────────────────────────────────────────
+// ── 3D Hash ──────────────────────────────────────────────────
+// Dot-product hash — no sin(), fully integer-inspired constants.
 
-float hash(float n) {
-    return fract(sin(n) * 43758.5453);
+float hash3(vec3 p) {
+    p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+    p += dot(p, p.yxz + 33.33);
+    return fract((p.x + p.y) * p.z);
 }
 
-float noise3(vec3 x) {
-    vec3 p = floor(x);
+// ── 3D Value Noise ───────────────────────────────────────────
+// Trilinear interpolation of hashed lattice corners.
+
+float vnoise(vec3 x) {
+    vec3 i = floor(x);
     vec3 f = fract(x);
     f = f * f * (3.0 - 2.0 * f);
-    float n = p.x + p.y * 57.0 + 113.0 * p.z;
-    return mix(mix(mix(hash(n +   0.0), hash(n +   1.0), f.x),
-                   mix(hash(n +  57.0), hash(n +  58.0), f.x), f.y),
-               mix(mix(hash(n + 113.0), hash(n + 114.0), f.x),
-                   mix(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
+
+    return mix(
+        mix(mix(hash3(i + vec3(0, 0, 0)), hash3(i + vec3(1, 0, 0)), f.x),
+            mix(hash3(i + vec3(0, 1, 0)), hash3(i + vec3(1, 1, 0)), f.x), f.y),
+        mix(mix(hash3(i + vec3(0, 0, 1)), hash3(i + vec3(1, 0, 1)), f.x),
+            mix(hash3(i + vec3(0, 1, 1)), hash3(i + vec3(1, 1, 1)), f.x), f.y),
+        f.z);
 }
 
+// ── Fractional Brownian Motion ───────────────────────────────
+// 5 octaves with slight frequency jitter to break grid alignment.
+// Separate functions for LOD — fewer octaves at distance.
+
 float fbm5(vec3 p) {
-    float f;
-    f  = 0.5000 * noise3(p); p *= 2.02;
-    f += 0.2500 * noise3(p); p *= 2.03;
-    f += 0.1250 * noise3(p); p *= 2.01;
-    f += 0.0625 * noise3(p); p *= 2.02;
-    f += 0.03125 * noise3(p);
-    return f;
+    float v = 0.0;
+    v += 0.500 * vnoise(p); p *= 1.97;
+    v += 0.250 * vnoise(p); p *= 2.06;
+    v += 0.125 * vnoise(p); p *= 1.94;
+    v += 0.063 * vnoise(p); p *= 2.11;
+    v += 0.031 * vnoise(p);
+    return v;
 }
 
 float fbm4(vec3 p) {
-    float f;
-    f  = 0.5000 * noise3(p); p *= 2.02;
-    f += 0.2500 * noise3(p); p *= 2.03;
-    f += 0.1250 * noise3(p); p *= 2.01;
-    f += 0.0625 * noise3(p);
-    return f;
+    float v = 0.0;
+    v += 0.500 * vnoise(p); p *= 1.97;
+    v += 0.250 * vnoise(p); p *= 2.06;
+    v += 0.125 * vnoise(p); p *= 1.94;
+    v += 0.063 * vnoise(p);
+    return v;
 }
 
 float fbm3(vec3 p) {
-    float f;
-    f  = 0.5000 * noise3(p); p *= 2.02;
-    f += 0.2500 * noise3(p); p *= 2.03;
-    f += 0.1250 * noise3(p);
-    return f;
+    float v = 0.0;
+    v += 0.500 * vnoise(p); p *= 1.97;
+    v += 0.250 * vnoise(p); p *= 2.06;
+    v += 0.125 * vnoise(p);
+    return v;
 }
 
 // ── Cloud Density ────────────────────────────────────────────
-// height threshold + FBM. Clouds exist where density > 0.
-// p.y increasing = higher altitude = less density (cloud tops are wispy).
+// Altitude-based falloff + FBM gives flat bottoms, billowing tops.
+// cloudCoverage shifts the threshold, cloudSpeed drives wind drift.
 
 float mapCloud(vec3 p, int lod) {
-    vec3 q = p + vec3(iTime * 0.3, 0.0, iTime * 0.1);
+    vec3 q = p + vec3(iTime * cloudSpeed * 0.6, 0.0, iTime * cloudSpeed * 0.2);
 
     float f;
     if (lod >= 5) f = fbm5(q);
     else if (lod >= 4) f = fbm4(q);
     else f = fbm3(q);
 
-    // Density: base - height + noise * 4
-    // Taller FBM amplitude lets clouds billow higher above the base plane.
-    // At cloud base (y ~ -3): always dense
-    // At cloud tops (y ~ 2): only the tallest FBM peaks survive
-    float den = 0.2 - p.y + 4.0 * f;
+    // Coverage: 0→scattered, 0.5→half sky, 1→overcast
+    float threshold = (cloudCoverage - 0.5) * 3.0;
+
+    // Density decreases with altitude — noise amplitude dominates at cloud tops
+    float den = threshold - p.y * 0.8 + 3.5 * f;
 
     return clamp(den, 0.0, 1.0);
+}
+
+// ── Dither Hash ──────────────────────────────────────────────
+
+float screenHash(vec2 co) {
+    return fract(dot(sin(co * vec2(43.47, 73.19)), vec2(413.7, 297.1)));
 }
 
 // ── Main ─────────────────────────────────────────────────────
@@ -82,40 +101,39 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec2 p = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
 
-    // Sun
-    vec3 sunDir = normalize(vec3(-0.7, 0.0, -0.7));
+    // Sun direction from uniform
+    float sAngle = sunAngle * 6.2832;
+    vec3 sunDir = normalize(vec3(cos(sAngle), 0.0, sin(sAngle)));
 
-    // Camera: above the cloud tops, looking forward and slightly down
-    // Sees the vertical sides of formations, not just the flat top
-    vec3 ro = vec3(0.0, 4.0, -5.0 + iTime * 0.5);
+    // Camera — flies forward at cloudSpeed
+    vec3 ro = vec3(0.0, 4.0, -5.0 + iTime * cloudSpeed * 0.8);
     vec3 ta = vec3(0.0, 0.5, ro.z + 8.0);
 
-    // Simple look-at camera matrix
     vec3 cw = normalize(ta - ro);
     vec3 cu = normalize(cross(vec3(0.0, 1.0, 0.0), cw));
     vec3 cv = cross(cw, cu);
     vec3 rd = normalize(p.x * cu + p.y * cv + 1.5 * cw);
 
-    // Sky background
+    // Sky — sun/shadow color tinted
     float sunDot = clamp(dot(sunDir, rd), 0.0, 1.0);
-    vec3 sky = vec3(0.6, 0.71, 0.75) - rd.y * 0.2 * vec3(1.0, 0.5, 1.0) + 0.15 * 0.5;
-    sky += 0.2 * vec3(1.0, 0.6, 0.1) * pow(sunDot, 8.0);
+    vec3 sky = mix(shadowColor * 2.5, vec3(0.6, 0.71, 0.75), 0.7);
+    sky -= rd.y * 0.2 * vec3(1.0, 0.5, 1.0);
+    sky += 0.15;
+    sky += 0.2 * sunColor * pow(sunDot, 8.0);
 
-    // Slab bounds
+    // Slab
     float yBot = -3.0;
     float yTop = 3.0;
     float tBot = (yBot - ro.y) / rd.y;
     float tTop = (yTop - ro.y) / rd.y;
-
-    float tMin = min(tBot, tTop);
+    float tMin = max(min(tBot, tTop), 0.0);
     float tMax = max(tBot, tTop);
-    tMin = max(tMin, 0.0);
 
     vec4 sum = vec4(0.0);
 
     if (tMin < tMax && tMax > 0.0) {
-        // Dither
-        float t = tMin + 0.1 * hash(dot(fragCoord, vec2(12.9898, 78.233)));
+        // Dither start to break banding
+        float t = tMin + 0.1 * screenHash(fragCoord);
 
         for (int i = 0; i < 80; i++) {
             if (t > tMax || sum.a > 0.99) break;
@@ -123,27 +141,30 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
             float dt = max(0.05, 0.02 * t);
             vec3 pos = ro + t * rd;
 
-            // LOD
+            // LOD: fewer octaves for distant samples
             int lod = 5 - int(clamp(log2(1.0 + t * 0.5), 0.0, 2.0));
 
             float den = mapCloud(pos, lod);
 
             if (den > 0.01) {
-                // Directional derivative lighting
-                float denSun = mapCloud(pos + 0.3 * sunDir, lod);
-                float dif = clamp((den - denSun) / 0.25, 0.0, 1.0);
+                // Directional derivative: one sample toward sun
+                float denLit = mapCloud(pos + 0.4 * sunDir, lod);
+                float dif = clamp((den - denLit) / 0.35, 0.0, 1.0);
 
-                vec3 lin = vec3(0.65, 0.65, 0.75) * 1.1 + 0.8 * vec3(1.0, 0.6, 0.3) * dif;
-                vec4 col = vec4(mix(vec3(1.0, 0.93, 0.84), vec3(0.25, 0.3, 0.4), den), den);
-                col.xyz *= lin;
+                // Lighting: shadow base + sun directional
+                vec3 lin = shadowColor * 2.5 + sunColor * 1.5 * dif;
 
-                // Fog at distance
+                // Cloud surface color modulated by density
+                vec3 cloudBase = mix(sunColor * 1.1, shadowColor * 1.8, den);
+                vec4 col = vec4(cloudBase * lin, den);
+
+                // Distance fog
                 col.rgb = mix(col.rgb, sky, 1.0 - exp(-0.05 * t));
 
-                // Opacity
+                // Opacity per step
                 col.a = min(col.a * 8.0 * dt, 1.0);
 
-                // Front-to-back premultiplied
+                // Front-to-back premultiplied alpha
                 col.rgb *= col.a;
                 sum += col * (1.0 - sum.a);
             }
@@ -152,11 +173,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         }
     }
 
-    // Composite
     vec3 col = sky * (1.0 - sum.a) + sum.rgb;
 
     // Sun glare
-    col += vec3(0.2, 0.08, 0.04) * pow(sunDot, 3.0);
+    col += sunColor * 0.15 * pow(sunDot, 3.0);
 
     fragColor = vec4(col, 1.0);
 }

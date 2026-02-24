@@ -1,13 +1,13 @@
 {
   "name": "@junctionrelay/shader-clouds",
   "version": "1.0.0",
-  "description": "Procedural volumetric cloudscape — ray-marched FBM noise with directional derivative lighting",
+  "description": "Procedural volumetric cloudscape — ray-marched FBM noise with directional derivative lighting and bloom",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.clouds",
     "emoji": "\u2601\ufe0f",
     "displayName": "Clouds",
-    "description": "Volumetric cloudscape via ray marching through a 3D FBM noise field. Camera flies over a cloud plane with flat bottoms and billowing tops. Directional derivative lighting gives self-shadowing with one extra sample per step.",
+    "description": "Volumetric cloudscape via ray marching through a 3D FBM noise field. Camera flies over a cloud plane with flat bottoms and billowing tops. Directional derivative lighting with configurable sun position and colors. Star-pattern bloom on sunlit edges.",
     "usesTexture": false,
     "feedback": false,
     "opaque": true,
@@ -15,9 +15,172 @@
       {
         "entry": "clouds.glsl",
         "displayName": "Clouds"
+      },
+      {
+        "entry": "bloom.glsl",
+        "displayName": "Bloom"
       }
     ],
-    "uniforms": [],
-    "presets": []
+    "uniforms": [
+      {
+        "name": "sunAngle",
+        "displayName": "Sun Angle",
+        "type": "float",
+        "pass": 0,
+        "default": 0.15,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Sun position — 0=right, 0.25=top, 0.5=left, 0.75=bottom"
+      },
+      {
+        "name": "sunColor",
+        "displayName": "Sun Color",
+        "type": "color",
+        "pass": 0,
+        "default": [1.0, 0.85, 0.6],
+        "description": "Color of sunlight — warm golden default for golden-hour look"
+      },
+      {
+        "name": "shadowColor",
+        "displayName": "Shadow Color",
+        "type": "color",
+        "pass": 0,
+        "default": [0.15, 0.15, 0.3],
+        "description": "Color of cloud shadows — cool blue default for natural volumetric shadow"
+      },
+      {
+        "name": "cloudCoverage",
+        "displayName": "Cloud Coverage",
+        "type": "float",
+        "pass": 0,
+        "default": 0.55,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "How much sky is covered — 0 is scattered, 1 is fully overcast"
+      },
+      {
+        "name": "cloudSpeed",
+        "displayName": "Cloud Speed",
+        "type": "float",
+        "pass": 0,
+        "default": 0.3,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Wind speed — how fast clouds drift and the camera flies"
+      },
+      {
+        "name": "bloomThreshold",
+        "displayName": "Threshold",
+        "type": "float",
+        "pass": 1,
+        "default": 0.72,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Luminance cutoff — how bright a pixel must be to glow"
+      },
+      {
+        "name": "bloomIntensity",
+        "displayName": "Intensity",
+        "type": "float",
+        "pass": 1,
+        "default": 0.6,
+        "min": 0.0,
+        "max": 2.0,
+        "description": "Strength of the bloom glow"
+      },
+      {
+        "name": "bloomSpread",
+        "displayName": "Spread",
+        "type": "float",
+        "pass": 1,
+        "default": 2.5,
+        "min": 0.5,
+        "max": 6.0,
+        "description": "How far bloom rays extend from bright spots"
+      },
+      {
+        "name": "bloomWarmth",
+        "displayName": "Warmth",
+        "type": "float",
+        "pass": 1,
+        "default": 0.5,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Warm tint on bloom — 0 is neutral, 1 is warm golden"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Golden Hour",
+        "default": true,
+        "values": {
+          "sunAngle": 0.15,
+          "sunColor": [1.0, 0.85, 0.6],
+          "shadowColor": [0.15, 0.15, 0.3],
+          "cloudCoverage": 0.55,
+          "cloudSpeed": 0.3,
+          "bloomThreshold": 0.72,
+          "bloomIntensity": 0.6,
+          "bloomSpread": 2.5,
+          "bloomWarmth": 0.5
+        }
+      },
+      {
+        "name": "Storm Brewing",
+        "values": {
+          "sunAngle": 0.3,
+          "sunColor": [0.6, 0.55, 0.5],
+          "shadowColor": [0.1, 0.1, 0.15],
+          "cloudCoverage": 0.85,
+          "cloudSpeed": 0.5,
+          "bloomThreshold": 0.72,
+          "bloomIntensity": 0.3,
+          "bloomSpread": 2.0,
+          "bloomWarmth": 0.2
+        }
+      },
+      {
+        "name": "Sunset Blaze",
+        "values": {
+          "sunAngle": 0.85,
+          "sunColor": [1.0, 0.5, 0.15],
+          "shadowColor": [0.2, 0.1, 0.25],
+          "cloudCoverage": 0.6,
+          "cloudSpeed": 0.2,
+          "bloomThreshold": 0.55,
+          "bloomIntensity": 1.0,
+          "bloomSpread": 4.0,
+          "bloomWarmth": 0.9
+        }
+      },
+      {
+        "name": "Overcast",
+        "values": {
+          "sunAngle": 0.25,
+          "sunColor": [0.75, 0.75, 0.75],
+          "shadowColor": [0.3, 0.3, 0.35],
+          "cloudCoverage": 0.9,
+          "cloudSpeed": 0.15,
+          "bloomThreshold": 0.72,
+          "bloomIntensity": 0.2,
+          "bloomSpread": 2.0,
+          "bloomWarmth": 0.1
+        }
+      },
+      {
+        "name": "Partly Cloudy",
+        "values": {
+          "sunAngle": 0.25,
+          "sunColor": [1.0, 0.95, 0.9],
+          "shadowColor": [0.15, 0.15, 0.25],
+          "cloudCoverage": 0.35,
+          "cloudSpeed": 0.25,
+          "bloomThreshold": 0.6,
+          "bloomIntensity": 0.7,
+          "bloomSpread": 3.0,
+          "bloomWarmth": 0.5
+        }
+      }
+    ]
   }
 }
