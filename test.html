@@ -60,7 +60,7 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
 </style></head><body>
 
 <div id="preview">
-  <canvas id="c" width="400" height="400"></canvas>
+  <canvas id="c" width="1280" height="720"></canvas>
   <div class="fps" id="fps">-- FPS</div>
   <div class="meta" id="meta"></div>
 </div>
@@ -70,6 +70,14 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
   <div class="toolbar">
     <button class="accent" onclick="randomize()">Randomize All</button>
     <button onclick="resetAll()">Reset</button>
+    <select id="size-select" onchange="resizeCanvas(this.value)" style="background:#2a2a2a;color:#ccc;border:1px solid #444;padding:4px 6px;font-size:11px;border-radius:3px;">
+      <option value="400x400">400 x 400</option>
+      <option value="512x512">512 x 512</option>
+      <option value="640x360">640 x 360 (16:9)</option>
+      <option value="854x480">854 x 480 (16:9)</option>
+      <option value="1280x720" selected>1280 x 720 (16:9)</option>
+      <option value="1920x1080">1920 x 1080 (16:9)</option>
+    </select>
   </div>
   <div id="preset-section" style="display:none">
     <label>Preset</label>
@@ -344,6 +352,27 @@ function randomizePass(passIdx) {
   }
   syncUI();
   clearPreset();
+}
+
+function resizeCanvas(val) {
+  const [w, h] = val.split('x').map(Number);
+  const canvas = document.getElementById('c');
+  canvas.width = w;
+  canvas.height = h;
+  if (gl) {
+    gl.viewport(0, 0, w, h);
+    // Rebuild FBOs for intermediate passes
+    for (let i = 0; i < passDefs.length - 1; i++) {
+      const pass = passDefs[i];
+      if (pass.fbo) {
+        gl.deleteFramebuffer(pass.fbo);
+        gl.deleteTexture(pass.texture);
+      }
+      const result = createFBO(w, h);
+      pass.fbo = result.fbo;
+      pass.texture = result.texture;
+    }
+  }
 }
 
 function resetAll() {
