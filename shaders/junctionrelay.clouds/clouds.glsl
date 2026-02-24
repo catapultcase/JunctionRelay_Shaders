@@ -85,9 +85,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Sun
     vec3 sunDir = normalize(vec3(-0.7, 0.0, -0.7));
 
-    // Camera: at cloud level, looking forward across the tops
-    vec3 ro = vec3(0.0, 0.8, -5.0 + iTime * 0.5);
-    vec3 ta = vec3(0.0, 0.3, ro.z + 5.0);
+    // Camera: above the cloud tops, looking forward and slightly down
+    // Sees the vertical sides of formations, not just the flat top
+    vec3 ro = vec3(0.0, 3.0, -5.0 + iTime * 0.5);
+    vec3 ta = vec3(0.0, 0.5, ro.z + 8.0);
 
     // Simple look-at camera matrix
     vec3 cw = normalize(ta - ro);
