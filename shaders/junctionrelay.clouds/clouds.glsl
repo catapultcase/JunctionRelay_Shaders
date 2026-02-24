@@ -166,71 +166,62 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // ── Background texture ───────────────────────────────────
     vec3 bg = texture(iChannel0, uv).rgb;
 
-    if (tRange.x < 0.0) {
-        // Ray misses the cloud slab entirely — show background
-        fragColor = vec4(bg, 0.0);
-        return;
-    }
-
-    // ── Ray march parameters ─────────────────────────────────
-    float speed = cloudSpeed * 0.3;
-    float scale = cloudScale * 2.0;
-    float marchLen = tRange.y - tRange.x;
-    int steps = 32;
-    float stepLen = marchLen / float(steps);
-
-    // Shape evolution — clouds morph over time (independent of wind drift)
-    float evolve = t * speed * 0.5;
-
-    // Phase function: dot(viewDir, lightDir) for silver lining
-    float cosTheta = dot(rd, lightDir);
-    float phase = mix(hg(cosTheta, 0.6), hg(cosTheta, -0.3), 0.2);
-
     // ── Volumetric accumulation ──────────────────────────────
     float transmittance = 1.0;
     vec3 scatteredLight = vec3(0.0);
-    float totalOpticalDepth = 0.0;
 
-    float absorption = 1.0 + cloudDensity * 3.0;
+    if (tRange.x >= 0.0) {
+        float speed = cloudSpeed * 0.3;
+        float scale = cloudScale * 2.0;
+        float marchLen = tRange.y - tRange.x;
+        float stepLen = marchLen / 32.0;
 
-    for (int i = 0; i < 32; i++) {
-        float tCur = tRange.x + (float(i) + 0.5) * stepLen;
-        vec3 pos = ro + rd * tCur;
+        // Shape evolution — clouds morph over time (independent of wind drift)
+        float evolve = t * speed * 0.5;
 
-        // Animate with wind drift + shape evolution
-        vec3 samplePos = pos * scale + wind * t * speed;
+        // Phase function: dot(viewDir, lightDir) for silver lining
+        float cosTheta = dot(rd, lightDir);
+        float phase = mix(hg(cosTheta, 0.6), hg(cosTheta, -0.3), 0.2);
 
-        // Density at this 3D point (evolve morphs shapes over time)
-        float d = cloudField(samplePos, cloudCoverage, turbulence, evolve);
+        float absorption = 1.0 + cloudDensity * 3.0;
 
-        if (d > 0.01) {
-            // ── Light march for self-shadowing ───────────────
-            float lightOD = lightMarch(samplePos, lightDir, cloudCoverage,
-                                       turbulence, yTop * scale, evolve);
-            float lightTransmit = exp(-lightOD * absorption * 0.8);
+        for (int i = 0; i < 32; i++) {
+            float tCur = tRange.x + (float(i) + 0.5) * stepLen;
+            vec3 pos = ro + rd * tCur;
 
-            // ── Coloring ─────────────────────────────────────
-            // Lit portions get sunColor, shadowed get shadowColor
-            vec3 litCol = sunColor * lightTransmit;
-            vec3 ambCol = shadowColor * 0.3;
-            vec3 sampleColor = litCol + ambCol;
+            // Animate with wind drift + shape evolution
+            vec3 samplePos = pos * scale + wind * t * speed;
 
-            // Add phase-function scattering (silver lining / god ray glow)
-            sampleColor += sunColor * phase * lightTransmit * godRayIntensity;
+            // Density at this 3D point (evolve morphs shapes over time)
+            float d = cloudField(samplePos, cloudCoverage, turbulence, evolve);
 
-            // ── Beer-Lambert absorption ──────────────────────
-            float sampleOD = d * stepLen * absorption;
-            float sampleTransmit = exp(-sampleOD);
+            if (d > 0.01) {
+                // ── Light march for self-shadowing ───────────
+                float lightOD = lightMarch(samplePos, lightDir, cloudCoverage,
+                                           turbulence, yTop * scale, evolve);
+                float lightTransmit = exp(-lightOD * absorption * 0.8);
 
-            // Energy-conserving integration
-            vec3 integScatter = sampleColor * (1.0 - sampleTransmit);
-            scatteredLight += transmittance * integScatter;
-            transmittance *= sampleTransmit;
+                // ── Coloring ─────────────────────────────────
+                // Lit portions get sunColor, shadowed get shadowColor
+                vec3 litCol = sunColor * lightTransmit;
+                vec3 ambCol = shadowColor * 0.3;
+                vec3 sampleColor = litCol + ambCol;
 
-            totalOpticalDepth += d * stepLen;
+                // Phase-function scattering (silver lining / god ray glow)
+                sampleColor += sunColor * phase * lightTransmit * godRayIntensity;
 
-            // Early exit if fully opaque
-            if (transmittance < 0.01) break;
+                // ── Beer-Lambert absorption ──────────────────
+                float sampleOD = d * stepLen * absorption;
+                float sampleTransmit = exp(-sampleOD);
+
+                // Energy-conserving integration
+                vec3 integScatter = sampleColor * (1.0 - sampleTransmit);
+                scatteredLight += transmittance * integScatter;
+                transmittance *= sampleTransmit;
+
+                // Early exit if fully opaque
+                if (transmittance < 0.01) break;
+            }
         }
     }
 
