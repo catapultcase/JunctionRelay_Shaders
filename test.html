@@ -5,8 +5,9 @@
 body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; display:flex; gap:0; height:100vh; }
 
 /* Left: canvas */
-#preview { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; min-width:300px; background:#000; }
-#preview canvas { border:1px solid #333; }
+#preview { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; min-width:300px; background:#000; overflow:hidden; }
+#preview canvas { border:1px solid #333; image-rendering:pixelated; }
+#preview canvas.fit { width:100%; height:auto; max-height:calc(100vh - 60px); object-fit:contain; }
 #preview .meta { color:#666; font-size:11px; margin-top:8px; display:flex; gap:16px; }
 #preview .fps { color:#0f0; font-family:monospace; font-size:12px; margin-top:6px; }
 
@@ -22,6 +23,12 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
 .toolbar button:hover { background:#333; color:#fff; }
 .toolbar button.accent { background:#1a6b1a; color:#fff; border-color:#2a8a2a; }
 .toolbar button.accent:hover { background:#228b22; }
+
+/* Display settings */
+.display-settings { display:flex; gap:12px; padding:8px 16px; border-bottom:1px solid #333; }
+.display-settings .setting { display:flex; flex-direction:column; gap:3px; flex:1; }
+.display-settings label { font-size:10px; text-transform:uppercase; color:#888; letter-spacing:0.5px; }
+.display-settings select { background:#2a2a2a; color:#ccc; border:1px solid #444; padding:4px 6px; font-size:11px; border-radius:3px; }
 
 /* Preset picker */
 #preset-section { padding:8px 16px; border-bottom:1px solid #333; }
@@ -70,14 +77,30 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
   <div class="toolbar">
     <button class="accent" onclick="randomize()">Randomize All</button>
     <button onclick="resetAll()">Reset</button>
-    <select id="size-select" onchange="resizeCanvas(this.value)" style="background:#2a2a2a;color:#ccc;border:1px solid #444;padding:4px 6px;font-size:11px;border-radius:3px;">
-      <option value="400x400">400 x 400</option>
-      <option value="512x512">512 x 512</option>
-      <option value="640x360">640 x 360 (16:9)</option>
-      <option value="854x480">854 x 480 (16:9)</option>
-      <option value="1280x720" selected>1280 x 720 (16:9)</option>
-      <option value="1920x1080">1920 x 1080 (16:9)</option>
-    </select>
+  </div>
+  <div class="display-settings">
+    <div class="setting">
+      <label>Display Size</label>
+      <select id="display-select" onchange="setDisplaySize(this.value)">
+        <option value="fit">Fit to panel</option>
+        <option value="400x400">400 x 400</option>
+        <option value="512x512">512 x 512</option>
+        <option value="640x360">640 x 360</option>
+        <option value="854x480">854 x 480</option>
+        <option value="1280x720" selected>1280 x 720</option>
+        <option value="1920x1080">1920 x 1080</option>
+      </select>
+    </div>
+    <div class="setting">
+      <label>Render Resolution</label>
+      <select id="render-select" onchange="setRenderResolution(this.value)">
+        <option value="320x180">320 x 180</option>
+        <option value="640x360">640 x 360</option>
+        <option value="854x480">854 x 480</option>
+        <option value="1280x720" selected>1280 x 720</option>
+        <option value="1920x1080">1920 x 1080</option>
+      </select>
+    </div>
   </div>
   <div id="preset-section" style="display:none">
     <label>Preset</label>
@@ -354,7 +377,21 @@ function randomizePass(passIdx) {
   clearPreset();
 }
 
-function resizeCanvas(val) {
+function setDisplaySize(val) {
+  const canvas = document.getElementById('c');
+  if (val === 'fit') {
+    canvas.classList.add('fit');
+    canvas.style.width = '';
+    canvas.style.height = '';
+  } else {
+    canvas.classList.remove('fit');
+    const [w, h] = val.split('x').map(Number);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+  }
+}
+
+function setRenderResolution(val) {
   const [w, h] = val.split('x').map(Number);
   const canvas = document.getElementById('c');
   canvas.width = w;
