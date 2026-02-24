@@ -123,11 +123,11 @@ for (const shaderName of shaderNames) {
 
     // Load manifest metadata once per shader for conditional tests
     const shaderPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-    const jr = shaderPkg.junctionrelay || {};
+    const jr = shaderPkg.junctionrelay;
     const usesTexture = jr.usesTexture;
     const customUniforms = jr.uniforms;
-    const passes = jr.passes || [];
-    const hasFeedback = jr.feedback === true;
+    const passes = jr.passes;
+    const hasFeedback = jr.feedback;
 
     // -----------------------------------------------------------------------
     // A. Package validation
@@ -203,7 +203,7 @@ for (const shaderName of shaderNames) {
       it('has uniforms array', () => {
         pkg = pkg || JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
         const uniforms = pkg.junctionrelay?.uniforms;
-        const passCount = (pkg.junctionrelay?.passes || []).length;
+        const passCount = pkg.junctionrelay.passes.length;
         assert.notEqual(uniforms, undefined,
           'missing required field: uniforms');
         assert.ok(Array.isArray(uniforms), 'uniforms must be an array');

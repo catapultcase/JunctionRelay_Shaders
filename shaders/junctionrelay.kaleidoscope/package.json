@@ -1,30 +1,42 @@
 {
   "name": "@junctionrelay/shader-kaleidoscope",
-  "version": "1.0.0",
-  "description": "Animated kaleidoscope with layered fractal noise, configurable symmetry and colour.",
+  "version": "2.0.0",
+  "description": "Animated kaleidoscope with layered fractal noise, feedback trails, and bloom. Two-colour tint, configurable symmetry, and temporal glow.",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.kaleidoscope",
     "emoji": "🔮",
     "displayName": "Kaleidoscope",
-    "description": "Animated kaleidoscope pattern built from layered fractal noise folded into configurable radial segments. Smooth colour cycling with palette tint, adjustable zoom, rotation speed, flow speed, and brightness. No texture input. 8 uniforms, 5 presets.",
+    "description": "Two-pass animated kaleidoscope with fractal noise folded into radial segments. Pass 0 generates the pattern with feedback trails stored in alpha. Pass 1 applies a bloom glow. Dual colour tints, adjustable symmetry, zoom, speeds, brightness, and vignette.",
     "usesTexture": false,
-    "feedback": false,
+    "feedback": true,
     "opaque": true,
     "passes": [
       {
         "entry": "kaleidoscope.glsl",
-        "displayName": "Kaleidoscope"
+        "displayName": "Pattern + Trails"
+      },
+      {
+        "entry": "bloom.glsl",
+        "displayName": "Bloom"
       }
     ],
     "uniforms": [
       {
-        "name": "colorTint",
-        "displayName": "Colour Tint",
+        "name": "colorTintA",
+        "displayName": "Colour A",
         "type": "color",
         "pass": 0,
         "default": [0.4, 0.6, 1.0],
-        "description": "Primary colour that tints the cycling palette"
+        "description": "Primary colour tint for the palette"
+      },
+      {
+        "name": "colorTintB",
+        "displayName": "Colour B",
+        "type": "color",
+        "pass": 0,
+        "default": [1.0, 0.3, 0.6],
+        "description": "Secondary colour tint blended with Colour A"
       },
       {
         "name": "segments",
@@ -95,6 +107,26 @@
         "min": 0.0,
         "max": 1.0,
         "description": "Edge darkening — frames the pattern with a soft border"
+      },
+      {
+        "name": "trailDecay",
+        "displayName": "Trail Decay",
+        "type": "float",
+        "pass": 0,
+        "default": 0.92,
+        "min": 0.0,
+        "max": 0.99,
+        "description": "How long feedback trails persist — higher = longer trails, 0 = no trails"
+      },
+      {
+        "name": "bloomAmount",
+        "displayName": "Bloom",
+        "type": "float",
+        "pass": 1,
+        "default": 0.4,
+        "min": 0.0,
+        "max": 2.0,
+        "description": "Intensity of the bloom glow effect"
       }
     ],
     "presets": [
@@ -102,66 +134,81 @@
         "name": "Sapphire Dream",
         "default": true,
         "values": {
-          "colorTint": [0.4, 0.6, 1.0],
+          "colorTintA": [0.4, 0.6, 1.0],
+          "colorTintB": [1.0, 0.3, 0.6],
           "segments": 8.0,
           "zoom": 2.0,
           "rotationSpeed": 0.15,
           "flowSpeed": 0.3,
           "colorCycleSpeed": 0.5,
           "brightness": 1.0,
-          "vignetteAmount": 0.4
+          "vignetteAmount": 0.4,
+          "trailDecay": 0.92,
+          "bloomAmount": 0.4
         }
       },
       {
         "name": "Ember Mandala",
         "values": {
-          "colorTint": [1.0, 0.4, 0.15],
+          "colorTintA": [1.0, 0.4, 0.15],
+          "colorTintB": [1.0, 0.8, 0.2],
           "segments": 12.0,
           "zoom": 3.0,
           "rotationSpeed": 0.08,
           "flowSpeed": 0.2,
           "colorCycleSpeed": 0.3,
           "brightness": 1.1,
-          "vignetteAmount": 0.5
+          "vignetteAmount": 0.5,
+          "trailDecay": 0.95,
+          "bloomAmount": 0.6
         }
       },
       {
         "name": "Crystal Frost",
         "values": {
-          "colorTint": [0.7, 0.9, 1.0],
+          "colorTintA": [0.7, 0.9, 1.0],
+          "colorTintB": [0.9, 0.95, 1.0],
           "segments": 6.0,
           "zoom": 1.5,
           "rotationSpeed": 0.25,
           "flowSpeed": 0.15,
           "colorCycleSpeed": 0.2,
           "brightness": 1.2,
-          "vignetteAmount": 0.3
+          "vignetteAmount": 0.3,
+          "trailDecay": 0.88,
+          "bloomAmount": 0.3
         }
       },
       {
         "name": "Neon Bloom",
         "values": {
-          "colorTint": [0.9, 0.2, 0.8],
+          "colorTintA": [0.9, 0.2, 0.8],
+          "colorTintB": [0.2, 0.9, 0.4],
           "segments": 16.0,
           "zoom": 4.0,
           "rotationSpeed": 0.2,
           "flowSpeed": 0.5,
           "colorCycleSpeed": 1.0,
           "brightness": 1.3,
-          "vignetteAmount": 0.35
+          "vignetteAmount": 0.35,
+          "trailDecay": 0.96,
+          "bloomAmount": 1.0
         }
       },
       {
         "name": "Slow Jade",
         "values": {
-          "colorTint": [0.2, 0.8, 0.5],
+          "colorTintA": [0.2, 0.8, 0.5],
+          "colorTintB": [0.1, 0.5, 0.7],
           "segments": 5.0,
           "zoom": 1.8,
           "rotationSpeed": 0.05,
           "flowSpeed": 0.1,
           "colorCycleSpeed": 0.15,
           "brightness": 0.9,
-          "vignetteAmount": 0.6
+          "vignetteAmount": 0.6,
+          "trailDecay": 0.9,
+          "bloomAmount": 0.5
         }
       }
     ]

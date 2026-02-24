@@ -1,4 +1,4 @@
-// Kaleidoscope — animated symmetric pattern generator
+// Kaleidoscope — pass 0: animated symmetric pattern generator with feedback trails
 
 // ─── Noise helpers ───────────────────────────────────────────
 float hash(vec2 p) {
@@ -26,9 +26,8 @@ float fbm(vec2 p) {
 }
 
 // ─── Colour palette ──────────────────────────────────────────
-vec3 palette(float t, vec3 tint) {
-    // Smooth cycling palette modulated by the tint colour
-    vec3 a = tint * 0.5;
+vec3 palette(float t, vec3 tintA, vec3 tintB) {
+    vec3 a = mix(tintA, tintB, 0.5) * 0.5;
     vec3 b = vec3(0.5);
     vec3 c = vec3(1.0);
     vec3 d = vec3(0.0, 0.33, 0.67);
@@ -40,27 +39,22 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = (fragCoord - 0.5 * iResolution.xy) / min(iResolution.x, iResolution.y);
     float t = iTime;
 
-    // ── Kaleidoscope fold ──
-    // Convert to polar
+    // ── Kaleidoscope fold (seamless — no hard lines) ──
     float r = length(uv);
     float a = atan(uv.y, uv.x);
 
     // Apply rotation
     a += t * rotationSpeed;
 
-    // Fold into N segments
+    // Fold into N segments using abs() — eliminates boundary artifacts
     float segAngle = 3.14159 * 2.0 / segments;
-    a = mod(a, segAngle);
-    // Mirror every other segment for true kaleidoscope symmetry
-    if (mod(floor((atan(uv.y, uv.x) + t * rotationSpeed) / segAngle), 2.0) >= 1.0) {
-        a = segAngle - a;
-    }
+    a = mod(a + segAngle * 0.5, segAngle) - segAngle * 0.5;
+    a = abs(a);
 
     // Back to cartesian (folded space)
     vec2 p = vec2(cos(a), sin(a)) * r;
 
     // ── Pattern generation ──
-    // Zoom into the pattern
     p *= zoom;
 
     // Layer 1: primary flowing pattern
@@ -75,15 +69,16 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Combine layers
     float pattern = n1 * 0.5 + n2 * 0.35 + n3 * 0.15;
 
-    // ── Colouring ──
-    vec3 col = palette(pattern + t * colorCycleSpeed * 0.1, colorTint);
+    // ── Colouring with two tints ──
+    vec3 col = palette(pattern + t * colorCycleSpeed * 0.1, colorTintA, colorTintB);
 
     // Add depth with radial brightness
     float radial = 1.0 - r * 0.6;
     col *= max(radial, 0.2);
 
-    // Brighten pattern peaks
-    col += colorTint * smoothstep(0.55, 0.75, n1) * 0.3 * brightness;
+    // Brighten pattern peaks using both tints
+    vec3 peakTint = mix(colorTintA, colorTintB, sin(t * 0.5) * 0.5 + 0.5);
+    col += peakTint * smoothstep(0.55, 0.75, n1) * 0.3 * brightness;
 
     // Overall brightness
     col *= brightness;
@@ -93,5 +88,15 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 v = q * 2.0 - 1.0;
     col *= 1.0 - vignetteAmount * dot(v * v, v * v);
 
-    fragColor = vec4(col, 1.0);
+    // ── Feedback trail blending ──
+    float trail = 0.0;
+    if (iFrame > 0) {
+        vec4 prev = texture(iChannel1, fragCoord / iResolution.xy);
+        trail = prev.a;
+    }
+    // Decay old trail, accumulate new brightness
+    float luma = dot(col, vec3(0.299, 0.587, 0.114));
+    trail = max(trail * trailDecay, luma);
+
+    fragColor = vec4(col, trail);
 }
