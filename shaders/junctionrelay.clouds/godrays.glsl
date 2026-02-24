@@ -11,14 +11,14 @@
 // bright areas to create volumetric light shaft illusion.
 //
 // Inputs: iChannel0 (pass 0 output), iResolution
-// Params: sunAngle, godrayIntensity, godrayDecay, godrayDensity
+// Params: godraySunAngle, godrayIntensity, godrayDecay, godrayDensity
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec4 original = texture(iChannel0, uv);
 
-    // Sun screen position from sunAngle (matches pass 0 camera)
-    float sAngle = sunAngle * 6.2832;
+    // Sun screen position from godraySunAngle (matches pass 0 camera)
+    float sAngle = godraySunAngle * 6.2832;
     vec2 sunScreen = vec2(0.5 + cos(sAngle) * 0.6, 0.35 + sin(sAngle) * 0.15);
 
     // Direction from this pixel toward the sun

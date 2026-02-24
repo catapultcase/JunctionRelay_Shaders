@@ -201,7 +201,6 @@ function buildPresets() {
 
 function buildUniforms() {
   const container = document.getElementById('uniforms');
-  const renderedNames = new Set();
   const passMap = new Map();
   for (const u of uniformDefs) {
     const p = u.pass ?? 0;
@@ -220,9 +219,7 @@ function buildUniforms() {
 
     const passInfo = shaderDef.passes && shaderDef.passes[passIdx];
     const passName = passInfo ? passInfo.displayName : `Pass ${passIdx + 1}`;
-    const visibleCount = unis.filter(u => !renderedNames.has(u.name)).length;
-    if (visibleCount === 0) continue;
-    const label = passes.length > 1 ? `${passName} (${visibleCount})` : `ALL UNIFORMS (${visibleCount})`;
+    const label = passes.length > 1 ? `${passName} (${unis.length})` : `ALL UNIFORMS (${unis.length})`;
     const labelSpan = document.createElement('span');
     labelSpan.textContent = label;
     header.appendChild(labelSpan);
@@ -242,10 +239,6 @@ function buildUniforms() {
     body.className = 'pass-card-body';
 
     for (const u of unis) {
-      // Skip UI for uniforms already shown (shared across passes)
-      if (renderedNames.has(u.name)) continue;
-      renderedNames.add(u.name);
-
       const row = document.createElement('div');
       row.className = 'uniform';
 
