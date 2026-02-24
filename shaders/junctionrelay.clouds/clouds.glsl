@@ -10,7 +10,7 @@
 // Density = height falloff + FBM noise. Flat bottoms, billowing tops.
 // Directional derivative lighting (one extra density sample toward sun).
 //
-// Uniforms: sunAngle, sunColor, shadowColor, cloudCoverage, cloudSpeed, cloudSparseness
+// Uniforms: sunAngle, sunColor, shadowColor, skyColor, cloudCoverage, cloudSpeed, cloudSparseness
 
 // ── 3D Hash ──────────────────────────────────────────────────
 // Dot-product hash — no sin(), fully integer-inspired constants.
@@ -119,7 +119,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // Sky — neutral gradient with sun glow
     float sunDot = clamp(dot(sunDir, rd), 0.0, 1.0);
-    vec3 sky = vec3(0.52, 0.63, 0.75);
+    vec3 sky = skyColor;
     sky -= rd.y * 0.15 * vec3(0.8, 0.4, 0.8);
     sky += 0.1;
     sky += 0.25 * sunColor * pow(sunDot, 8.0);
