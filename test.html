@@ -101,6 +101,16 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
         <option value="1920x1080">1920 x 1080</option>
       </select>
     </div>
+    <div class="setting">
+      <label>FPS Target</label>
+      <select id="fps-target-select" onchange="setFpsTarget(this.value)">
+        <option value="0">Uncapped</option>
+        <option value="30">30 FPS</option>
+        <option value="60" selected>60 FPS</option>
+        <option value="custom">Custom</option>
+      </select>
+      <input type="number" id="fps-custom" min="1" max="240" value="60" style="display:none; width:60px; background:#2a2a2a; color:#0f0; border:1px solid #444; padding:3px 6px; font-size:11px; font-family:monospace; border-radius:3px; text-align:right; margin-top:3px;" oninput="setFpsTarget('custom')">
+    </div>
   </div>
   <div id="preset-section" style="display:none">
     <label>Preset</label>
@@ -126,6 +136,11 @@ let quadBuf = null;
 let fpsFrameCount = 0;
 let fpsLastTime = 0;
 const fpsEl = () => document.getElementById('fps');
+
+// FPS target — 0 = uncapped, >0 = cap to that value
+let fpsTarget = 60;
+let fpsMinFrameTime = 1000 / 60; // ms per frame
+let lastFrameTime = 0;
 
 // Resolve shader path from ?path= query param or current directory
 const params = new URLSearchParams(window.location.search);
@@ -427,6 +442,18 @@ function setRenderResolution(val) {
   }
 }
 
+function setFpsTarget(val) {
+  const customInput = document.getElementById('fps-custom');
+  if (val === 'custom') {
+    customInput.style.display = '';
+    fpsTarget = parseInt(customInput.value) || 60;
+  } else {
+    customInput.style.display = 'none';
+    fpsTarget = parseInt(val) || 0;
+  }
+  fpsMinFrameTime = fpsTarget > 0 ? 1000 / fpsTarget : 0;
+}
+
 function resetAll() {
   for (const u of uniformDefs) {
     uniformState[u.name] = Array.isArray(u.default) ? [...u.default] : u.default;
@@ -557,11 +584,22 @@ function createFBO(w, h) {
 function frame(t) {
   if (!gl || passDefs.length === 0) return;
 
+  // FPS target — skip frame if not enough time has elapsed
+  if (fpsMinFrameTime > 0) {
+    const delta = t - lastFrameTime;
+    if (delta < fpsMinFrameTime) {
+      requestAnimationFrame(frame);
+      return;
+    }
+  }
+  lastFrameTime = t;
+
   // FPS counter — update every 500ms
   fpsFrameCount++;
   if (t - fpsLastTime >= 500) {
     const fps = (fpsFrameCount / ((t - fpsLastTime) / 1000)).toFixed(1);
-    fpsEl().textContent = fps + ' FPS';
+    const targetLabel = fpsTarget > 0 ? ` / ${fpsTarget} target` : ' / uncapped';
+    fpsEl().textContent = fps + ' FPS' + targetLabel;
     fpsFrameCount = 0;
     fpsLastTime = t;
   }
