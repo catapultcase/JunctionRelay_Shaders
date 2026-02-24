@@ -64,15 +64,15 @@ float fbm(vec2 p, int octaves) {
 // ── Domain-Warped FBM ────────────────────────────────────────
 // Feed FBM output back into itself for organic, churning motion
 
-float warpedFbm(vec2 p, float warpAmount, float time) {
+float warpedFbm(vec2 p, float warpAmount, float t) {
     vec2 q = vec2(
         fbm(p + vec2(0.0, 0.0), 5),
         fbm(p + vec2(5.2, 1.3), 5)
     );
 
     vec2 r = vec2(
-        fbm(p + 4.0 * q + vec2(1.7, 9.2) + 0.15 * time, 5),
-        fbm(p + 4.0 * q + vec2(8.3, 2.8) + 0.126 * time, 5)
+        fbm(p + 4.0 * q + vec2(1.7, 9.2) + 0.15 * t, 5),
+        fbm(p + 4.0 * q + vec2(8.3, 2.8) + 0.126 * t, 5)
     );
 
     return fbm(p + 4.0 * r * warpAmount, 5);
@@ -82,11 +82,11 @@ float warpedFbm(vec2 p, float warpAmount, float time) {
 // Returns cloud density [0,1] for a given UV + layer offset
 
 float cloudDensityAt(vec2 uv, float layerOffset, float scale, float speed,
-                     vec2 windDir, float time, float coverage, float turb) {
+                     vec2 windDir, float t, float coverage, float turb) {
     vec2 p = uv * 3.0 * scale + layerOffset;
-    p += windDir * time * speed;
+    p += windDir * t * speed;
 
-    float n = warpedFbm(p, 0.5 + turb * 0.5, time * speed);
+    float n = warpedFbm(p, 0.5 + turb * 0.5, t * speed);
 
     // Coverage threshold: remap noise so coverage controls how much sky is filled
     float threshold = 1.0 - coverage;
@@ -99,14 +99,14 @@ float cloudDensityAt(vec2 uv, float layerOffset, float scale, float speed,
 // March toward sun through cloud field to accumulate light occlusion
 
 float selfShadow(vec2 uv, vec2 sunDir, float scale, float speed,
-                 vec2 windDir, float time, float coverage, float turb) {
+                 vec2 windDir, float t, float coverage, float turb) {
     float shadow = 0.0;
     float stepSize = 0.02;
 
     for (int i = 1; i <= 6; i++) {
         float fi = float(i);
         vec2 samplePos = uv + sunDir * fi * stepSize;
-        float d = cloudDensityAt(samplePos, 0.0, scale, speed, windDir, time, coverage, turb);
+        float d = cloudDensityAt(samplePos, 0.0, scale, speed, windDir, t, coverage, turb);
         // Exponential falloff — closer occlusion matters more
         shadow += d * exp(-fi * 0.4);
     }
@@ -118,14 +118,14 @@ float selfShadow(vec2 uv, vec2 sunDir, float scale, float speed,
 // Light scattering through cloud gaps along sun direction
 
 float godRays(vec2 uv, vec2 sunDir, float scale, float speed,
-              vec2 windDir, float time, float coverage, float turb) {
+              vec2 windDir, float t, float coverage, float turb) {
     float light = 0.0;
     float stepSize = 0.025;
 
     for (int i = 0; i < 12; i++) {
         float fi = float(i);
         vec2 samplePos = uv - sunDir * fi * stepSize;
-        float d = cloudDensityAt(samplePos, 0.0, scale, speed, windDir, time, coverage, turb);
+        float d = cloudDensityAt(samplePos, 0.0, scale, speed, windDir, t, coverage, turb);
         // Accumulate light in gaps (inverse density)
         float gap = 1.0 - d;
         light += gap * exp(-fi * 0.25);
@@ -141,7 +141,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float aspect = iResolution.x / iResolution.y;
     vec2 uvAspect = vec2(uv.x * aspect, uv.y);
 
-    float time = iTime;
+    float t = iTime;
 
     // ── Wind direction ───────────────────────────────────────
     float wAngle = windAngle * 6.2832;
@@ -160,19 +160,19 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Far layer — high, thin wisps (slow, small scale)
     float farDensity = cloudDensityAt(
         uvAspect, 10.0, cloudScale * 0.7, speed * 0.4,
-        windDir, time, cloudCoverage * 0.6, turbulence * 0.5
+        windDir, t, cloudCoverage * 0.6, turbulence * 0.5
     ) * 0.35;
 
     // Mid layer — main cumulus volume
     float midDensity = cloudDensityAt(
         uvAspect, 0.0, cloudScale, speed * 0.7,
-        windDir, time, cloudCoverage, turbulence
+        windDir, t, cloudCoverage, turbulence
     );
 
     // Near layer — low, thick cloud bottoms (faster, larger)
     float nearDensity = cloudDensityAt(
         uvAspect, 20.0, cloudScale * 1.3, speed * 1.0,
-        windDir, time, cloudCoverage * 0.7, turbulence * 0.8
+        windDir, t, cloudCoverage * 0.7, turbulence * 0.8
     ) * 0.5;
 
     // ── Vertical height mask ─────────────────────────────────
@@ -197,7 +197,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // ── Self-shadowing on mid layer ──────────────────────────
     float shadow = selfShadow(
         uvAspect, sunDir, cloudScale, speed * 0.7,
-        windDir, time, cloudCoverage, turbulence
+        windDir, t, cloudCoverage, turbulence
     );
 
     // ── Cloud coloring ───────────────────────────────────────
@@ -223,7 +223,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     if (godRayIntensity > 0.01) {
         rays = godRays(
             uvAspect, sunDir, cloudScale, speed * 0.7,
-            windDir, time, cloudCoverage, turbulence
+            windDir, t, cloudCoverage, turbulence
         );
         // Rays are stronger where there are no clouds
         rays *= (1.0 - totalDensity * 0.7);
