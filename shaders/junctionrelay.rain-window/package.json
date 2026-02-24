@@ -245,7 +245,7 @@
     ],
     "presets": [
       {
-        "name": "Rainy Window",
+        "name": "English Weather",
         "default": true,
         "values": {
           "rainAmount": 0.3,
