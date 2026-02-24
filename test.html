@@ -41,8 +41,12 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
 
 /* Uniform row */
 .uniform { margin-bottom:12px; }
-.uniform .u-label { font-size:11px; color:#888; margin-bottom:2px; display:block; }
+.uniform .u-label-row { display:flex; align-items:center; gap:6px; margin-bottom:2px; }
+.uniform .u-label { font-size:11px; color:#888; }
 .uniform .u-desc { font-size:10px; color:#555; margin-top:2px; }
+.lock-btn { background:none; border:none; cursor:pointer; font-size:13px; padding:0; line-height:1; opacity:0.35; }
+.lock-btn:hover { opacity:0.7; }
+.lock-btn.locked { opacity:1; }
 
 /* Slider + number */
 .slider-row { display:flex; align-items:center; gap:8px; }
@@ -80,6 +84,7 @@ let uniformDefs = [];
 let presetDefs = [];
 let uniformState = {};
 let uniformInputs = {};
+let lockedUniforms = new Set();
 
 // Multi-pass state
 let gl;
@@ -206,10 +211,29 @@ function buildUniforms() {
       const row = document.createElement('div');
       row.className = 'uniform';
 
+      const labelRow = document.createElement('div');
+      labelRow.className = 'u-label-row';
+      const lockBtn = document.createElement('button');
+      lockBtn.className = 'lock-btn';
+      lockBtn.textContent = '\uD83D\uDD13';
+      lockBtn.title = 'Lock from randomize';
+      lockBtn.onclick = () => {
+        if (lockedUniforms.has(u.name)) {
+          lockedUniforms.delete(u.name);
+          lockBtn.textContent = '\uD83D\uDD13';
+          lockBtn.className = 'lock-btn';
+        } else {
+          lockedUniforms.add(u.name);
+          lockBtn.textContent = '\uD83D\uDD12';
+          lockBtn.className = 'lock-btn locked';
+        }
+      };
       const lbl = document.createElement('span');
       lbl.className = 'u-label';
       lbl.textContent = u.displayName;
-      row.appendChild(lbl);
+      labelRow.appendChild(lockBtn);
+      labelRow.appendChild(lbl);
+      row.appendChild(labelRow);
 
       if (u.type === 'color') {
         const wrap = document.createElement('div');
@@ -295,6 +319,7 @@ function clearPreset() {
 
 function randomize() {
   for (const u of uniformDefs) {
+    if (lockedUniforms.has(u.name)) continue;
     if (u.type === 'color') {
       uniformState[u.name] = [Math.random(), Math.random(), Math.random()];
     } else if (u.type === 'float') {
@@ -309,6 +334,7 @@ function randomize() {
 function randomizePass(passIdx) {
   for (const u of uniformDefs) {
     if ((u.pass ?? 0) !== passIdx) continue;
+    if (lockedUniforms.has(u.name)) continue;
     if (u.type === 'color') {
       uniformState[u.name] = [Math.random(), Math.random(), Math.random()];
     } else if (u.type === 'float') {
