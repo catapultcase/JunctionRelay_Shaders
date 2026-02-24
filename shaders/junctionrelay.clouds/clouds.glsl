@@ -8,10 +8,10 @@
 //
 // Camera above a cloud plane, looking down at an angle — flying over clouds.
 // Density = height falloff + FBM noise. Flat bottoms, billowing tops.
-// Directional derivative lighting with silver lining.
+// Directional derivative lighting.
 //
 // Uniforms: sunAngle, sunColor, shadowColor, skyColor, cloudCoverage, cloudSpeed,
-//           cloudSparseness, silverLining
+//           cloudSparseness
 
 // ── 3D Hash ──────────────────────────────────────────────────
 // Dot-product hash — no sin(), fully integer-inspired constants.
@@ -157,16 +157,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                 float denLit = mapCloud(pos + 0.4 * sunDir, lod);
                 float dif = clamp((den - denLit) / 0.35, 0.0, 1.0);
 
-                // Silver lining: sample away from sun to detect backlit edges
-                float denBack = mapCloud(pos - 0.3 * sunDir, lod);
-                float rim = clamp((den - denBack) / 0.25, 0.0, 1.0);
-                rim *= rim; // sharpen the edge
-
                 // Lighting: blend shadow → sun based on directional derivative
                 vec3 lin = mix(shadowColor * 2.0, sunColor * 1.5, dif);
-
-                // Add silver lining — bright rim on backlit cloud edges
-                lin += sunColor * 2.0 * rim * silverLining;
 
                 // Cloud surface: neutral white/grey, lighting provides color
                 vec3 cloudBase = mix(vec3(1.0, 0.97, 0.93), vec3(0.82, 0.82, 0.86), den);
