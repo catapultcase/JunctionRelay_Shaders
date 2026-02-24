@@ -1,4 +1,4 @@
-// Clouds — Bloom Post-Process (Pass 1)
+// Clouds — Bloom Post-Process (Pass 2)
 // Copyright (C) 2024-present Jonathan Mills, CatapultCase
 // All rights reserved.
 //

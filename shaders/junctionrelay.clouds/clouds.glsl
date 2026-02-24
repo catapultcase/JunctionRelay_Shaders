@@ -8,9 +8,10 @@
 //
 // Camera above a cloud plane, looking down at an angle — flying over clouds.
 // Density = height falloff + FBM noise. Flat bottoms, billowing tops.
-// Directional derivative lighting (one extra density sample toward sun).
+// Directional derivative lighting with silver lining and lightning.
 //
-// Uniforms: sunAngle, sunColor, shadowColor, skyColor, cloudCoverage, cloudSpeed, cloudSparseness
+// Uniforms: sunAngle, sunColor, shadowColor, skyColor, cloudCoverage, cloudSpeed,
+//           cloudSparseness, silverLining, lightningIntensity
 
 // ── 3D Hash ──────────────────────────────────────────────────
 // Dot-product hash — no sin(), fully integer-inspired constants.
@@ -98,6 +99,39 @@ float screenHash(vec2 co) {
     return fract(dot(sin(co * vec2(43.47, 73.19)), vec2(413.7, 297.1)));
 }
 
+// ── Lightning ───────────────────────────────────────────────
+// Returns flash intensity (0 or 1) and a world-space flash center.
+
+float lightningHash(float t) {
+    return fract(sin(t * 91.3458) * 47453.5453);
+}
+
+float lightningFlash(vec3 pos, float time) {
+    // Discrete time slots — each slot may or may not flash
+    float slot = floor(time * 1.8);
+    float chance = lightningHash(slot);
+
+    // ~15% of slots produce a flash
+    if (chance > 0.15) return 0.0;
+
+    // Sharp on/off within the slot (brief burst)
+    float frac = fract(time * 1.8);
+    float pulse = smoothstep(0.0, 0.05, frac) * smoothstep(0.2, 0.08, frac);
+
+    // Flash center — random position in cloud field
+    vec3 center = vec3(
+        lightningHash(slot * 1.1) * 40.0 - 20.0,
+        -1.0,
+        lightningHash(slot * 2.7) * 40.0 - 20.0
+    );
+
+    // Falloff from flash center
+    float dist = length(pos.xz - center.xz);
+    float falloff = exp(-dist * dist * 0.01);
+
+    return pulse * falloff;
+}
+
 // ── Main ─────────────────────────────────────────────────────
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -154,8 +188,20 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                 float denLit = mapCloud(pos + 0.4 * sunDir, lod);
                 float dif = clamp((den - denLit) / 0.35, 0.0, 1.0);
 
+                // Silver lining: sample away from sun to detect backlit edges
+                float denBack = mapCloud(pos - 0.3 * sunDir, lod);
+                float rim = clamp((den - denBack) / 0.25, 0.0, 1.0);
+                rim *= rim; // sharpen the edge
+
                 // Lighting: blend shadow → sun based on directional derivative
                 vec3 lin = mix(shadowColor * 2.0, sunColor * 1.5, dif);
+
+                // Add silver lining — bright rim on backlit cloud edges
+                lin += sunColor * 2.0 * rim * silverLining;
+
+                // Lightning — emissive flash from within
+                float flash = lightningFlash(pos, iTime) * lightningIntensity;
+                lin += vec3(0.8, 0.85, 1.0) * flash * 6.0;
 
                 // Cloud surface: neutral white/grey, lighting provides color
                 vec3 cloudBase = mix(vec3(1.0, 0.97, 0.93), vec3(0.82, 0.82, 0.86), den);
