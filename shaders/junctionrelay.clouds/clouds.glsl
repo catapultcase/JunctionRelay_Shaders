@@ -114,12 +114,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec3 cv = cross(cw, cu);
     vec3 rd = normalize(p.x * cu + p.y * cv + 1.5 * cw);
 
-    // Sky — sun/shadow color tinted
+    // Sky — neutral gradient with sun glow
     float sunDot = clamp(dot(sunDir, rd), 0.0, 1.0);
-    vec3 sky = mix(shadowColor * 2.5, vec3(0.6, 0.71, 0.75), 0.7);
-    sky -= rd.y * 0.2 * vec3(1.0, 0.5, 1.0);
-    sky += 0.15;
-    sky += 0.2 * sunColor * pow(sunDot, 8.0);
+    vec3 sky = vec3(0.52, 0.63, 0.75);
+    sky -= rd.y * 0.15 * vec3(0.8, 0.4, 0.8);
+    sky += 0.1;
+    sky += 0.25 * sunColor * pow(sunDot, 8.0);
 
     // Slab
     float yBot = -3.0;
@@ -151,11 +151,11 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                 float denLit = mapCloud(pos + 0.4 * sunDir, lod);
                 float dif = clamp((den - denLit) / 0.35, 0.0, 1.0);
 
-                // Lighting: shadow base + sun directional
-                vec3 lin = shadowColor * 2.5 + sunColor * 1.5 * dif;
+                // Lighting: blend shadow → sun based on directional derivative
+                vec3 lin = mix(shadowColor * 2.0, sunColor * 1.5, dif);
 
-                // Cloud surface color modulated by density
-                vec3 cloudBase = mix(sunColor * 1.1, shadowColor * 1.8, den);
+                // Cloud surface: neutral white/grey, lighting provides color
+                vec3 cloudBase = mix(vec3(1.0, 0.97, 0.93), vec3(0.82, 0.82, 0.86), den);
                 vec4 col = vec4(cloudBase * lin, den);
 
                 // Distance fog
