@@ -141,6 +141,17 @@ const fpsEl = () => document.getElementById('fps');
 let fpsTarget = 60;
 let fpsMinFrameTime = 1000 / 60; // ms per frame
 let lastFrameTime = 0;
+let lastRenderedTime = 0;
+let renderedFrameCount = 0;
+let accumulator = 0;
+
+// Reset timing on tab visibility change to prevent huge delta on resume
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    lastFrameTime = 0;
+    accumulator = 0;
+  }
+});
 
 // Resolve shader path from ?path= query param or current directory
 const params = new URLSearchParams(window.location.search);
@@ -494,6 +505,8 @@ function initWebGL(glslSources) {
     const fs = `precision highp float;
 uniform vec2 iResolution;
 uniform float iTime;
+uniform float iTimeDelta;
+uniform int iFrame;
 ${samplerDecl}${uniformDecls}
 
 ${glslCompat}
@@ -509,6 +522,8 @@ void main(){mainImage(gl_FragColor,gl_FragCoord.xy);}`;
     const passLocs = {};
     passLocs.iResolution = gl.getUniformLocation(program, 'iResolution');
     passLocs.iTime = gl.getUniformLocation(program, 'iTime');
+    passLocs.iTimeDelta = gl.getUniformLocation(program, 'iTimeDelta');
+    passLocs.iFrame = gl.getUniformLocation(program, 'iFrame');
     if (i > 0) {
       passLocs.iChannel0 = gl.getUniformLocation(program, 'iChannel0');
     }
@@ -584,15 +599,37 @@ function createFBO(w, h) {
 function frame(t) {
   if (!gl || passDefs.length === 0) return;
 
-  // FPS target — skip frame if not enough time has elapsed
+  // First frame or returning from background tab — reset timing baseline
+  if (lastFrameTime === 0) {
+    lastFrameTime = t;
+    lastRenderedTime = t;
+    requestAnimationFrame(frame);
+    return;
+  }
+
+  // Clamp frameTime to 250ms to prevent spiral of death after tab switch / GC pause
+  const frameTime = Math.min(t - lastFrameTime, 250);
+  lastFrameTime = t;
+
+  // FPS target — accumulator pattern (carries remainder forward to prevent drift)
   if (fpsMinFrameTime > 0) {
-    const delta = t - lastFrameTime;
-    if (delta < fpsMinFrameTime) {
+    accumulator += frameTime;
+    if (accumulator < fpsMinFrameTime) {
       requestAnimationFrame(frame);
       return;
     }
+    accumulator -= fpsMinFrameTime;
+    // Cap accumulator at one frame to prevent catch-up burst
+    if (accumulator > fpsMinFrameTime) accumulator = fpsMinFrameTime;
   }
-  lastFrameTime = t;
+
+  // Compute shader time uniforms
+  const iTime = t / 1000.0;
+  const rawDelta = (t - lastRenderedTime) / 1000.0;
+  const iTimeDelta = Math.min(rawDelta, 0.1); // Clamp to 100ms max for feedback stability
+  const iFrame = renderedFrameCount;
+  lastRenderedTime = t;
+  renderedFrameCount++;
 
   // FPS counter — update every 500ms
   fpsFrameCount++;
@@ -625,7 +662,9 @@ function frame(t) {
 
     // Set built-in uniforms
     gl.uniform2f(pass.locs.iResolution, w, h);
-    gl.uniform1f(pass.locs.iTime, t / 1000);
+    gl.uniform1f(pass.locs.iTime, iTime);
+    if (pass.locs.iTimeDelta) gl.uniform1f(pass.locs.iTimeDelta, iTimeDelta);
+    if (pass.locs.iFrame) gl.uniform1i(pass.locs.iFrame, iFrame);
 
     // Bind previous pass texture as iChannel0
     if (i > 0 && pass.locs.iChannel0 !== undefined) {
