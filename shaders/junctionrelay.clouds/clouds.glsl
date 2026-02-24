@@ -7,10 +7,11 @@
 // All other use requires explicit written permission from CatapultCase.
 //
 // Volumetric cloudscape via ray marching through a height-bounded cloud slab.
-// Density = height plane + FBM noise. Lighting via single-sample directional
-// derivative (one extra density lookup toward the sun per step). Adaptive step
-// size and octave LOD for performance. Beer-Lambert front-to-back compositing.
-// Background texture (iChannel0) shows through gaps.
+// Camera is positioned BELOW the cloud layer looking upward — this gives the
+// dramatic perspective of cumulus seen from below with flat dark bottoms and
+// bright billowing tops. Density = height_threshold + FBM_noise where the FBM
+// amplitude dominates, creating clear cloud/gap structure. Lighting via
+// single-sample directional derivative. Adaptive step size and octave LOD.
 //
 // Inputs: iChannel0 (background texture), iChannel1 (previous frame feedback)
 // Inputs: iResolution, iTime, iFrame
@@ -19,7 +20,6 @@
 //         turbulence
 
 // ── Fast 3D Value Noise ──────────────────────────────────────
-// sin-hash based — no texture dependency
 
 float hash(float n) {
     return fract(sin(n) * 43758.5453);
@@ -38,15 +38,15 @@ float noise3(vec3 x) {
                    mix(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
 }
 
-// ── FBM with variable octaves (for LOD) ──────────────────────
+// ── FBM with LOD ─────────────────────────────────────────────
 
 float fbm5(vec3 p) {
     vec3 q = p;
     float f;
-    f  = 0.50000 * noise3(q); q = q * 2.02;
-    f += 0.25000 * noise3(q); q = q * 2.03;
-    f += 0.12500 * noise3(q); q = q * 2.01;
-    f += 0.06250 * noise3(q); q = q * 2.02;
+    f  = 0.50000 * noise3(q); q *= 2.02;
+    f += 0.25000 * noise3(q); q *= 2.03;
+    f += 0.12500 * noise3(q); q *= 2.01;
+    f += 0.06250 * noise3(q); q *= 2.02;
     f += 0.03125 * noise3(q);
     return f;
 }
@@ -54,9 +54,9 @@ float fbm5(vec3 p) {
 float fbm4(vec3 p) {
     vec3 q = p;
     float f;
-    f  = 0.50000 * noise3(q); q = q * 2.02;
-    f += 0.25000 * noise3(q); q = q * 2.03;
-    f += 0.12500 * noise3(q); q = q * 2.01;
+    f  = 0.50000 * noise3(q); q *= 2.02;
+    f += 0.25000 * noise3(q); q *= 2.03;
+    f += 0.12500 * noise3(q); q *= 2.01;
     f += 0.06250 * noise3(q);
     return f;
 }
@@ -64,8 +64,8 @@ float fbm4(vec3 p) {
 float fbm3(vec3 p) {
     vec3 q = p;
     float f;
-    f  = 0.50000 * noise3(q); q = q * 2.02;
-    f += 0.25000 * noise3(q); q = q * 2.03;
+    f  = 0.50000 * noise3(q); q *= 2.02;
+    f += 0.25000 * noise3(q); q *= 2.03;
     f += 0.12500 * noise3(q);
     return f;
 }
@@ -73,38 +73,42 @@ float fbm3(vec3 p) {
 float fbm2(vec3 p) {
     vec3 q = p;
     float f;
-    f  = 0.50000 * noise3(q); q = q * 2.02;
+    f  = 0.50000 * noise3(q); q *= 2.02;
     f += 0.25000 * noise3(q);
     return f;
 }
 
 // ── Cloud Density ────────────────────────────────────────────
-// Simple: height plane + FBM. Flat bottoms, billowing tops.
-// Coverage shifts the base threshold. Turbulence scales the FBM amplitude.
+// height_threshold + amplitude * FBM. The FBM amplitude (2.5) is comparable
+// to the height range of the slab, so noise creates clear cloud/gap structure
+// at every height — not uniform fog.
 
 float mapDensity(vec3 p, int lod) {
-    // Wind animation
+    // Wind drift
     float wAngle = windAngle * 6.2832;
     vec3 wind = vec3(cos(wAngle), 0.0, sin(wAngle));
-    vec3 q = p - wind * iTime * cloudSpeed * 0.4;
+    vec3 q = p - wind * iTime * cloudSpeed * 0.5;
 
-    // Scale the noise space
-    q *= cloudScale * 1.5;
+    q *= cloudScale * 1.2;
 
-    // FBM with LOD
     float f;
     if (lod >= 5) f = fbm5(q);
     else if (lod >= 4) f = fbm4(q);
     else if (lod >= 3) f = fbm3(q);
     else f = fbm2(q);
 
-    // Turbulence scales the noise amplitude
-    f *= (0.6 + turbulence * 0.8);
+    // Turbulence boosts FBM amplitude for more chaotic edges
+    f *= (0.7 + turbulence * 0.6);
 
-    // Height-based density: flat bottom, billowing tops
-    // cloudHeight shifts the slab vertically, cloudCoverage controls fill
-    float coverageBoost = cloudCoverage * 3.0;
-    float density = coverageBoost - 1.5 - p.y + 1.75 * f;
+    // Density: coverage threshold - height + noise
+    // Coverage 0.0 → base = -1.5 (mostly clear)
+    // Coverage 0.5 → base = 0.0 (half coverage)
+    // Coverage 1.0 → base = 1.5 (fully overcast)
+    float base = (cloudCoverage - 0.5) * 3.0;
+
+    // Height gradient: density decreases with altitude (flat bottoms, wispy tops)
+    // p.y is in slab range [-3, 1], so this subtracts 0.3*(-3 to 1) = -0.9 to 0.3
+    float density = base - p.y * 0.3 + 2.5 * f;
 
     return clamp(density, 0.0, 1.0);
 }
@@ -115,100 +119,93 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec2 p = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
 
-    // ── Sun direction (3D) ───────────────────────────────────
-    float sAngle = sunAngle * 6.2832;
-    vec3 sunDir = normalize(vec3(cos(sAngle), 0.35, sin(sAngle)));
-
-    // ── Camera ───────────────────────────────────────────────
-    // Fixed camera looking into the cloud slab from below
-    float camY = -1.0 + cloudHeight * 2.0;
-    vec3 ro = vec3(0.0, camY, 0.0);
-    vec3 rd = normalize(vec3(p.x, p.y * 0.5 + 0.5, 1.5));
-
-    // ── Slab bounds ──────────────────────────────────────────
-    float yBottom = -3.0;
-    float yTop = 2.0;
-
-    // Intersect ray with bounding planes
-    float tBot = (yBottom - ro.y) / rd.y;
-    float tTop = (yTop - ro.y) / rd.y;
-    float tMin = max(min(tBot, tTop), 0.0);
-    float tMax = max(tBot, tTop);
-
-    if (tMin >= tMax) {
-        // Miss — show background
-        vec3 bg = texture(iChannel0, uv).rgb;
-        fragColor = vec4(bg, 0.0);
-    }
-    else {
-
     // ── Background texture ───────────────────────────────────
     vec3 bg = texture(iChannel0, uv).rgb;
 
-    // ── Sky gradient (blended behind clouds, in front of bg) ─
-    // Warm sky toward sun, cool away
-    float sunDot = clamp(dot(sunDir, rd), 0.0, 1.0);
+    // ── Sun direction ────────────────────────────────────────
+    float sAngle = sunAngle * 6.2832;
+    vec3 sunDir = normalize(vec3(cos(sAngle), 0.4, sin(sAngle)));
+
+    // ── Camera ───────────────────────────────────────────────
+    // Below the cloud layer, looking upward into the slab.
+    // cloudHeight shifts view: 0 = looking at cloud base, 1 = looking through tops
+    vec3 ro = vec3(0.0, -4.0 + cloudHeight * 2.0, -5.0);
+
+    // Ray direction: screen maps to looking upward and forward
+    vec3 rd = normalize(vec3(p.x * 0.5, 0.7 + p.y * 0.35, 1.5));
+
+    // ── Slab bounds ──────────────────────────────────────────
+    float yBottom = -3.0;
+    float yTop = 1.0;
+
+    float tBot = (yBottom - ro.y) / rd.y;
+    float tTop = (yTop - ro.y) / rd.y;
+    float tMin = min(tBot, tTop);
+    float tMax = max(tBot, tTop);
+    tMin = max(tMin, 0.0);
 
     // ── Raymarch ─────────────────────────────────────────────
     vec4 sum = vec4(0.0);
-    float t = tMin;
 
-    // Dither start to reduce banding
-    t += 0.05 * hash(dot(fragCoord, vec2(12.9898, 78.233)));
+    if (tMin < tMax) {
+        float sunDot = clamp(dot(sunDir, rd), 0.0, 1.0);
 
-    for (int i = 0; i < 80; i++) {
-        if (t > tMax || sum.a > 0.99) break;
+        // Dither to reduce banding
+        float t = tMin + 0.1 * hash(dot(fragCoord, vec2(12.9898, 78.233)));
 
-        vec3 pos = ro + t * rd;
+        for (int i = 0; i < 80; i++) {
+            if (t > tMax || sum.a > 0.99) break;
 
-        // LOD: fewer octaves for distant samples
-        int lod = 5 - int(clamp(log2(1.0 + t * 0.5), 0.0, 3.0));
+            vec3 pos = ro + t * rd;
 
-        float den = mapDensity(pos, lod);
+            // LOD
+            int lod = 5 - int(clamp(log2(1.0 + t * 0.5), 0.0, 3.0));
 
-        if (den > 0.01) {
-            // ── Lighting: one extra sample toward sun ────────
-            // Directional derivative — cheap self-shadowing
-            float denSun = mapDensity(pos + 0.3 * sunDir, lod);
-            float dif = clamp((den - denSun) / 0.6, 0.0, 1.0);
+            float den = mapDensity(pos, lod);
 
-            // Color: lit side = sunColor, shadow side = shadowColor
-            vec3 lin = shadowColor * 1.2 + sunColor * dif;
+            if (den > 0.01) {
+                // Directional derivative lighting (one extra sample toward sun)
+                float denSun = mapDensity(pos + 0.3 * sunDir, lod);
+                float dif = clamp((den - denSun) / 0.6, 0.0, 1.0);
 
-            // Add forward scattering toward sun (god ray / silver lining)
-            lin += sunColor * godRayIntensity * pow(sunDot, 4.0) * dif;
+                // Lighting: ambient shadow color + directional sun
+                vec3 lin = shadowColor * 1.1 + sunColor * 1.3 * dif;
 
-            // Cloud base color: bright at edges, darker in dense areas
-            vec3 cloudBase = mix(sunColor * 1.1, shadowColor * 1.5, den);
-            vec4 col = vec4(cloudBase * lin, den);
+                // Forward scattering (silver lining / god rays)
+                lin += sunColor * godRayIntensity * 0.5 * pow(sunDot, 5.0);
 
-            // Depth fog — blend toward background at distance
-            col.rgb = mix(col.rgb, bg, 1.0 - exp(-0.003 * t * t));
+                // Cloud color: bright edges, dark interiors
+                vec3 cloudCol = mix(vec3(1.0, 0.95, 0.85), shadowColor * 1.8, den);
+                vec4 col = vec4(cloudCol * lin, den);
 
-            // Opacity scaling by cloudDensity uniform
-            col.a *= cloudDensity * 0.5;
+                // Depth fog toward background
+                col.rgb = mix(col.rgb, bg, 1.0 - exp(-0.002 * t * t));
 
-            // Pre-multiplied alpha compositing (front-to-back)
-            col.rgb *= col.a;
-            sum += col * (1.0 - sum.a);
+                // Opacity: cloudDensity controls how solid clouds are
+                col.a *= 0.35 * cloudDensity;
+
+                // Front-to-back premultiplied alpha
+                col.rgb *= col.a;
+                sum += col * (1.0 - sum.a);
+            }
+
+            // Adaptive step size
+            t += max(0.05, 0.03 * t);
         }
-
-        // Adaptive step size — larger steps when far from camera
-        t += max(0.06, 0.04 * t);
     }
 
-    // ── Composite ────────────────────────────────────────────
-    // Background shows through where clouds are transparent
+    // ── Composite over background ────────────────────────────
     vec3 col = bg * (1.0 - sum.a) + sum.rgb;
 
-    // Sun glare through cloud gaps
-    col += sunColor * 0.15 * pow(sunDot, 3.0) * (1.0 - sum.a * 0.8);
+    // Sun glare in cloud gaps
+    float sunDotFinal = clamp(dot(sunDir, normalize(vec3(p.x * 0.5, 0.7, 1.5))), 0.0, 1.0);
+    col += sunColor * 0.12 * pow(sunDotFinal, 4.0) * (1.0 - sum.a * 0.7);
 
-    // Subtle vignette
+    // Vignette
     vec2 vc = uv - 0.5;
-    col *= 1.0 - dot(vc, vc) * 0.3;
+    col *= 1.0 - dot(vc, vc) * 0.25;
 
-    // ── Temporal feedback ────────────────────────────────────
+    // Temporal feedback
     float cloudAlpha = sum.a;
     if (iFrame > 0) {
         float prevAlpha = texture(iChannel1, uv).a;
@@ -216,6 +213,4 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     }
 
     fragColor = vec4(col, cloudAlpha);
-
-    } // end else (ray hit slab)
 }
