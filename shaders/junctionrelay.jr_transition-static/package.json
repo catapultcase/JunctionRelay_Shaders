@@ -7,7 +7,7 @@
     "shaderName": "junctionrelay.jr_transition-static",
     "emoji": "📻",
     "displayName": "Transition Static",
-    "description": "Procedural CRT channel-change static with no texture input. Single pass: multi-octave noise with row-band modulation, signal dropout, vertical sync roll bars, horizontal tears, scanlines, shadow mask, vignette, and phosphor tint. Optionally shifts to full RGB colour noise. 8 uniforms, 6 presets.",
+    "description": "Procedural CRT channel-change static with no texture input. Single pass: multi-octave noise with row-band modulation, signal dropout, vertical sync roll bars, horizontal tears, scanlines, shadow mask, vignette, and phosphor tint. Optionally shifts to full RGB colour noise. 8 uniforms, 5 presets.",
     "usesTexture": false,
     "feedback": false,
     "opaque": true,
@@ -103,25 +103,8 @@
     ],
     "presets": [
       {
-        "name": "Broadcast End",
-        "default": true,
-        "values": {
-          "staticColor": [
-            0.2,
-            1.0,
-            0.3
-          ],
-          "scanlineWeight": 0.45,
-          "pixelGrid": 0.2,
-          "rollSpeed": 0.12,
-          "tearStrength": 0.025,
-          "colorShift": 0.0,
-          "vignetteAmount": 0.65,
-          "flickerAmount": 0.03
-        }
-      },
-      {
         "name": "Green Terminal Crash",
+        "default": true,
         "values": {
           "staticColor": [
             0.2,
