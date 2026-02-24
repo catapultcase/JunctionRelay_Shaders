@@ -90,7 +90,8 @@ float mapCloud(vec3 p, int lod) {
     // Density decreases with altitude — noise amplitude dominates at cloud tops
     float den = threshold - p.y * 0.8 + 3.5 * f;
 
-    return clamp(den, 0.0, 1.0);
+    // Smoothstep fades wispy clouds in gradually — prevents shimmer at low density
+    return smoothstep(0.0, 0.15, den) * clamp(den, 0.0, 1.0);
 }
 
 // ── Dither Hash ──────────────────────────────────────────────
