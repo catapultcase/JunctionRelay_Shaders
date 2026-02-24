@@ -91,7 +91,7 @@ float mapCloud(vec3 p, int lod) {
     float den = threshold - p.y * 0.8 + 3.5 * f;
 
     // Smoothstep fades wispy clouds in gradually — prevents shimmer at low density
-    return smoothstep(0.0, 0.15, den) * clamp(den, 0.0, 1.0);
+    return smoothstep(0.0, densitySmooth, den) * clamp(den, 0.0, 1.0);
 }
 
 // ── Dither Hash ──────────────────────────────────────────────
@@ -145,7 +145,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         for (int i = 0; i < 80; i++) {
             if (t > tMax || sum.a > 0.99) break;
 
-            float dt = max(0.05, min(0.02 * t, 0.2));
+            float dt = max(0.05, min(0.02 * t, stepCap));
             vec3 pos = ro + t * rd;
 
             // LOD: fewer octaves for distant samples
