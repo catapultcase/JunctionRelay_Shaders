@@ -1,0 +1,169 @@
+{
+  "name": "@junctionrelay/shader-kaleidoscope",
+  "version": "1.0.0",
+  "description": "Animated kaleidoscope with layered fractal noise, configurable symmetry and colour.",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "junctionrelay.kaleidoscope",
+    "emoji": "🔮",
+    "displayName": "Kaleidoscope",
+    "description": "Animated kaleidoscope pattern built from layered fractal noise folded into configurable radial segments. Smooth colour cycling with palette tint, adjustable zoom, rotation speed, flow speed, and brightness. No texture input. 8 uniforms, 5 presets.",
+    "usesTexture": false,
+    "feedback": false,
+    "opaque": true,
+    "passes": [
+      {
+        "entry": "kaleidoscope.glsl",
+        "displayName": "Kaleidoscope"
+      }
+    ],
+    "uniforms": [
+      {
+        "name": "colorTint",
+        "displayName": "Colour Tint",
+        "type": "color",
+        "pass": 0,
+        "default": [0.4, 0.6, 1.0],
+        "description": "Primary colour that tints the cycling palette"
+      },
+      {
+        "name": "segments",
+        "displayName": "Segments",
+        "type": "float",
+        "pass": 0,
+        "default": 8.0,
+        "min": 3.0,
+        "max": 24.0,
+        "description": "Number of radial symmetry segments — more segments create tighter, more intricate patterns"
+      },
+      {
+        "name": "zoom",
+        "displayName": "Zoom",
+        "type": "float",
+        "pass": 0,
+        "default": 2.0,
+        "min": 0.5,
+        "max": 8.0,
+        "description": "Pattern zoom level — higher values reveal finer detail"
+      },
+      {
+        "name": "rotationSpeed",
+        "displayName": "Rotation Speed",
+        "type": "float",
+        "pass": 0,
+        "default": 0.15,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "How fast the kaleidoscope rotates"
+      },
+      {
+        "name": "flowSpeed",
+        "displayName": "Flow Speed",
+        "type": "float",
+        "pass": 0,
+        "default": 0.3,
+        "min": 0.0,
+        "max": 2.0,
+        "description": "Speed of the underlying pattern animation — 0 freezes the pattern"
+      },
+      {
+        "name": "colorCycleSpeed",
+        "displayName": "Colour Cycle",
+        "type": "float",
+        "pass": 0,
+        "default": 0.5,
+        "min": 0.0,
+        "max": 3.0,
+        "description": "Speed of colour palette cycling — 0 for static colours"
+      },
+      {
+        "name": "brightness",
+        "displayName": "Brightness",
+        "type": "float",
+        "pass": 0,
+        "default": 1.0,
+        "min": 0.3,
+        "max": 2.0,
+        "description": "Overall brightness multiplier"
+      },
+      {
+        "name": "vignetteAmount",
+        "displayName": "Vignette",
+        "type": "float",
+        "pass": 0,
+        "default": 0.4,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Edge darkening — frames the pattern with a soft border"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Sapphire Dream",
+        "default": true,
+        "values": {
+          "colorTint": [0.4, 0.6, 1.0],
+          "segments": 8.0,
+          "zoom": 2.0,
+          "rotationSpeed": 0.15,
+          "flowSpeed": 0.3,
+          "colorCycleSpeed": 0.5,
+          "brightness": 1.0,
+          "vignetteAmount": 0.4
+        }
+      },
+      {
+        "name": "Ember Mandala",
+        "values": {
+          "colorTint": [1.0, 0.4, 0.15],
+          "segments": 12.0,
+          "zoom": 3.0,
+          "rotationSpeed": 0.08,
+          "flowSpeed": 0.2,
+          "colorCycleSpeed": 0.3,
+          "brightness": 1.1,
+          "vignetteAmount": 0.5
+        }
+      },
+      {
+        "name": "Crystal Frost",
+        "values": {
+          "colorTint": [0.7, 0.9, 1.0],
+          "segments": 6.0,
+          "zoom": 1.5,
+          "rotationSpeed": 0.25,
+          "flowSpeed": 0.15,
+          "colorCycleSpeed": 0.2,
+          "brightness": 1.2,
+          "vignetteAmount": 0.3
+        }
+      },
+      {
+        "name": "Neon Bloom",
+        "values": {
+          "colorTint": [0.9, 0.2, 0.8],
+          "segments": 16.0,
+          "zoom": 4.0,
+          "rotationSpeed": 0.2,
+          "flowSpeed": 0.5,
+          "colorCycleSpeed": 1.0,
+          "brightness": 1.3,
+          "vignetteAmount": 0.35
+        }
+      },
+      {
+        "name": "Slow Jade",
+        "values": {
+          "colorTint": [0.2, 0.8, 0.5],
+          "segments": 5.0,
+          "zoom": 1.8,
+          "rotationSpeed": 0.05,
+          "flowSpeed": 0.1,
+          "colorCycleSpeed": 0.15,
+          "brightness": 0.9,
+          "vignetteAmount": 0.6
+        }
+      }
+    ]
+  }
+}
