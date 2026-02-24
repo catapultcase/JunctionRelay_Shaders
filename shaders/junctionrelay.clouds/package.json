@@ -8,8 +8,8 @@
     "emoji": "\u2601\ufe0f",
     "displayName": "Clouds",
     "description": "Procedural cloudscape overlay with layered FBM noise, volumetric self-shadowing, and god rays. Three cloud layers drift at different speeds with domain-warped turbulence. Sun position controls dramatic golden-hour lighting with bright edges and deep interior shadows. Layout content shows through cloud gaps. Star-pattern bloom adds warm glow to sunlit edges. Ambient light pass provides scene-wide exposure, directional gradients, and atmospheric haze.",
-    "usesTexture": true,
-    "feedback": true,
+    "usesTexture": false,
+    "feedback": false,
     "opaque": true,
     "passes": [
       {

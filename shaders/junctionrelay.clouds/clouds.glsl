@@ -53,7 +53,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec2 p = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
 
-    vec3 bg = texture(iChannel0, uv).rgb;
+    // Sky gradient background (no texture needed for POC)
+    vec3 bg = vec3(0.6, 0.71, 0.75) - vec2(p.y * 0.2, p.y * 0.1).xyy;
 
     // Camera: 3 units back, looking at origin
     vec3 ro = vec3(0.0, 0.0, -3.0);
