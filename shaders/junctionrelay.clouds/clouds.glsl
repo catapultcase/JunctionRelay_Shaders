@@ -82,7 +82,9 @@ float mapCloud(vec3 p, int lod) {
     else f = fbm3(q);
 
     // Coverage: 0→scattered, 0.5→half sky, 1→overcast
-    float threshold = (cloudCoverage - 0.5) * 3.0;
+    // Sparseness tightens the threshold so only the tallest noise peaks survive
+    float sparseTighten = (cloudSparseness - 1.0) * 0.6;
+    float threshold = (cloudCoverage - 0.5) * 3.0 - sparseTighten;
 
     // Density decreases with altitude — noise amplitude dominates at cloud tops
     float den = threshold - p.y * 0.8 + 3.5 * f;
