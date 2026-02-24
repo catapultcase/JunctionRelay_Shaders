@@ -7,7 +7,8 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
 /* Left: canvas */
 #preview { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; min-width:300px; background:#000; }
 #preview canvas { border:1px solid #333; }
-#preview .meta { color:#666; font-size:11px; margin-top:8px; }
+#preview .meta { color:#666; font-size:11px; margin-top:8px; display:flex; gap:16px; }
+#preview .fps { color:#0f0; font-family:monospace; font-size:12px; margin-top:6px; }
 
 /* Right: properties panel */
 #panel { width:320px; background:#1a1a1a; border-left:1px solid #333; display:flex; flex-direction:column; overflow:hidden; }
@@ -56,6 +57,7 @@ body { background:#111; color:#ccc; font:13px/1.5 -apple-system,sans-serif; disp
 
 <div id="preview">
   <canvas id="c" width="400" height="400"></canvas>
+  <div class="fps" id="fps">-- FPS</div>
   <div class="meta" id="meta"></div>
 </div>
 
@@ -83,6 +85,11 @@ let uniformInputs = {};
 let gl;
 let passDefs = [];      // { program, locs, uniformNames[], fbo, texture }
 let quadBuf = null;
+
+// FPS tracking
+let fpsFrameCount = 0;
+let fpsLastTime = 0;
+const fpsEl = () => document.getElementById('fps');
 
 // Resolve shader path from ?path= query param or current directory
 const params = new URLSearchParams(window.location.search);
@@ -442,6 +449,16 @@ function createFBO(w, h) {
 
 function frame(t) {
   if (!gl || passDefs.length === 0) return;
+
+  // FPS counter — update every 500ms
+  fpsFrameCount++;
+  if (t - fpsLastTime >= 500) {
+    const fps = (fpsFrameCount / ((t - fpsLastTime) / 1000)).toFixed(1);
+    fpsEl().textContent = fps + ' FPS';
+    fpsFrameCount = 0;
+    fpsLastTime = t;
+  }
+
   const canvas = document.getElementById('c');
   const w = canvas.width, h = canvas.height;
 
