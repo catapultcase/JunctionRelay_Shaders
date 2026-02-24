@@ -87,8 +87,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // Camera: above the cloud tops, looking forward and slightly down
     // Sees the vertical sides of formations, not just the flat top
-    vec3 ro = vec3(0.0, 3.0, -5.0 + iTime * 0.5);
-    vec3 ta = vec3(0.0, 0.5, ro.z + 8.0);
+    vec3 ro = vec3(0.0, 7.0, -5.0 + iTime * 0.5);
+    vec3 ta = vec3(0.0, 1.0, ro.z + 8.0);
 
     // Simple look-at camera matrix
     vec3 cw = normalize(ta - ro);
@@ -101,9 +101,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec3 sky = vec3(0.6, 0.71, 0.75) - rd.y * 0.2 * vec3(1.0, 0.5, 1.0) + 0.15 * 0.5;
     sky += 0.2 * vec3(1.0, 0.6, 0.1) * pow(sunDot, 8.0);
 
-    // Slab bounds — tall enough for vertical billowing
+    // Slab bounds — high ceiling so cloud tops taper naturally
     float yBot = -3.0;
-    float yTop = 2.0;
+    float yTop = 6.0;
     float tBot = (yBot - ro.y) / rd.y;
     float tTop = (yTop - ro.y) / rd.y;
 
