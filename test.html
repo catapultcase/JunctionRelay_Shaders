@@ -347,12 +347,15 @@ function initWebGL(glslSources) {
     // Pass 1+ can read iChannel0 (previous pass output)
     const samplerDecl = i > 0 ? 'uniform sampler2D iChannel0;\n' : '';
 
+    // WebGL 1 uses texture2D(), not texture() — rewrite for compatibility
+    const glslCompat = glslSources[i].replace(/\btexture\s*\(/g, 'texture2D(');
+
     const fs = `precision highp float;
 uniform vec2 iResolution;
 uniform float iTime;
 ${samplerDecl}${uniformDecls}
 
-${glslSources[i]}
+${glslCompat}
 
 void main(){mainImage(gl_FragColor,gl_FragCoord.xy);}`;
 
