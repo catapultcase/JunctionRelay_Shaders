@@ -10,7 +10,7 @@
 // Density = height falloff + FBM noise. Flat bottoms, billowing tops.
 // Directional derivative lighting (one extra density sample toward sun).
 //
-// Uniforms: sunAngle, sunColor, shadowColor, cloudCoverage, cloudSpeed
+// Uniforms: sunAngle, sunColor, shadowColor, cloudCoverage, cloudSpeed, cloudSparseness
 
 // ── 3D Hash ──────────────────────────────────────────────────
 // Dot-product hash — no sin(), fully integer-inspired constants.
@@ -74,6 +74,7 @@ float fbm3(vec3 p) {
 
 float mapCloud(vec3 p, int lod) {
     vec3 q = p + vec3(iTime * cloudSpeed * 0.6, 0.0, iTime * cloudSpeed * 0.2);
+    q /= cloudSparseness;
 
     float f;
     if (lod >= 5) f = fbm5(q);
