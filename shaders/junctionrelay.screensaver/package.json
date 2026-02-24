@@ -1,20 +1,20 @@
 {
-  "name": "@junctionrelay/shader-stream-lost",
+  "name": "@junctionrelay/shader-screensaver",
   "version": "1.0.0",
-  "description": "CRT static screensaver with procedural 7-segment digital clock. Designed for stream-lost transitions.",
+  "description": "CRT static screensaver with procedural 7-segment digital clock.",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "junctionrelay.stream-lost",
+    "shaderName": "junctionrelay.screensaver",
     "emoji": "🕐",
-    "displayName": "Stream Lost",
-    "description": "Procedural CRT static background with a centred 7-segment digital clock showing the current wall time (HH:MM:SS). No texture input. Designed as a stream-lost screensaver with configurable clock colour, size, position, background tint, scanlines, and vignette. 9 uniforms, 4 presets.",
+    "displayName": "Screensaver",
+    "description": "Procedural CRT static background with a centred 7-segment digital clock showing the current wall time (HH:MM:SS). No texture input. Configurable clock colour, size, position, background tint, scanlines, and vignette. 9 uniforms, 4 presets.",
     "usesTexture": false,
     "feedback": false,
     "opaque": true,
     "passes": [
       {
-        "entry": "stream-lost.glsl",
-        "displayName": "Stream Lost"
+        "entry": "screensaver.glsl",
+        "displayName": "Screensaver"
       }
     ],
     "uniforms": [
