@@ -1,10 +1,10 @@
 {
-  "name": "@junctionrelay/shader-jr-transition-static",
+  "name": "@junctionrelay/shader-transition-static",
   "version": "1.0.0",
   "description": "Procedural CRT channel-change static — no texture required. Single lightweight pass.",
   "junctionrelay": {
     "type": "shader",
-    "shaderName": "junctionrelay.jr_transition-static",
+    "shaderName": "junctionrelay.transition-static",
     "emoji": "📻",
     "displayName": "Transition Static",
     "description": "Procedural CRT channel-change static with no texture input. Single pass: multi-octave noise with row-band modulation, signal dropout, vertical sync roll bars, horizontal tears, scanlines, shadow mask, vignette, and phosphor tint. Optionally shifts to full RGB colour noise. 8 uniforms, 5 presets.",
