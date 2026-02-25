@@ -33,7 +33,7 @@
         "displayName": "Primary Color",
         "type": "color",
         "pass": 0,
-        "default": "#6611cc",
+        "default": [0.4, 0.067, 0.8],
         "description": "Dominant plasma color"
       },
       {
@@ -41,7 +41,7 @@
         "displayName": "Secondary Color",
         "type": "color",
         "pass": 0,
-        "default": "#ff6600",
+        "default": [1.0, 0.4, 0.0],
         "description": "Accent plasma color"
       }
     ]
