@@ -1,0 +1,298 @@
+{
+  "name": "@junctionrelay/shader-vintage-display-light",
+  "version": "1.0.0",
+  "description": "Pi-optimized retro CRT: phosphor tint, scanlines, signal noise, vignette, all in a single pass",
+  "junctionrelay": {
+    "type": "shader",
+    "shaderName": "junctionrelay.vintage-display-light",
+    "emoji": "📺",
+    "displayName": "Vintage Display - Light",
+    "description": "Single-pass CRT shader optimized for low-power hardware (Raspberry Pi, ARM). Barrel distortion, monochrome phosphor color grading, scanlines, pixel grid, static snow, raster ripple, sync roll, power flicker, vignette, grain, warmth, and gamma. 1 texture lookup per fragment, no bloom, no ghosting, no glitch strips. 12 uniforms, 8 presets.",
+    "usesTexture": true,
+    "feedback": false,
+    "opaque": true,
+    "passes": [
+      {
+        "entry": "vintage-display-light.glsl",
+        "displayName": "Display"
+      }
+    ],
+    "uniforms": [
+      {
+        "name": "phosphorColor",
+        "displayName": "Phosphor Color",
+        "type": "color",
+        "pass": 0,
+        "default": [0.2, 1.0, 0.3],
+        "description": "Monochrome phosphor tint: green P1, amber, white, blue"
+      },
+      {
+        "name": "phosphorDrive",
+        "displayName": "Phosphor Drive",
+        "type": "float",
+        "pass": 0,
+        "default": 0.85,
+        "min": 0.3,
+        "max": 1.5,
+        "description": "Luminance response curve: lower darkens mids, higher overdrives bright areas"
+      },
+      {
+        "name": "scanlineWeight",
+        "displayName": "Scanline Weight",
+        "type": "float",
+        "pass": 0,
+        "default": 0.5,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Scanline darkness: 0 disables, 1 is full black alternating lines"
+      },
+      {
+        "name": "warpAmount",
+        "displayName": "Screen Warp",
+        "type": "float",
+        "pass": 0,
+        "default": 0.04,
+        "min": 0.0,
+        "max": 0.12,
+        "description": "CRT barrel distortion strength"
+      },
+      {
+        "name": "pixelGrid",
+        "displayName": "Pixel Grid",
+        "type": "float",
+        "pass": 0,
+        "default": 0.25,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Shadow mask / dot grid visibility"
+      },
+      {
+        "name": "brightness",
+        "displayName": "Brightness",
+        "type": "float",
+        "pass": 0,
+        "default": 0.0,
+        "min": -0.5,
+        "max": 0.5,
+        "description": "Screen brightness offset"
+      },
+      {
+        "name": "staticAmount",
+        "displayName": "Static",
+        "type": "float",
+        "pass": 0,
+        "default": 0.04,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Snow / noise overlay: simulates RF interference or weak signal"
+      },
+      {
+        "name": "rippleStrength",
+        "displayName": "Raster Ripple",
+        "type": "float",
+        "pass": 0,
+        "default": 0.03,
+        "min": 0.0,
+        "max": 0.15,
+        "description": "Horizontal interference bands"
+      },
+      {
+        "name": "rollSpeed",
+        "displayName": "Sync Roll",
+        "type": "float",
+        "pass": 0,
+        "default": 0.07,
+        "min": 0.0,
+        "max": 0.5,
+        "description": "Vertical hold drift rate"
+      },
+      {
+        "name": "vignetteAmount",
+        "displayName": "Vignette",
+        "type": "float",
+        "pass": 0,
+        "default": 0.6,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Bezel edge darkening"
+      },
+      {
+        "name": "flickerAmount",
+        "displayName": "Flicker",
+        "type": "float",
+        "pass": 0,
+        "default": 0.02,
+        "min": 0.0,
+        "max": 0.15,
+        "description": "Power supply instability: slow brightness oscillation"
+      },
+      {
+        "name": "grainAmount",
+        "displayName": "Film Grain",
+        "type": "float",
+        "pass": 0,
+        "default": 0.03,
+        "min": 0.0,
+        "max": 0.15,
+        "description": "Phosphor / film noise overlay"
+      },
+      {
+        "name": "warmth",
+        "displayName": "Warmth",
+        "type": "float",
+        "pass": 0,
+        "default": 0.15,
+        "min": 0.0,
+        "max": 1.0,
+        "description": "Age yellowing / warm shift"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Data Stream",
+        "default": true,
+        "values": {
+          "phosphorColor": [0.15, 1.0, 0.25],
+          "phosphorDrive": 1.0,
+          "scanlineWeight": 0.35,
+          "warpAmount": 0.03,
+          "pixelGrid": 0.4,
+          "brightness": 0.05,
+          "staticAmount": 0.05,
+          "rippleStrength": 0.02,
+          "rollSpeed": 0.1,
+          "vignetteAmount": 0.4,
+          "flickerAmount": 0.02,
+          "grainAmount": 0.02,
+          "warmth": 0.0
+        }
+      },
+      {
+        "name": "Green Terminal",
+        "values": {
+          "phosphorColor": [0.2, 1.0, 0.3],
+          "phosphorDrive": 0.85,
+          "scanlineWeight": 0.5,
+          "warpAmount": 0.04,
+          "pixelGrid": 0.25,
+          "brightness": 0.0,
+          "staticAmount": 0.04,
+          "rippleStrength": 0.03,
+          "rollSpeed": 0.07,
+          "vignetteAmount": 0.6,
+          "flickerAmount": 0.02,
+          "grainAmount": 0.03,
+          "warmth": 0.15
+        }
+      },
+      {
+        "name": "Amber Terminal",
+        "values": {
+          "phosphorColor": [1.0, 0.7, 0.1],
+          "phosphorDrive": 0.9,
+          "scanlineWeight": 0.4,
+          "warpAmount": 0.035,
+          "pixelGrid": 0.2,
+          "brightness": 0.05,
+          "staticAmount": 0.01,
+          "rippleStrength": 0.01,
+          "rollSpeed": 0.02,
+          "vignetteAmount": 0.5,
+          "flickerAmount": 0.01,
+          "grainAmount": 0.02,
+          "warmth": 0.3
+        }
+      },
+      {
+        "name": "Surveillance",
+        "values": {
+          "phosphorColor": [0.8, 0.8, 0.8],
+          "phosphorDrive": 0.7,
+          "scanlineWeight": 0.6,
+          "warpAmount": 0.03,
+          "pixelGrid": 0.3,
+          "brightness": -0.05,
+          "staticAmount": 0.15,
+          "rippleStrength": 0.05,
+          "rollSpeed": 0.03,
+          "vignetteAmount": 0.7,
+          "flickerAmount": 0.04,
+          "grainAmount": 0.08,
+          "warmth": 0.05
+        }
+      },
+      {
+        "name": "Broken Signal",
+        "values": {
+          "phosphorColor": [0.3, 1.0, 0.3],
+          "phosphorDrive": 0.8,
+          "scanlineWeight": 0.5,
+          "warpAmount": 0.05,
+          "pixelGrid": 0.2,
+          "brightness": -0.1,
+          "staticAmount": 0.3,
+          "rippleStrength": 0.1,
+          "rollSpeed": 0.2,
+          "vignetteAmount": 0.5,
+          "flickerAmount": 0.08,
+          "grainAmount": 0.06,
+          "warmth": 0.1
+        }
+      },
+      {
+        "name": "Oscilloscope",
+        "values": {
+          "phosphorColor": [0.1, 1.0, 0.2],
+          "phosphorDrive": 1.2,
+          "scanlineWeight": 0.15,
+          "warpAmount": 0.02,
+          "pixelGrid": 0.1,
+          "brightness": 0.1,
+          "staticAmount": 0.01,
+          "rippleStrength": 0.0,
+          "rollSpeed": 0.0,
+          "vignetteAmount": 0.4,
+          "flickerAmount": 0.01,
+          "grainAmount": 0.01,
+          "warmth": 0.0
+        }
+      },
+      {
+        "name": "Cold War",
+        "values": {
+          "phosphorColor": [0.6, 0.7, 1.0],
+          "phosphorDrive": 0.8,
+          "scanlineWeight": 0.55,
+          "warpAmount": 0.05,
+          "pixelGrid": 0.3,
+          "brightness": -0.05,
+          "staticAmount": 0.03,
+          "rippleStrength": 0.02,
+          "rollSpeed": 0.04,
+          "vignetteAmount": 0.8,
+          "flickerAmount": 0.03,
+          "grainAmount": 0.04,
+          "warmth": 0.0
+        }
+      },
+      {
+        "name": "Vacuum Tube",
+        "values": {
+          "phosphorColor": [1.0, 0.5, 0.05],
+          "phosphorDrive": 0.75,
+          "scanlineWeight": 0.6,
+          "warpAmount": 0.06,
+          "pixelGrid": 0.35,
+          "brightness": -0.05,
+          "staticAmount": 0.06,
+          "rippleStrength": 0.04,
+          "rollSpeed": 0.05,
+          "vignetteAmount": 0.7,
+          "flickerAmount": 0.08,
+          "grainAmount": 0.08,
+          "warmth": 0.6
+        }
+      }
+    ]
+  }
+}
