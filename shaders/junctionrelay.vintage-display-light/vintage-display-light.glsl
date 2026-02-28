@@ -102,5 +102,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     // ── 13. Gamma punch ─────────────────────────────────────────────────────
     col = pow(clamp(col, 0.0, 1.0), vec3(0.88));
 
-    fragColor = vec4(col, 1.0);
+    // Alpha from processed luminance so "Force transparent" reveals the source behind dark areas
+    float outLuma = dot(col, vec3(0.299, 0.587, 0.114));
+    fragColor = vec4(col, clamp(outLuma * 2.5, 0.0, 1.0));
 }
