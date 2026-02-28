@@ -1,11 +1,11 @@
 {
   "name": "@junctionrelay/shader-vintage-display",
   "version": "1.0.0",
-  "description": "Configurable retro CRT — phosphor tint, scanlines, signal degradation, bitmap corruption, phosphor bloom",
+  "description": "Configurable retro CRT \u2014 phosphor tint, scanlines, signal degradation, bitmap corruption, phosphor bloom",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.vintage-display",
-    "emoji": "🖥️",
+    "emoji": "\ud83d\udda5\ufe0f",
     "displayName": "Vintage Display",
     "description": "Fully configurable retro CRT shader across 3 passes. Pass 0 simulates the display surface: barrel distortion, monochrome phosphor color grading, scanlines, and pixel grid. Pass 1 applies signal degradation: raster ripple, vertical sync roll, horizontal tears, ghosting, static snow, and bitmap digit corruption strips. Pass 2 adds phosphor afterglow bloom, bezel vignette, power supply flicker, film grain, and age yellowing. 18 uniforms, 8 presets spanning green terminals, amber displays, CCTV surveillance, broken signals, and cyberpunk data streams.",
     "usesTexture": true,
@@ -36,7 +36,7 @@
           1.0,
           0.3
         ],
-        "description": "Monochrome phosphor tint — green P1, amber, white, blue"
+        "description": "Monochrome phosphor tint \u2014 green P1, amber, white, blue"
       },
       {
         "name": "phosphorDrive",
@@ -46,7 +46,7 @@
         "default": 0.85,
         "min": 0.3,
         "max": 1.5,
-        "description": "Luminance response curve — lower darkens mids, higher overdrives bright areas"
+        "description": "Luminance response curve \u2014 lower darkens mids, higher overdrives bright areas"
       },
       {
         "name": "scanlineWeight",
@@ -56,7 +56,7 @@
         "default": 0.5,
         "min": 0.0,
         "max": 1.0,
-        "description": "Scanline darkness — 0 disables, 1 is maximum (full black alternating lines)"
+        "description": "Scanline darkness \u2014 0 disables, 1 is maximum (full black alternating lines)"
       },
       {
         "name": "warpAmount",
@@ -66,7 +66,7 @@
         "default": 0.04,
         "min": 0.0,
         "max": 0.12,
-        "description": "CRT barrel distortion strength — higher values curve the edges more"
+        "description": "CRT barrel distortion strength \u2014 higher values curve the edges more"
       },
       {
         "name": "pixelGrid",
@@ -76,7 +76,7 @@
         "default": 0.25,
         "min": 0.0,
         "max": 1.0,
-        "description": "Shadow mask / dot grid visibility — simulates phosphor dot structure"
+        "description": "Shadow mask / dot grid visibility \u2014 simulates phosphor dot structure"
       },
       {
         "name": "brightness",
@@ -86,7 +86,7 @@
         "default": 0.0,
         "min": -0.5,
         "max": 0.5,
-        "description": "Screen brightness offset — negative darkens, positive brightens"
+        "description": "Screen brightness offset \u2014 negative darkens, positive brightens"
       },
       {
         "name": "staticAmount",
@@ -96,7 +96,7 @@
         "default": 0.04,
         "min": 0.0,
         "max": 1.0,
-        "description": "Snow / noise overlay — simulates RF interference or weak signal"
+        "description": "Snow / noise overlay \u2014 simulates RF interference or weak signal"
       },
       {
         "name": "rippleStrength",
@@ -106,7 +106,7 @@
         "default": 0.03,
         "min": 0.0,
         "max": 0.15,
-        "description": "Horizontal interference bands — overlapping sine wave distortion"
+        "description": "Horizontal interference bands \u2014 overlapping sine wave distortion"
       },
       {
         "name": "rollSpeed",
@@ -116,7 +116,7 @@
         "default": 0.07,
         "min": 0.0,
         "max": 0.5,
-        "description": "Vertical hold drift rate — dim bar scrolls up like an unsynchronised monitor"
+        "description": "Vertical hold drift rate \u2014 dim bar scrolls up like an unsynchronised monitor"
       },
       {
         "name": "glitchRate",
@@ -126,7 +126,7 @@
         "default": 0.08,
         "min": 0.0,
         "max": 0.5,
-        "description": "Data corruption strip frequency — bitmap digit strips replace scan rows"
+        "description": "Data corruption strip frequency \u2014 bitmap digit strips replace scan rows"
       },
       {
         "name": "ghostOffset",
@@ -136,7 +136,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 0.05,
-        "description": "Signal echo / double image — blends a horizontally shifted ghost copy"
+        "description": "Signal echo / double image \u2014 blends a horizontally shifted ghost copy"
       },
       {
         "name": "tearStrength",
@@ -146,7 +146,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 0.1,
-        "description": "Horizontal displacement tears — random bands shift left or right"
+        "description": "Horizontal displacement tears \u2014 random bands shift left or right"
       },
       {
         "name": "glowStrength",
@@ -156,7 +156,7 @@
         "default": 0.35,
         "min": 0.0,
         "max": 1.0,
-        "description": "Bloom / phosphor afterglow intensity — star-pattern diffusion"
+        "description": "Bloom / phosphor afterglow intensity \u2014 star-pattern diffusion"
       },
       {
         "name": "glowSpread",
@@ -166,7 +166,7 @@
         "default": 2.0,
         "min": 0.5,
         "max": 5.0,
-        "description": "Bloom radius in pixels — how far glow diffuses from bright areas"
+        "description": "Bloom radius in pixels \u2014 how far glow diffuses from bright areas"
       },
       {
         "name": "vignetteAmount",
@@ -176,7 +176,7 @@
         "default": 0.6,
         "min": 0.0,
         "max": 1.0,
-        "description": "Bezel edge darkening — simulates CRT shadow mask fall-off at corners"
+        "description": "Bezel edge darkening \u2014 simulates CRT shadow mask fall-off at corners"
       },
       {
         "name": "flickerAmount",
@@ -186,7 +186,7 @@
         "default": 0.02,
         "min": 0.0,
         "max": 0.15,
-        "description": "Power supply instability — slow brightness oscillation"
+        "description": "Power supply instability \u2014 slow brightness oscillation"
       },
       {
         "name": "grainAmount",
@@ -196,7 +196,7 @@
         "default": 0.03,
         "min": 0.0,
         "max": 0.15,
-        "description": "Phosphor / film noise overlay — adds organic texture to the image"
+        "description": "Phosphor / film noise overlay \u2014 adds organic texture to the image"
       },
       {
         "name": "warmth",
@@ -206,7 +206,7 @@
         "default": 0.15,
         "min": 0.0,
         "max": 1.0,
-        "description": "Age yellowing / warm shift — simulates glass yellowing and phosphor aging"
+        "description": "Age yellowing / warm shift \u2014 simulates glass yellowing and phosphor aging"
       }
     ],
     "presets": [
@@ -228,7 +228,7 @@
           "rippleStrength": 0.02,
           "rollSpeed": 0.1,
           "glitchRate": 0.3,
-          "ghostOffset": 0.015,
+          "ghostOffset": 0.01,
           "tearStrength": 0.03,
           "glowStrength": 0.45,
           "glowSpread": 2.5,
@@ -275,7 +275,7 @@
           ],
           "phosphorDrive": 0.9,
           "scanlineWeight": 0.4,
-          "warpAmount": 0.035,
+          "warpAmount": 0.04,
           "pixelGrid": 0.2,
           "brightness": 0.05,
           "staticAmount": 0.01,
@@ -363,7 +363,7 @@
           "rippleStrength": 0.0,
           "rollSpeed": 0.0,
           "glitchRate": 0.0,
-          "ghostOffset": 0.005,
+          "ghostOffset": 0.01,
           "tearStrength": 0.0,
           "glowStrength": 0.7,
           "glowSpread": 3.5,
@@ -390,7 +390,7 @@
           "rippleStrength": 0.02,
           "rollSpeed": 0.04,
           "glitchRate": 0.05,
-          "ghostOffset": 0.005,
+          "ghostOffset": 0.01,
           "tearStrength": 0.0,
           "glowStrength": 0.3,
           "glowSpread": 2.0,

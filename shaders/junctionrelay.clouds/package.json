@@ -1,7 +1,7 @@
 {
   "name": "@junctionrelay/shader-clouds",
   "version": "1.1.0",
-  "description": "Procedural volumetric cloudscape — ray-marched FBM noise with silver lining, lightning, god rays, and bloom",
+  "description": "Procedural volumetric cloudscape \u2014 ray-marched FBM noise with silver lining, lightning, god rays, and bloom",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.clouds",
@@ -34,31 +34,43 @@
         "default": 0.15,
         "min": 0.0,
         "max": 1.0,
-        "description": "Sun position — 0=right, 0.25=top, 0.5=left, 0.75=bottom"
+        "description": "Sun position \u2014 0=right, 0.25=top, 0.5=left, 0.75=bottom"
       },
       {
         "name": "sunColor",
         "displayName": "Sun Color",
         "type": "color",
         "pass": 0,
-        "default": [1.0, 0.85, 0.6],
-        "description": "Color of sunlight — warm golden default for golden-hour look"
+        "default": [
+          1.0,
+          0.85,
+          0.6
+        ],
+        "description": "Color of sunlight \u2014 warm golden default for golden-hour look"
       },
       {
         "name": "shadowColor",
         "displayName": "Shadow Color",
         "type": "color",
         "pass": 0,
-        "default": [0.15, 0.15, 0.3],
-        "description": "Color of cloud shadows — cool blue default for natural volumetric shadow"
+        "default": [
+          0.15,
+          0.15,
+          0.3
+        ],
+        "description": "Color of cloud shadows \u2014 cool blue default for natural volumetric shadow"
       },
       {
         "name": "skyColor",
         "displayName": "Sky Color",
         "type": "color",
         "pass": 0,
-        "default": [0.52, 0.63, 0.75],
-        "description": "Base sky gradient color — visible between and behind clouds"
+        "default": [
+          0.52,
+          0.63,
+          0.75
+        ],
+        "description": "Base sky gradient color \u2014 visible between and behind clouds"
       },
       {
         "name": "cloudCoverage",
@@ -68,7 +80,7 @@
         "default": 0.55,
         "min": 0.0,
         "max": 1.0,
-        "description": "How much sky is covered — 0 is scattered, 1 is fully overcast"
+        "description": "How much sky is covered \u2014 0 is scattered, 1 is fully overcast"
       },
       {
         "name": "cloudSpeed",
@@ -78,7 +90,7 @@
         "default": 0.3,
         "min": 0.0,
         "max": 1.0,
-        "description": "Wind speed — how fast clouds drift and the camera flies"
+        "description": "Wind speed \u2014 how fast clouds drift and the camera flies"
       },
       {
         "name": "cloudSparseness",
@@ -88,7 +100,7 @@
         "default": 1.0,
         "min": 0.3,
         "max": 3.0,
-        "description": "Distance between cloud clumps — low is tightly packed, high is wide open sky between clumps"
+        "description": "Distance between cloud clumps \u2014 low is tightly packed, high is wide open sky between clumps"
       },
       {
         "name": "stepCap",
@@ -98,7 +110,7 @@
         "default": 0.2,
         "min": 0.05,
         "max": 0.5,
-        "description": "Max ray march step size — lower is smoother distant clouds but costs FPS"
+        "description": "Max ray march step size \u2014 lower is smoother distant clouds but costs FPS"
       },
       {
         "name": "densitySmooth",
@@ -108,7 +120,7 @@
         "default": 0.15,
         "min": 0.0,
         "max": 0.5,
-        "description": "Fade range for wispy clouds — 0 is hard cutoff (shimmery), higher fades them in smoothly"
+        "description": "Fade range for wispy clouds \u2014 0 is hard cutoff (shimmery), higher fades them in smoothly"
       },
       {
         "name": "godraySunAngle",
@@ -118,7 +130,7 @@
         "default": 0.15,
         "min": 0.0,
         "max": 1.0,
-        "description": "Sun position for god ray origin — match with Clouds sun angle for correct alignment"
+        "description": "Sun position for god ray origin \u2014 match with Clouds sun angle for correct alignment"
       },
       {
         "name": "godrayIntensity",
@@ -138,7 +150,7 @@
         "default": 0.96,
         "min": 0.9,
         "max": 1.0,
-        "description": "How quickly rays fade along their length — higher is longer rays"
+        "description": "How quickly rays fade along their length \u2014 higher is longer rays"
       },
       {
         "name": "godrayDensity",
@@ -148,7 +160,7 @@
         "default": 0.8,
         "min": 0.1,
         "max": 2.0,
-        "description": "Sample spacing — higher stretches rays further from the sun"
+        "description": "Sample spacing \u2014 higher stretches rays further from the sun"
       },
       {
         "name": "bloomThreshold",
@@ -158,7 +170,7 @@
         "default": 0.72,
         "min": 0.0,
         "max": 1.0,
-        "description": "Luminance cutoff — how bright a pixel must be to glow"
+        "description": "Luminance cutoff \u2014 how bright a pixel must be to glow"
       },
       {
         "name": "bloomIntensity",
@@ -188,7 +200,7 @@
         "default": 0.5,
         "min": 0.0,
         "max": 1.0,
-        "description": "Warm tint on bloom — 0 is neutral, 1 is warm golden"
+        "description": "Warm tint on bloom \u2014 0 is neutral, 1 is warm golden"
       }
     ],
     "presets": [
@@ -197,9 +209,21 @@
         "default": true,
         "values": {
           "sunAngle": 0.15,
-          "sunColor": [1.0, 0.85, 0.6],
-          "shadowColor": [0.15, 0.15, 0.3],
-          "skyColor": [0.52, 0.63, 0.75],
+          "sunColor": [
+            1.0,
+            0.85,
+            0.6
+          ],
+          "shadowColor": [
+            0.15,
+            0.15,
+            0.3
+          ],
+          "skyColor": [
+            0.52,
+            0.63,
+            0.75
+          ],
           "cloudCoverage": 0.55,
           "cloudSpeed": 0.3,
           "cloudSparseness": 1.0,
@@ -219,9 +243,21 @@
         "name": "Storm Brewing",
         "values": {
           "sunAngle": 0.3,
-          "sunColor": [0.6, 0.55, 0.5],
-          "shadowColor": [0.1, 0.1, 0.15],
-          "skyColor": [0.35, 0.38, 0.42],
+          "sunColor": [
+            0.6,
+            0.55,
+            0.5
+          ],
+          "shadowColor": [
+            0.1,
+            0.1,
+            0.15
+          ],
+          "skyColor": [
+            0.35,
+            0.38,
+            0.42
+          ],
           "cloudCoverage": 0.85,
           "cloudSpeed": 0.5,
           "cloudSparseness": 0.6,
@@ -241,9 +277,21 @@
         "name": "Sunset Blaze",
         "values": {
           "sunAngle": 0.85,
-          "sunColor": [1.0, 0.5, 0.15],
-          "shadowColor": [0.2, 0.1, 0.25],
-          "skyColor": [0.55, 0.45, 0.5],
+          "sunColor": [
+            1.0,
+            0.5,
+            0.15
+          ],
+          "shadowColor": [
+            0.2,
+            0.1,
+            0.25
+          ],
+          "skyColor": [
+            0.55,
+            0.45,
+            0.5
+          ],
           "cloudCoverage": 0.6,
           "cloudSpeed": 0.2,
           "cloudSparseness": 1.2,
@@ -263,9 +311,21 @@
         "name": "Overcast",
         "values": {
           "sunAngle": 0.25,
-          "sunColor": [0.75, 0.75, 0.75],
-          "shadowColor": [0.3, 0.3, 0.35],
-          "skyColor": [0.6, 0.62, 0.65],
+          "sunColor": [
+            0.75,
+            0.75,
+            0.75
+          ],
+          "shadowColor": [
+            0.3,
+            0.3,
+            0.35
+          ],
+          "skyColor": [
+            0.6,
+            0.62,
+            0.65
+          ],
           "cloudCoverage": 0.9,
           "cloudSpeed": 0.15,
           "cloudSparseness": 0.5,
@@ -285,9 +345,21 @@
         "name": "Partly Cloudy",
         "values": {
           "sunAngle": 0.25,
-          "sunColor": [1.0, 0.95, 0.9],
-          "shadowColor": [0.15, 0.15, 0.25],
-          "skyColor": [0.5, 0.65, 0.82],
+          "sunColor": [
+            1.0,
+            0.95,
+            0.9
+          ],
+          "shadowColor": [
+            0.15,
+            0.15,
+            0.25
+          ],
+          "skyColor": [
+            0.5,
+            0.65,
+            0.82
+          ],
           "cloudCoverage": 0.35,
           "cloudSpeed": 0.25,
           "cloudSparseness": 1.5,

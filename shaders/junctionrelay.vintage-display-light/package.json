@@ -5,7 +5,7 @@
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.vintage-display-light",
-    "emoji": "📺",
+    "emoji": "\ud83d\udcfa",
     "displayName": "Vintage Display - Light",
     "description": "Single-pass CRT shader optimized for low-power hardware (Raspberry Pi, ARM). Barrel distortion, monochrome phosphor color grading, scanlines, pixel grid, static snow, raster ripple, sync roll, power flicker, vignette, grain, warmth, and gamma. 1 texture lookup per fragment, no bloom, no ghosting, no glitch strips. 12 uniforms, 8 presets.",
     "usesTexture": true,
@@ -23,7 +23,11 @@
         "displayName": "Phosphor Color",
         "type": "color",
         "pass": 0,
-        "default": [0.2, 1.0, 0.3],
+        "default": [
+          0.2,
+          1.0,
+          0.3
+        ],
         "description": "Monochrome phosphor tint: green P1, amber, white, blue"
       },
       {
@@ -152,7 +156,11 @@
         "name": "Data Stream",
         "default": true,
         "values": {
-          "phosphorColor": [0.15, 1.0, 0.25],
+          "phosphorColor": [
+            0.15,
+            1.0,
+            0.25
+          ],
           "phosphorDrive": 1.0,
           "scanlineWeight": 0.35,
           "warpAmount": 0.03,
@@ -170,7 +178,11 @@
       {
         "name": "Green Terminal",
         "values": {
-          "phosphorColor": [0.2, 1.0, 0.3],
+          "phosphorColor": [
+            0.2,
+            1.0,
+            0.3
+          ],
           "phosphorDrive": 0.85,
           "scanlineWeight": 0.5,
           "warpAmount": 0.04,
@@ -188,10 +200,14 @@
       {
         "name": "Amber Terminal",
         "values": {
-          "phosphorColor": [1.0, 0.7, 0.1],
+          "phosphorColor": [
+            1.0,
+            0.7,
+            0.1
+          ],
           "phosphorDrive": 0.9,
           "scanlineWeight": 0.4,
-          "warpAmount": 0.035,
+          "warpAmount": 0.04,
           "pixelGrid": 0.2,
           "brightness": 0.05,
           "staticAmount": 0.01,
@@ -206,7 +222,11 @@
       {
         "name": "Surveillance",
         "values": {
-          "phosphorColor": [0.8, 0.8, 0.8],
+          "phosphorColor": [
+            0.8,
+            0.8,
+            0.8
+          ],
           "phosphorDrive": 0.7,
           "scanlineWeight": 0.6,
           "warpAmount": 0.03,
@@ -224,7 +244,11 @@
       {
         "name": "Broken Signal",
         "values": {
-          "phosphorColor": [0.3, 1.0, 0.3],
+          "phosphorColor": [
+            0.3,
+            1.0,
+            0.3
+          ],
           "phosphorDrive": 0.8,
           "scanlineWeight": 0.5,
           "warpAmount": 0.05,
@@ -242,7 +266,11 @@
       {
         "name": "Oscilloscope",
         "values": {
-          "phosphorColor": [0.1, 1.0, 0.2],
+          "phosphorColor": [
+            0.1,
+            1.0,
+            0.2
+          ],
           "phosphorDrive": 1.2,
           "scanlineWeight": 0.15,
           "warpAmount": 0.02,
@@ -260,7 +288,11 @@
       {
         "name": "Cold War",
         "values": {
-          "phosphorColor": [0.6, 0.7, 1.0],
+          "phosphorColor": [
+            0.6,
+            0.7,
+            1.0
+          ],
           "phosphorDrive": 0.8,
           "scanlineWeight": 0.55,
           "warpAmount": 0.05,
@@ -278,7 +310,11 @@
       {
         "name": "Vacuum Tube",
         "values": {
-          "phosphorColor": [1.0, 0.5, 0.05],
+          "phosphorColor": [
+            1.0,
+            0.5,
+            0.05
+          ],
           "phosphorDrive": 0.75,
           "scanlineWeight": 0.6,
           "warpAmount": 0.06,

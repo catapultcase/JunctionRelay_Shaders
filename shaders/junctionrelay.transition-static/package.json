@@ -1,11 +1,11 @@
 {
   "name": "@junctionrelay/shader-transition-static",
   "version": "1.0.0",
-  "description": "Procedural CRT channel-change static — no texture required. Single lightweight pass.",
+  "description": "Procedural CRT channel-change static \u2014 no texture required. Single lightweight pass.",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.transition-static",
-    "emoji": "📻",
+    "emoji": "\ud83d\udcfb",
     "displayName": "Transition Static",
     "description": "Procedural CRT channel-change static with no texture input. Single pass: multi-octave noise with row-band modulation, signal dropout, vertical sync roll bars, horizontal tears, scanlines, shadow mask, vignette, and phosphor tint. Optionally shifts to full RGB colour noise. 8 uniforms, 5 presets.",
     "usesTexture": false,
@@ -28,7 +28,7 @@
           1.0,
           0.3
         ],
-        "description": "Phosphor tint of the monochrome static — white/grey, green terminal, amber, blue surveillance"
+        "description": "Phosphor tint of the monochrome static \u2014 white/grey, green terminal, amber, blue surveillance"
       },
       {
         "name": "scanlineWeight",
@@ -38,7 +38,7 @@
         "default": 0.45,
         "min": 0.0,
         "max": 1.0,
-        "description": "Scanline darkness — 0 disables, 1 is maximum (full black alternating lines)"
+        "description": "Scanline darkness \u2014 0 disables, 1 is maximum (full black alternating lines)"
       },
       {
         "name": "pixelGrid",
@@ -48,7 +48,7 @@
         "default": 0.2,
         "min": 0.0,
         "max": 1.0,
-        "description": "Shadow mask / dot grid visibility — simulates phosphor dot structure over the static"
+        "description": "Shadow mask / dot grid visibility \u2014 simulates phosphor dot structure over the static"
       },
       {
         "name": "rollSpeed",
@@ -58,17 +58,17 @@
         "default": 0.12,
         "min": 0.0,
         "max": 0.5,
-        "description": "Vertical hold drift rate — two dark bars scroll up like an unsynchronised monitor"
+        "description": "Vertical hold drift rate \u2014 two dark bars scroll up like an unsynchronised monitor"
       },
       {
         "name": "tearStrength",
         "displayName": "H-Tear",
         "type": "float",
         "pass": 0,
-        "default": 0.025,
+        "default": 0.03,
         "min": 0.0,
         "max": 0.12,
-        "description": "Horizontal noise displacement — random bands of static shift left or right"
+        "description": "Horizontal noise displacement \u2014 random bands of static shift left or right"
       },
       {
         "name": "colorShift",
@@ -88,7 +88,7 @@
         "default": 0.65,
         "min": 0.0,
         "max": 1.0,
-        "description": "Bezel edge darkening — simulates CRT shadow mask fall-off at corners"
+        "description": "Bezel edge darkening \u2014 simulates CRT shadow mask fall-off at corners"
       },
       {
         "name": "flickerAmount",
@@ -98,7 +98,7 @@
         "default": 0.03,
         "min": 0.0,
         "max": 0.15,
-        "description": "Power supply instability — slow brightness oscillation"
+        "description": "Power supply instability \u2014 slow brightness oscillation"
       }
     ],
     "presets": [

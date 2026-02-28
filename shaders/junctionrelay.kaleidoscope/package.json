@@ -5,7 +5,7 @@
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.kaleidoscope",
-    "emoji": "🔮",
+    "emoji": "\ud83d\udd2e",
     "displayName": "Kaleidoscope",
     "description": "Two-pass animated kaleidoscope with fractal noise folded into radial segments. Pass 0 generates the pattern with feedback trails stored in alpha. Pass 1 applies a bloom glow. Dual colour tints, adjustable symmetry, zoom, speeds, brightness, and vignette.",
     "usesTexture": false,
@@ -27,7 +27,11 @@
         "displayName": "Colour A",
         "type": "color",
         "pass": 0,
-        "default": [0.4, 0.6, 1.0],
+        "default": [
+          0.4,
+          0.6,
+          1.0
+        ],
         "description": "Primary colour tint for the palette"
       },
       {
@@ -35,7 +39,11 @@
         "displayName": "Colour B",
         "type": "color",
         "pass": 0,
-        "default": [1.0, 0.3, 0.6],
+        "default": [
+          1.0,
+          0.3,
+          0.6
+        ],
         "description": "Secondary colour tint blended with Colour A"
       },
       {
@@ -46,7 +54,7 @@
         "default": 8.0,
         "min": 3.0,
         "max": 24.0,
-        "description": "Number of radial symmetry segments — more segments create tighter, more intricate patterns"
+        "description": "Number of radial symmetry segments \u2014 more segments create tighter, more intricate patterns"
       },
       {
         "name": "zoom",
@@ -56,7 +64,7 @@
         "default": 2.0,
         "min": 0.5,
         "max": 8.0,
-        "description": "Pattern zoom level — higher values reveal finer detail"
+        "description": "Pattern zoom level \u2014 higher values reveal finer detail"
       },
       {
         "name": "rotationSpeed",
@@ -76,7 +84,7 @@
         "default": 0.3,
         "min": 0.0,
         "max": 2.0,
-        "description": "Speed of the underlying pattern animation — 0 freezes the pattern"
+        "description": "Speed of the underlying pattern animation \u2014 0 freezes the pattern"
       },
       {
         "name": "colorCycleSpeed",
@@ -86,7 +94,7 @@
         "default": 0.5,
         "min": 0.0,
         "max": 3.0,
-        "description": "Speed of colour palette cycling — 0 for static colours"
+        "description": "Speed of colour palette cycling \u2014 0 for static colours"
       },
       {
         "name": "brightness",
@@ -106,7 +114,7 @@
         "default": 0.4,
         "min": 0.0,
         "max": 1.0,
-        "description": "Edge darkening — frames the pattern with a soft border"
+        "description": "Edge darkening \u2014 frames the pattern with a soft border"
       },
       {
         "name": "trailDecay",
@@ -116,7 +124,7 @@
         "default": 0.92,
         "min": 0.0,
         "max": 0.99,
-        "description": "How long feedback trails persist — higher = longer trails, 0 = no trails"
+        "description": "How long feedback trails persist \u2014 higher = longer trails, 0 = no trails"
       },
       {
         "name": "bloomAmount",
@@ -134,8 +142,16 @@
         "name": "Sapphire Dream",
         "default": true,
         "values": {
-          "colorTintA": [0.4, 0.6, 1.0],
-          "colorTintB": [1.0, 0.3, 0.6],
+          "colorTintA": [
+            0.4,
+            0.6,
+            1.0
+          ],
+          "colorTintB": [
+            1.0,
+            0.3,
+            0.6
+          ],
           "segments": 8.0,
           "zoom": 2.0,
           "rotationSpeed": 0.15,
@@ -150,8 +166,16 @@
       {
         "name": "Ember Mandala",
         "values": {
-          "colorTintA": [1.0, 0.4, 0.15],
-          "colorTintB": [1.0, 0.8, 0.2],
+          "colorTintA": [
+            1.0,
+            0.4,
+            0.15
+          ],
+          "colorTintB": [
+            1.0,
+            0.8,
+            0.2
+          ],
           "segments": 12.0,
           "zoom": 3.0,
           "rotationSpeed": 0.08,
@@ -166,8 +190,16 @@
       {
         "name": "Crystal Frost",
         "values": {
-          "colorTintA": [0.7, 0.9, 1.0],
-          "colorTintB": [0.9, 0.95, 1.0],
+          "colorTintA": [
+            0.7,
+            0.9,
+            1.0
+          ],
+          "colorTintB": [
+            0.9,
+            0.95,
+            1.0
+          ],
           "segments": 6.0,
           "zoom": 1.5,
           "rotationSpeed": 0.25,
@@ -182,8 +214,16 @@
       {
         "name": "Neon Bloom",
         "values": {
-          "colorTintA": [0.9, 0.2, 0.8],
-          "colorTintB": [0.2, 0.9, 0.4],
+          "colorTintA": [
+            0.9,
+            0.2,
+            0.8
+          ],
+          "colorTintB": [
+            0.2,
+            0.9,
+            0.4
+          ],
           "segments": 16.0,
           "zoom": 4.0,
           "rotationSpeed": 0.2,
@@ -198,8 +238,16 @@
       {
         "name": "Slow Jade",
         "values": {
-          "colorTintA": [0.2, 0.8, 0.5],
-          "colorTintB": [0.1, 0.5, 0.7],
+          "colorTintA": [
+            0.2,
+            0.8,
+            0.5
+          ],
+          "colorTintB": [
+            0.1,
+            0.5,
+            0.7
+          ],
           "segments": 5.0,
           "zoom": 1.8,
           "rotationSpeed": 0.05,

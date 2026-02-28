@@ -1,11 +1,11 @@
 {
   "name": "@junctionrelay/shader-rain-window",
   "version": "4.1.0",
-  "description": "Rain on glass — realistic drops with refraction, trails, fog, temporal persistence, bloom, and ambient lighting over a background texture",
+  "description": "Rain on glass \u2014 realistic drops with refraction, trails, fog, temporal persistence, bloom, and ambient lighting over a background texture",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.rain-window",
-    "emoji": "🌧️",
+    "emoji": "\ud83c\udf27\ufe0f",
     "displayName": "Rain Window",
     "description": "Rainy glass overlay with temporal persistence, bloom, and ambient lighting. Drops roll down the surface leaving trails that cut through condensation fog. Wet marks persist and slowly evaporate over ~3 seconds via feedback. Star-pattern bloom adds warm glow to specular highlights. Ambient light pass provides scene-wide colored lighting, directional gradients, and atmospheric haze.",
     "usesTexture": true,
@@ -34,7 +34,7 @@
         "default": 0.3,
         "min": 0.0,
         "max": 1.0,
-        "description": "Density of rain — controls settled droplets, large rolling drops, and small fast drops"
+        "description": "Density of rain \u2014 controls settled droplets, large rolling drops, and small fast drops"
       },
       {
         "name": "fogAmount",
@@ -44,7 +44,7 @@
         "default": 0.1,
         "min": 0.0,
         "max": 1.0,
-        "description": "How foggy the glass surface appears — higher values blur the background more"
+        "description": "How foggy the glass surface appears \u2014 higher values blur the background more"
       },
       {
         "name": "dropSize",
@@ -54,7 +54,7 @@
         "default": 0.6,
         "min": 0.1,
         "max": 1.5,
-        "description": "Scales the radius of all raindrops — lower for fine mist, higher for large heavy drops"
+        "description": "Scales the radius of all raindrops \u2014 lower for fine mist, higher for large heavy drops"
       },
       {
         "name": "pathVariance",
@@ -64,7 +64,7 @@
         "default": 0.3,
         "min": 0.0,
         "max": 1.0,
-        "description": "Controls how erratically drops meander as they fall — 0 is straight down, higher values add lateral wobble and erratic jitter"
+        "description": "Controls how erratically drops meander as they fall \u2014 0 is straight down, higher values add lateral wobble and erratic jitter"
       },
       {
         "name": "windDir",
@@ -74,7 +74,7 @@
         "default": 0.7,
         "min": -1.0,
         "max": 1.0,
-        "description": "Wind direction — negative blows left, positive blows right. Tilts background streaks and biases drop drift on glass."
+        "description": "Wind direction \u2014 negative blows left, positive blows right. Tilts background streaks and biases drop drift on glass."
       },
       {
         "name": "glassTilt",
@@ -84,7 +84,7 @@
         "default": 0.8,
         "min": -1.0,
         "max": 1.0,
-        "description": "Glass surface tilt — negative tilts left, positive tilts right. Drops drift toward the low side under gravity."
+        "description": "Glass surface tilt \u2014 negative tilts left, positive tilts right. Drops drift toward the low side under gravity."
       },
       {
         "name": "surfaceTension",
@@ -94,7 +94,7 @@
         "default": 0.2,
         "min": 0.0,
         "max": 1.0,
-        "description": "How clingy the glass surface is — low values let drops slide quickly, high values make them cling longer and fall slower"
+        "description": "How clingy the glass surface is \u2014 low values let drops slide quickly, high values make them cling longer and fall slower"
       },
       {
         "name": "viscosity",
@@ -104,7 +104,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "Liquid thickness — 0 is water, higher values produce slower, rounder drops with wider trails (blood, honey, syrup)"
+        "description": "Liquid thickness \u2014 0 is water, higher values produce slower, rounder drops with wider trails (blood, honey, syrup)"
       },
       {
         "name": "liquidColor",
@@ -116,7 +116,7 @@
           1.0,
           1.0
         ],
-        "description": "Tint color of the liquid — white for water, red for blood, amber for honey"
+        "description": "Tint color of the liquid \u2014 white for water, red for blood, amber for honey"
       },
       {
         "name": "liquidOpacity",
@@ -126,7 +126,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "How opaque the liquid is — 0 is fully clear (refraction only), 1 is solid colored liquid"
+        "description": "How opaque the liquid is \u2014 0 is fully clear (refraction only), 1 is solid colored liquid"
       },
       {
         "name": "bloomThreshold",
@@ -136,7 +136,7 @@
         "default": 0.72,
         "min": 0.0,
         "max": 1.0,
-        "description": "Luminance cutoff — how bright a pixel must be to glow. Lower values bloom more of the image."
+        "description": "Luminance cutoff \u2014 how bright a pixel must be to glow. Lower values bloom more of the image."
       },
       {
         "name": "bloomIntensity",
@@ -146,7 +146,7 @@
         "default": 0.6,
         "min": 0.0,
         "max": 2.0,
-        "description": "Strength of the additive bloom composite — 0 disables bloom entirely, higher values create stronger glow"
+        "description": "Strength of the additive bloom composite \u2014 0 disables bloom entirely, higher values create stronger glow"
       },
       {
         "name": "bloomSpread",
@@ -156,7 +156,7 @@
         "default": 2.5,
         "min": 0.5,
         "max": 6.0,
-        "description": "How far bloom rays extend from bright spots — higher values create wider, softer glow"
+        "description": "How far bloom rays extend from bright spots \u2014 higher values create wider, softer glow"
       },
       {
         "name": "bloomWarmth",
@@ -166,7 +166,7 @@
         "default": 0.5,
         "min": 0.0,
         "max": 1.0,
-        "description": "Warm tint on bloom — 0 is neutral white, 1 is warm golden (light through water absorbs blue)"
+        "description": "Warm tint on bloom \u2014 0 is neutral white, 1 is warm golden (light through water absorbs blue)"
       },
       {
         "name": "lightColor",
@@ -178,7 +178,7 @@
           1.0,
           1.0
         ],
-        "description": "Scene light color — white is neutral, red for horror, amber for warm"
+        "description": "Scene light color \u2014 white is neutral, red for horror, amber for warm"
       },
       {
         "name": "lightIntensity",
@@ -188,7 +188,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "How strongly the light tints the scene — 0 means no effect"
+        "description": "How strongly the light tints the scene \u2014 0 means no effect"
       },
       {
         "name": "lightAngle",
@@ -198,7 +198,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "Light direction — maps to 0-360 degrees. 0=right, 0.25=top, 0.5=left, 0.75=bottom"
+        "description": "Light direction \u2014 maps to 0-360 degrees. 0=right, 0.25=top, 0.5=left, 0.75=bottom"
       },
       {
         "name": "lightFocus",
@@ -220,7 +220,7 @@
           1.0,
           1.0
         ],
-        "description": "Haze/fog particle color — adds colored atmosphere to the scene"
+        "description": "Haze/fog particle color \u2014 adds colored atmosphere to the scene"
       },
       {
         "name": "atmosphereDensity",
@@ -230,7 +230,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "How thick the atmospheric haze is — 0 is clear, 1 is dense fog"
+        "description": "How thick the atmospheric haze is \u2014 0 is clear, 1 is dense fog"
       },
       {
         "name": "exposure",
@@ -240,7 +240,7 @@
         "default": 0.0,
         "min": -1.0,
         "max": 1.0,
-        "description": "Overall brightness — negative darkens, positive brightens (EV-style: 2^exposure)"
+        "description": "Overall brightness \u2014 negative darkens, positive brightens (EV-style: 2^exposure)"
       }
     ],
     "presets": [
@@ -286,13 +286,13 @@
       {
         "name": "Foggy with Light Rain",
         "values": {
-          "rainAmount": 0.2152984635152754,
-          "fogAmount": 0.13562010533645408,
-          "dropSize": 0.5892303986195548,
-          "pathVariance": 0.47283729989150836,
-          "windDir": 0.9708059087093326,
-          "glassTilt": -0.8934737317726256,
-          "surfaceTension": 0.503908581858657,
+          "rainAmount": 0.22,
+          "fogAmount": 0.14,
+          "dropSize": 0.59,
+          "pathVariance": 0.47,
+          "windDir": 0.97,
+          "glassTilt": -0.89,
+          "surfaceTension": 0.5,
           "viscosity": 0.0,
           "liquidColor": [
             1.0,

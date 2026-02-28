@@ -1,11 +1,11 @@
 {
   "name": "@junctionrelay/shader-tunnel",
   "version": "1.0.0",
-  "description": "Procedural sci-fi wireframe tunnel — transparent between neon grid lines. Single lightweight pass.",
+  "description": "Procedural sci-fi wireframe tunnel \u2014 transparent between neon grid lines. Single lightweight pass.",
   "junctionrelay": {
     "type": "shader",
     "shaderName": "junctionrelay.tunnel",
-    "emoji": "🕳️",
+    "emoji": "\ud83d\udd73\ufe0f",
     "displayName": "Tunnel",
     "description": "Procedural retro-CGI wireframe tunnel with transparent background. Cross-section blends from square to circle. Movable vanishing point, configurable depth and offset, grid colour, line width, glow, speed, density, and rotation. 10 uniforms, 6 presets.",
     "usesTexture": false,
@@ -23,8 +23,12 @@
         "displayName": "Grid Colour",
         "type": "color",
         "pass": 0,
-        "default": [0.0, 0.85, 1.0],
-        "description": "Neon colour of the tunnel grid lines — cyan, red, green, magenta, white"
+        "default": [
+          0.0,
+          0.85,
+          1.0
+        ],
+        "description": "Neon colour of the tunnel grid lines \u2014 cyan, red, green, magenta, white"
       },
       {
         "name": "speed",
@@ -34,7 +38,7 @@
         "default": 0.5,
         "min": 0.0,
         "max": 2.0,
-        "description": "Forward velocity through the tunnel — 0 is frozen, 2 is hyperdrive"
+        "description": "Forward velocity through the tunnel \u2014 0 is frozen, 2 is hyperdrive"
       },
       {
         "name": "gridDensity",
@@ -44,7 +48,7 @@
         "default": 6.0,
         "min": 2.0,
         "max": 16.0,
-        "description": "Number of angular grid segments around the tunnel — higher values create a tighter mesh"
+        "description": "Number of angular grid segments around the tunnel \u2014 higher values create a tighter mesh"
       },
       {
         "name": "lineWidth",
@@ -54,7 +58,7 @@
         "default": 0.5,
         "min": 0.1,
         "max": 2.0,
-        "description": "Thickness of the neon grid lines — thin wires to bold beams"
+        "description": "Thickness of the neon grid lines \u2014 thin wires to bold beams"
       },
       {
         "name": "glowIntensity",
@@ -64,7 +68,7 @@
         "default": 0.8,
         "min": 0.0,
         "max": 2.0,
-        "description": "Soft bloom spread around each grid line — 0 disables, 2 is maximum haze"
+        "description": "Soft bloom spread around each grid line \u2014 0 disables, 2 is maximum haze"
       },
       {
         "name": "rotationSpeed",
@@ -74,7 +78,7 @@
         "default": 0.05,
         "min": 0.0,
         "max": 0.5,
-        "description": "Tunnel barrel-roll rate — subtle drift or full spin"
+        "description": "Tunnel barrel-roll rate \u2014 subtle drift or full spin"
       },
       {
         "name": "curvature",
@@ -84,7 +88,7 @@
         "default": 0.0,
         "min": 0.0,
         "max": 1.0,
-        "description": "Bends the near end of the tunnel sideways — 0 is straight, higher values create a wider arc"
+        "description": "Bends the near end of the tunnel sideways \u2014 0 is straight, higher values create a wider arc"
       },
       {
         "name": "depthScale",
@@ -94,7 +98,7 @@
         "default": 0.5,
         "min": 0.1,
         "max": 2.0,
-        "description": "How deep the corridor stretches — low values feel close-up, high values stretch infinitely"
+        "description": "How deep the corridor stretches \u2014 low values feel close-up, high values stretch infinitely"
       },
       {
         "name": "originX",
@@ -104,7 +108,7 @@
         "default": 0.0,
         "min": -1.0,
         "max": 1.0,
-        "description": "Horizontal position of the vanishing point — 0 is centred"
+        "description": "Horizontal position of the vanishing point \u2014 0 is centred"
       },
       {
         "name": "originY",
@@ -114,7 +118,7 @@
         "default": 0.0,
         "min": -1.0,
         "max": 1.0,
-        "description": "Vertical position of the vanishing point — 0 is centred"
+        "description": "Vertical position of the vanishing point \u2014 0 is centred"
       }
     ],
     "presets": [
@@ -122,7 +126,11 @@
         "name": "Neon Grid",
         "default": true,
         "values": {
-          "gridColor": [0.0, 0.85, 1.0],
+          "gridColor": [
+            0.0,
+            0.85,
+            1.0
+          ],
           "speed": 0.5,
           "gridDensity": 6.0,
           "lineWidth": 0.5,
@@ -137,7 +145,11 @@
       {
         "name": "Red Core",
         "values": {
-          "gridColor": [1.0, 0.2, 0.05],
+          "gridColor": [
+            1.0,
+            0.2,
+            0.05
+          ],
           "speed": 0.9,
           "gridDensity": 8.0,
           "lineWidth": 0.4,
@@ -152,7 +164,11 @@
       {
         "name": "Green Conduit",
         "values": {
-          "gridColor": [0.1, 1.0, 0.3],
+          "gridColor": [
+            0.1,
+            1.0,
+            0.3
+          ],
           "speed": 0.6,
           "gridDensity": 10.0,
           "lineWidth": 0.3,
@@ -167,7 +183,11 @@
       {
         "name": "Synthwave",
         "values": {
-          "gridColor": [1.0, 0.1, 0.7],
+          "gridColor": [
+            1.0,
+            0.1,
+            0.7
+          ],
           "speed": 0.35,
           "gridDensity": 5.0,
           "lineWidth": 0.8,
@@ -182,7 +202,11 @@
       {
         "name": "Ghost Wire",
         "values": {
-          "gridColor": [0.85, 0.9, 1.0],
+          "gridColor": [
+            0.85,
+            0.9,
+            1.0
+          ],
           "speed": 0.25,
           "gridDensity": 6.0,
           "lineWidth": 0.2,
@@ -197,7 +221,11 @@
       {
         "name": "Hyperdrive",
         "values": {
-          "gridColor": [0.5, 0.7, 1.0],
+          "gridColor": [
+            0.5,
+            0.7,
+            1.0
+          ],
           "speed": 1.8,
           "gridDensity": 4.0,
           "lineWidth": 0.6,
