@@ -108,7 +108,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec2 p = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
 
-    // Sun direction from uniform
+    // Sun direction from the sunAngle input
     float sAngle = sunAngle * 6.2832;
     vec3 sunDir = normalize(vec3(cos(sAngle), 0.0, sin(sAngle)));
 
