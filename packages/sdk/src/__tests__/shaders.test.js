@@ -64,6 +64,13 @@ function wrapForSpirv(src, customUniforms = []) {
 }
 
 /**
+ * Remove GLSL comments (line comments and block comments) from source.
+ */
+function stripGlslComments(src) {
+  return src.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '');
+}
+
+/**
  * Compile GLSL to SPIR-V in a child process (avoids WASM + node:test deadlock).
  * Writes GLSL to a temp file to avoid command-line length limits.
  * Returns { ok: true, bytes: N } or { ok: false, error: 'message' }.
@@ -101,6 +108,22 @@ function compileToSpirvSync(glslSource, customUniforms = []) {
     try { fs.unlinkSync(scriptFile); } catch {}
   }
 }
+
+describe('stripGlslComments', () => {
+  it('removes line comments', () => {
+    assert.equal(stripGlslComments('float x; // Sun direction from uniform\nfloat y;'),
+      'float x; \nfloat y;');
+  });
+
+  it('removes single-line and multi-line block comments', () => {
+    assert.equal(stripGlslComments('float x; /* uniform */ float y;\n/* uniform\n   declaration */\nfloat z;'),
+      'float x;  float y;\n\nfloat z;');
+  });
+
+  it('leaves real declarations intact', () => {
+    assert.match(stripGlslComments('uniform float x; // comment'), /\buniform\b/);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Discover shaders
@@ -317,7 +340,7 @@ for (const shaderName of shaderNames) {
 
           it('has no uniform declarations', () => {
             glsl = glsl || fs.readFileSync(path.join(shaderDir, passEntry), 'utf8');
-            assert.doesNotMatch(glsl, /\buniform\b/);
+            assert.doesNotMatch(stripGlslComments(glsl), /\buniform\b/);
           });
 
           it('has no out vec4 declaration', () => {
