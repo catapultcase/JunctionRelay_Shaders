@@ -2,7 +2,7 @@
 
 - **Audit date:** 2026-11-17
 - **Repository:** `catapultcase/JunctionRelay_Shaders`
-- **Commit audited:** `dd199b859eb06442230df7fa786e8eecfa680b0b` (`dd199b8`, "Make the 'has no uniform declarations' shader test ignore comments (#3)") — this is `HEAD` in the working directory and equals `origin/main` (`git log --all` shows a single commit).
+- **Commit audited:** `dd199b859eb06442230df7fa786e8eecfa680b0b` (`dd199b8`, "Make the 'has no uniform declarations' shader test ignore comments (#3)") — this was `HEAD` and `origin/main` at the time of the audit. The audited history is **157 commits** (`git rev-list --count dd199b8`) in a **full, non-shallow clone** (`git rev-parse --is-shallow-repository` prints `false`; the ancestry of `dd199b8`, including `60ea555` and `8e5e3f8`, is fully reachable).
 - **Type:** read-only source review. No existing file was changed; this report is the only artifact added. Nothing here claims a fix has been applied — every item is a *proposed* fix. Any finding that needs a code change becomes its own ticket.
 
 ## Severity scale
@@ -37,7 +37,7 @@
 | L2 | Low | Manifest-controlled strings reach logs/errors unsanitised; no size or count caps on manifest or shader source | `packages/sdk/src/index.js:36,57,64`, `test.html:196-197` |
 | L3 | Low | Shader fetches are not checked (`res.ok`, content type) and the dev page ships no CSP/SRI | `test.html:171-198` |
 | L4 | Low | `Remove-Item -Recurse -Force` on a path derived from the current directory | `scripts/test_windows.ps1:14-16` |
-| I1 | Info | No secrets in the working tree or in git history | — (see Secrets) |
+| I1 | Info | No secrets in the working tree or in the full 157-commit git history | — (see Secrets) |
 | I2 | Info | Dependency surface is one unmaintained 0.0.x dev package from an unofficial mirror, with a floating range in `package.json` | `package.json:10-12`, `package-lock.json:16-21` |
 
 ## Scope and method
@@ -180,9 +180,11 @@ The rule the audit applies: **every manifest field is attacker-controlled** (`RE
 - **What an attacker needs:** write access to the checkout before a maintainer runs the script.
 - **Proposed fix:** use the OS temp directory (`Join-Path ([System.IO.Path]::GetTempPath()) …` or `New-Item -ItemType Directory` under `$env:TEMP`), check `Get-Item … | Select-Object LinkType` and refuse reparse points, and scope the delete to files matching `*_*.hlsl|err|out`. (`tmp/` is already gitignored at `.gitignore:2`.)
 
-### I1 — No secrets in the repository or its history (Info)
+### I1 — No secrets in the repository or its full history (Info)
 
-Nothing to report as a secret: see the Secrets section for the commands run. There are no `.env`, key, token or credential files, no hardcoded keys in source/README/scripts, and `.git/config` holds an HTTPS remote URL with no embedded credential.
+Nothing to report as a secret: see the Secrets section for the commands run. The full, non-shallow history (157 commits; `git rev-parse --is-shallow-repository` prints `false`) was scanned with gitleaks v8.24.0 (157 commits, ~700 KB) and with the read-only `git log -p --all` keyword sweep; both found no secrets. There are no `.env`, key, token or credential files, no hardcoded keys in source/README/scripts, and `.git/config` holds an HTTPS remote URL with no embedded credential.
+
+**Correction:** the original run was on a shallow clone that exposed only one commit. This full-history rescan replaces that earlier coverage statement; it confirms the same conclusion — no secrets in the audited history.
 
 ### I2 — Dependency notes (Info)
 
@@ -213,8 +215,8 @@ One external dependency, no install scripts, signature verified — but it is an
 
 **No secret values were found, so none are described by value here.** Commands and coverage:
 
-- `gitleaks detect --source . --redact --no-banner --report-format json --report-path <path outside the repo> --exit-code 0` (v8.24.0): **1 commit scanned, ~260 KB, "no leaks found"** — covers working tree and history (`git log --all` shows exactly one commit, `dd199b8`).
-- Read-only `git log -p --all` (7 693 lines, whole history) grepped for `api[_-]?key`, `secret`, `token=`, `password`, `BEGIN … PRIVATE KEY`, `AKIA`, `ghp_`, `_authToken`, `npm auth`: no matches.
+- `gitleaks detect --source . --redact --no-banner --report-format json --report-path <path outside the repo> --exit-code 0` (v8.24.0): **157 commits scanned, ~700 KB, "no leaks found"** — covers the full, non-shallow history (`git rev-parse --is-shallow-repository` prints `false`; `git rev-list --count dd199b8` gives 157); the JSON report is `[]`.
+- Read-only `git log -p --all` (39 122 lines, 158 commits — the 157 audited commits plus this report's own commit) grepped for `api[_-]?key`, `secret`, `token=`, `password`, `BEGIN … PRIVATE KEY`, `AKIA`, `ghp_`, `_authToken`, `npm auth`: no secret matches (the only keyword hits are in this report's own text).
 - Manual keyword sweep over all tracked files (excluding `.git/`, `node_modules/`): no matches for `api[_-]?key`, `secret`, `token`, `password`, `passwd`, `credential`, `private key`, `BEGIN … PRIVATE KEY`, `AKIA…`, `ghp_`, `xox[baprs]-`.
 - `.git/config`: `[remote "origin"] url = https://github.com/catapultcase/JunctionRelay_Shaders` — HTTPS remote, **no embedded credential or token**; no `insteadOf` rewrites. `.git/hooks` contains only the default `*.sample` templates, so **no active local hooks** (nothing that could exfiltrate on commit/push).
 - No `.env`, `*.pem`, `*.key`, `*.p12`, `.npmrc`, `.netrc`, `id_rsa`, or CI credential file is tracked or present; `.gitignore` covers `node_modules/`, `tmp/`, `*.log`, `.DS_Store`. There is therefore no file/line/kind of secret to report.
